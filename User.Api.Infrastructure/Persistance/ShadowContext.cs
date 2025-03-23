@@ -4,12 +4,9 @@ using User.API.Common.Interfaces.Markers;
 
 namespace User.Api.Infrastructure.Persistance
 {
-    public abstract class ShadowContext : DbContext
+    public abstract class ShadowContext(ICurrentUserService userService, DbContextOptions options) : DbContext(options)
     {
-        private readonly string? _user;
-
-        public ShadowContext(ICurrentUserService userService, DbContextOptions options) : base(options)
-            => _user = userService.UserId;
+        private readonly string? _user = userService.UserId;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

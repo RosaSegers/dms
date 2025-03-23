@@ -1,4 +1,5 @@
 using User.Api.Features;
+using User.Api.Domain;
 using User.Api.Infrastructure;
 
 internal class Program
@@ -20,8 +21,10 @@ internal class Program
 
         builder.Services.AddControllers();
         builder.Services.AddHttpContextAccessor();
+
         builder.Services.AddApplication();
         builder.Services.AddInfrastructure();
+        builder.Services.AddValidation();
 
 
         var app = builder.Build();

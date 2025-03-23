@@ -1,10 +1,7 @@
 ﻿using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using User.Api.Common.Behaviour;
-using User.Api.Infrastructure.Persistance;
-using User.Api.Infrastructure.Services;
-using User.API.Common.Interfaces;
+using User.Api.Domain;
 
 namespace User.Api.Features
 {

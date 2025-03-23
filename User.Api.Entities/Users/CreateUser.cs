@@ -10,11 +10,13 @@ using MediatR;
 using FluentValidation;
 using User.Api.Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
+using User.API.Common.Constants;
 
 namespace User.Api.Features.Users
 {
     public class CreateUsersController() : ApiControllerBase
     {
+
         [HttpPost("/api/users")]
         public async Task<Guid> GetUsers([FromBody] CreateUserQuery query)
         {
@@ -28,27 +30,63 @@ namespace User.Api.Features.Users
 
     internal sealed class CreateUserQueryValidator : AbstractValidator<CreateUserQuery>
     {
-        private UserDatabaseContext _context;
+        private readonly UserDatabaseContext _context;
 
         public CreateUserQueryValidator(UserDatabaseContext context)
         {
             _context = context;
 
             RuleFor(user => user.username)
-                .MustAsync(BeUniqueUsername).WithMessage("Test");
+                .MustAsync(BeUniqueUsername).WithMessage(CreateUserQueryValidatorConstants.USERNAME_NOT_UNIQUE_STRING);
 
             RuleFor(user => user.email)
-                .MustAsync(BeUniqueEmail).WithMessage("Test");
+                .MustAsync(BeUniqueEmail).WithMessage(CreateUserQueryValidatorConstants.EMAIL_NOT_UNIQUE_STRING);
+
+            RuleFor(user => user.username)
+                .NotEmpty().WithMessage(CreateUserQueryValidatorConstants.USERNAME_REQUIRED_STRING)
+                .Length(CreateUserQueryValidatorConstants.USERNAME_MINIMUM_LENGTH, CreateUserQueryValidatorConstants.USERNAME_MAXIMUM_LENGTH)
+                .WithMessage(CreateUserQueryValidatorConstants.USERNAME_INVALID_LENGTH_STRING);
+
+            RuleFor(user => user.email)
+                .EmailAddress(FluentValidation.Validators.EmailValidationMode.AspNetCoreCompatible)
+                .WithMessage(CreateUserQueryValidatorConstants.EMAIL_INVALID_STRING)
+                .Length(CreateUserQueryValidatorConstants.EMAIL_MINIMUM_LENGTH, CreateUserQueryValidatorConstants.EMAIL_MAXIMUM_LENGTH)
+                .WithMessage(CreateUserQueryValidatorConstants.EMAIL_INVALID_LENGTH_STRING);
+
+            RuleFor(user => user.password)
+                .NotEmpty().WithMessage(CreateUserQueryValidatorConstants.PASSWORD_EMPTY_STRING)
+                .MinimumLength(12).WithMessage(CreateUserQueryValidatorConstants.PASSWORD_SHORT_STRING)
+                .Matches(@"[A-Z]+").WithMessage(CreateUserQueryValidatorConstants.PASSWORD_CONTAINS_CAPITAL_STRING)
+                .Matches(@"[a-z]+").WithMessage(CreateUserQueryValidatorConstants.PASSWORD_CONTAINS_LOWER_STRING);
         }
 
-        private Task<bool> BeUniqueUsername(string username, CancellationToken token) => _context.Users.AllAsync(x => x.Name != username);
+        private async Task<bool> BeUniqueUsername(string username, CancellationToken token) => !(await _context.Users.AnyAsync(x => x.Name == username, token));
 
-        private Task<bool> BeUniqueEmail(string email, CancellationToken token) => _context.Users.AllAsync(x => x.Email != email);
+        private async Task<bool> BeUniqueEmail(string email, CancellationToken token) => !(await _context.Users.AnyAsync(x => x.Email == email, token));
     }
 
     internal static class CreateUserQueryValidatorConstants
     {
+        public static string USERNAME_REQUIRED_STRING = "A username is required";
+        public static string USERNAME_INVALID_LENGTH_STRING = $"A username needs to be between {USERNAME_MINIMUM_LENGTH} and {USERNAME_MAXIMUM_LENGTH} characters.";
 
+        public static int USERNAME_MINIMUM_LENGTH = 4;
+        public static int USERNAME_MAXIMUM_LENGTH = 50;
+
+        public static string EMAIL_INVALID_STRING = "Supplied email is invalid";
+        public static string EMAIL_INVALID_LENGTH_STRING = $"An email needs to be between {EMAIL_MINIMUM_LENGTH} and {EMAIL_MAXIMUM_LENGTH} characters.";
+
+
+        public static int EMAIL_MINIMUM_LENGTH = 4;
+        public static int EMAIL_MAXIMUM_LENGTH = 100;
+
+        public static string PASSWORD_EMPTY_STRING = "A password is required";
+        public static string PASSWORD_SHORT_STRING = "Your password length must be at least 12.";
+        public static string PASSWORD_CONTAINS_CAPITAL_STRING = "Your password must contain at least one uppercase letter.";
+        public static string PASSWORD_CONTAINS_LOWER_STRING = "Your password must contain at least one lowercase letter.";
+
+        public static string USERNAME_NOT_UNIQUE_STRING = "Your username needs to be unique.";
+        public static string EMAIL_NOT_UNIQUE_STRING = "Your email needs to be unique.";
     }
 
     public sealed class CreateUserQueryHandler(UserDatabaseContext context) : IRequestHandler<CreateUserQuery, Guid>
@@ -59,8 +97,8 @@ namespace User.Api.Features.Users
         public async Task<Guid> Handle(CreateUserQuery request, CancellationToken cancellationToken)
         {
             var user = new Domain.Entities.User(request.username, request.email, request.password);
-            var x = await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+            await _context.Users.AddAsync(user, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
             return user.Id;
         }

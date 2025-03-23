@@ -1,12 +1,13 @@
 ﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 using User.API.Common.Constants;
 
 namespace User.Api.Domain
 {
-    public class UserConfiguration : AbstractValidator<Entities.User>
+    internal sealed class UserValidator : AbstractValidator<Entities.User>
     {
 
-        public UserConfiguration()
+        public UserValidator()
         {
             RuleFor(x => x.Id)
                 .NotEmpty();
@@ -30,4 +31,15 @@ namespace User.Api.Domain
                 .Matches(@"[a-z]+").WithMessage(UserConstants.PASSWORD_CONTAINS_LOWER_STRING);
         }
     }
+
+    public static class DependencyInjection
+    {
+        public static IServiceCollection AddValidation(this IServiceCollection services)
+        {
+            services.AddValidatorsFromAssemblyContaining<UserValidator>();
+
+            return services;
+        }
+    }
+
 }
