@@ -8,19 +8,23 @@ namespace User.Api.Infrastructure
 {
     public static class DependencyInjection
     {
-        public async static Task<IServiceCollection> AddInfrastructure(this IServiceCollection services)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
             services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             services.AddDbContext<UserDatabaseContext>(options =>
             {
+#if DEBUG
                 options.UseSqlServer("server=ROSAS_LAPTOP\\SQLEXPRESS;database=Users;trusted_connection=true;TrustServerCertificate=True;");
+#elif TEST
+                options.UseInMemoryDatabase("Users");
+#endif
             });
 
             using (var scope = services.BuildServiceProvider())
             {
                 var dataContext = scope.GetRequiredService<UserDatabaseContext>();
-                await UserDatabaseContextSeed.SeedSampleData(dataContext);
+                UserDatabaseContextSeed.SeedSampleData(dataContext);
             }
 
             return services;

@@ -20,7 +20,7 @@ namespace User.Api.Infrastructure.Persistance
 
         public override int SaveChanges()
         {
-            UpdateTrackingDates();
+            //UpdateTrackingDates();
             UpdateSoftDeleteProperties();
             if (_user != null)
                 UpdateUserData();
@@ -30,7 +30,7 @@ namespace User.Api.Infrastructure.Persistance
         public override Task<int> SaveChangesAsync(
             CancellationToken cancellationToken = new CancellationToken())
         {
-            UpdateTrackingDates();
+            //UpdateTrackingDates();
             UpdateSoftDeleteProperties();
             if (_user != null)
                 UpdateUserData();

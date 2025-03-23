@@ -18,11 +18,11 @@ internal class Program
                 });
         });
 
+        builder.Services.AddControllers();
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddApplication();
         builder.Services.AddInfrastructure();
 
-        builder.Services.AddControllers();
-        builder.Services.AddHttpContextAccessor();
 
         var app = builder.Build();
         app.UseHttpsRedirection();

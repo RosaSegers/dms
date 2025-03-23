@@ -5,6 +5,7 @@ namespace User.Api.Domain
 {
     public class UserConfiguration : AbstractValidator<Entities.User>
     {
+
         public UserConfiguration()
         {
             RuleFor(x => x.Id)

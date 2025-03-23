@@ -9,8 +9,8 @@
                     "Port": 5092
                 }
             ],
-            "UpstreamPathTemplate": "/weatherforecast",
-            "UpstreamHttpMethod": [ "Get" ]
+            "UpstreamPathTemplate": "/apigateway/users",
+            "UpstreamHttpMethod": [ "Get", "Post" ]
         }
     ],
     "GlobalConfiguration": {
