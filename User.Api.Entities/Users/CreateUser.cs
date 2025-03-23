@@ -11,6 +11,7 @@ using FluentValidation;
 using User.Api.Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using User.API.Common.Constants;
+using User.Api.Common.Interfaces;
 
 namespace User.Api.Features.Users
 {
@@ -89,14 +90,15 @@ namespace User.Api.Features.Users
         public static string EMAIL_NOT_UNIQUE_STRING = "Your email needs to be unique.";
     }
 
-    public sealed class CreateUserQueryHandler(UserDatabaseContext context) : IRequestHandler<CreateUserQuery, Guid>
+    public sealed class CreateUserQueryHandler(IHashingService hashingService, UserDatabaseContext context) : IRequestHandler<CreateUserQuery, Guid>
     {
         private readonly UserDatabaseContext _context = context;
 
 
         public async Task<Guid> Handle(CreateUserQuery request, CancellationToken cancellationToken)
         {
-            var user = new Domain.Entities.User(request.username, request.email, request.password);
+            //todo add password hashing
+            var user = new Domain.Entities.User(request.username, request.email, hashingService.Hash(request.password));
             await _context.Users.AddAsync(user, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
