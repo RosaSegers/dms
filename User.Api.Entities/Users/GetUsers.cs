@@ -1,9 +1,10 @@
-﻿using FluentValidation;
+﻿using ErrorOr;
+using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using User.Api.Infrastructure.Persistance;
 using User.API.Common;
-using User.API.Common.Enums;
 using User.API.Common.Mappers;
 using User.API.Common.Models;
 
@@ -13,16 +14,17 @@ namespace User.Api.Features.Users
     public class GetUsersController() : ApiControllerBase
     {
         [HttpGet("/api/users")]
-        public async Task<PaginatedList<Domain.Entities.User>> GetUsers([FromQuery] GetUsersWithPaginationQuery query)
+        public async Task<IResult> GetUsers([FromQuery] GetUsersWithPaginationQuery query)
         {
             var result = await Mediator.Send(query);
 
-            return result;
+            return result.Match(
+                id => Results.Ok(id), 
+                error => Results.BadRequest(error.First().Description));
         }
     }
 
-    public record UserResponse(PaginatedList<Domain.Entities.User> users, StatusCodes StatusCode);
-    public record GetUsersWithPaginationQuery(int PageNumber = 1, int PageSize = 10) : IRequest<PaginatedList<Domain.Entities.User>>;
+    public record GetUsersWithPaginationQuery(int PageNumber = 1, int PageSize = 10) : IRequest<ErrorOr<PaginatedList<Domain.Entities.User>>>;
 
     internal sealed class GetUsersWithPaginationQueryValidator : AbstractValidator<GetUsersWithPaginationQuery>
     {
@@ -42,12 +44,11 @@ namespace User.Api.Features.Users
         internal static string PAGESIZE_GREATER_THAN_STRING = "PageSize at least greater than or equal to 1.";
     }
 
-    public sealed class GetUserItemsWithPaginationQueryHandler(UserDatabaseContext context) : IRequestHandler<GetUsersWithPaginationQuery, PaginatedList<Domain.Entities.User>>
+    public sealed class GetUserItemsWithPaginationQueryHandler(UserDatabaseContext context) : IRequestHandler<GetUsersWithPaginationQuery, ErrorOr<PaginatedList<Domain.Entities.User>>>
     {
         private readonly UserDatabaseContext _context = context;
 
-
-        public async Task<PaginatedList<Domain.Entities.User>> Handle(GetUsersWithPaginationQuery request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<PaginatedList<Domain.Entities.User>>> Handle(GetUsersWithPaginationQuery request, CancellationToken cancellationToken)
         {
             var x = await _context.Users
                 .OrderBy(item => item.Name)

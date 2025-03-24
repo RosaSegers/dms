@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using ErrorOr;
+using FluentValidation;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,12 @@ namespace User.Api.Common.Behaviour
             if (validationRequest.IsValid)
                 return await next();
 
-            throw new InvalidDataException( validationRequest.Errors.First().ErrorMessage);
+            var errors = validationRequest.Errors
+                .ConvertAll(error => Error.Validation(
+                    code: error.PropertyName,
+                    description: error.ErrorMessage));
+
+            return (dynamic)errors;
         }
     }
 }
