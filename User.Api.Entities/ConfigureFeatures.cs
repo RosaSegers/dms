@@ -13,6 +13,7 @@ namespace User.Api.Features
             {
                 options.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
                 options.AddOpenBehavior(typeof(ValidationBehaviour<,>));
+                options.AddOpenBehavior(typeof(LoggingBehaviour<,>));
             });
 
             services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly, includeInternalTypes: true);
