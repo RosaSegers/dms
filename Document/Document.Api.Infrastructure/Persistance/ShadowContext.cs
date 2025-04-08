@@ -1,8 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using User.API.Common.Interfaces;
-using User.API.Common.Interfaces.Markers;
+﻿using Document.Api.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
-namespace User.Api.Infrastructure.Persistance
+namespace Document.Api.Infrastructure.Persistance
 {
     public abstract class ShadowContext(ICurrentUserService userService, DbContextOptions options) : DbContext(options)
     {

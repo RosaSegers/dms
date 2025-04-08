@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using User.Api.Common.Interfaces;
 using User.API.Common.Interfaces.Markers;
 
 namespace User.Api.Domain.Entities
