@@ -1,4 +1,3 @@
-using User.Api.Domain;
 using User.Api.Features;
 using User.Api.Infrastructure;
 
