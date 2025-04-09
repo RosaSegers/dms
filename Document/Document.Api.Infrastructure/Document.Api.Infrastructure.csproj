@@ -19,10 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Document.Api.Common\Document.Api.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Persistance\" />
+    <ProjectReference Include="..\Document.Api.Domain\Document.Api.Domain.csproj" />
   </ItemGroup>
 
 </Project>

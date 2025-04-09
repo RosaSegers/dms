@@ -33,6 +33,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Document.Api.Common", "Document\Document.Api.Common\Document.Api.Common.csproj", "{11D06F46-2842-4836-AB4F-3A811D9503FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Document.Api.Infrastructure", "Document\Document.Api.Infrastructure\Document.Api.Infrastructure.csproj", "{C553A0A1-9D0A-4FF3-8D7B-4C1377B7FD71}"
+	ProjectSection(ProjectDependencies) = postProject
+		{50315D84-725C-4CE8-BEAD-AAA0ED3EEE05} = {50315D84-725C-4CE8-BEAD-AAA0ED3EEE05}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Document.Api.Domain", "Document\Document.Api.Domain\Document.Api.Domain.csproj", "{50315D84-725C-4CE8-BEAD-AAA0ED3EEE05}"
 EndProject
