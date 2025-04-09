@@ -1,9 +1,8 @@
-﻿using FluentValidation;
+﻿using Document.Api.Common.Behaviour;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using User.Api.Common.Behaviour;
-using User.Api.Domain;
 
-namespace User.Api.Features
+namespace Document.Api.Features
 {
     public static class DependencyInjection
     {

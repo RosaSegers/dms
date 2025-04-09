@@ -12,14 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="11.11.0" />
-    <PackageReference Include="MediatR" Version="12.4.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <ProjectReference Include="..\Document.Api.Common\Document.Api.Common.csproj" />
+    <ProjectReference Include="..\Document.Api.Entities\Document.Api.Features.csproj" />
+    <ProjectReference Include="..\Document.Api.Infrastructure\Document.Api.Infrastructure.csproj" />
   </ItemGroup>
-
 </Project>

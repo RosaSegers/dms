@@ -30,12 +30,6 @@ namespace User.Api.Test
         }
 
         [Fact]
-        public void Validate()
-        {
-            Assert.True(true);
-        }
-
-        [Fact]
         public async Task Handle_Should_ReturnTenRecords_WhenPaginationIsNotSet()
         {
             // Arrange

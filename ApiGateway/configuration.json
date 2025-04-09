@@ -11,6 +11,18 @@
             ],
             "UpstreamPathTemplate": "/apigateway/users",
             "UpstreamHttpMethod": [ "Get", "Post" ]
+        },
+        {
+            "DownstreamPathTemplate": "/api/documents",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5093
+                }
+            ],
+            "UpstreamPathTemplate": "/apigateway/documents",
+            "UpstreamHttpMethod": [ "Get", "Post" ]
         }
     ],
     "GlobalConfiguration": {

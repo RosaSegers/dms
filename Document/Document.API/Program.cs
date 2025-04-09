@@ -1,5 +1,5 @@
-using User.Api.Features;
-using User.Api.Infrastructure;
+using Document.Api.Features;
+using Document.Api.Infrastructure;
 
 internal class Program
 {
@@ -23,7 +23,7 @@ internal class Program
 
         builder.Services.AddApplication();
         builder.Services.AddInfrastructure();
-        builder.Services.AddValidation();
+        //builder.Services.AddValidation();
 
 
         var app = builder.Build();
