@@ -133,4 +133,4 @@ jobs:
         run: dotnet restore DocumentManagementSystem.sln
 
       - name: Run Snyk Test (All .NET Projects)
-        run: snyk test --all-projects --detection-depth=5 --project-type=dotnet --token=${{ SNYK_TOKEN }}
+        run: snyk test --all-projects --detection-depth=5 --project-type=dotnet --token=${{ secret.SNYK_TOKEN }}
