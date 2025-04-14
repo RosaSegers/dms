@@ -51,9 +51,9 @@ jobs:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
       - name: Build
         run: |
-          cd Document/Document.Api
-          dotnet restore Document.Api.csproj
-          dotnet build --configuration Release Document.Api.csproj
+          cd Document/Document.API
+          dotnet restore Document.API.csproj
+          dotnet build --configuration Release Document.API.csproj
 
   build-user-api:
     name: Build User API
@@ -67,9 +67,9 @@ jobs:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
       - name: Build
         run: |
-          cd User/User.Api
-          dotnet restore User.Api.csproj
-          dotnet build --configuration Release User.Api.csproj
+          cd User/User.API
+          dotnet restore User.API.csproj
+          dotnet build --configuration Release User.API.csproj
 
   test-document-api:
     name: Test Document API
@@ -83,13 +83,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
       - name: Run Tests
         run: |
-          cd Document/Document.Api
-          dotnet test Document.Api.csproj --logger:"trx" --results-directory "TestResults" --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura
+          cd Document/Document.API
+          dotnet test Document.API.csproj --logger:"trx" --results-directory "TestResults" --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
           name: document-api-test-results
-          path: Document/Document.Api/TestResults
+          path: Document/Document.API/TestResults
 
   test-user-api:
     name: Test User API
@@ -103,13 +103,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
       - name: Run Tests
         run: |
-          cd User/User.Api
-          dotnet test User.Api.csproj --logger:"trx" --results-directory "TestResults" --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura
+          cd User/User.API
+          dotnet test User.API.csproj --logger:"trx" --results-directory "TestResults" --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
           name: user-api-test-results
-          path: User/User.Api/TestResults
+          path: User/User.API/TestResults
 
   snyk-scan:
     name: Snyk Security Scan (.NET Projects)
