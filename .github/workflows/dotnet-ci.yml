@@ -127,7 +127,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
 
       - name: Validate Snyk Token
-        if: ${{ !secrets.SNYK_TOKEN }}
+        if: ${{ secrets.SNYK_TOKEN == '' }}
         run: |
           echo "❌ SNYK_TOKEN secret is missing!" && exit 1
 
