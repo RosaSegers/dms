@@ -114,7 +114,7 @@ jobs:
   snyk-api-gateway:
     name: Snyk Scan - API Gateway
     runs-on: ubuntu-latest
-    needs: test-api-gateway
+    needs: build-api-gateway
     steps:
       - uses: actions/checkout@v3
       - name: Install Snyk
