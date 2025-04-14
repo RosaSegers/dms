@@ -1,0 +1,174 @@
+name: .NET CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  DOTNET_CORE_VERSION: '8.0'
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+jobs:
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+
+      - name: Install Sonar Scanner and Coverlet
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget unzip
+          wget https://packages.sonarsource.com/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
+          unzip sonar-scanner-cli-4.6.2.2472-linux.zip
+          echo "$(pwd)/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_PATH
+          dotnet tool install --global coverlet.console
+
+  build-api-gateway:
+    name: Build API Gateway
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Build
+        run: |
+          cd ApiGateway
+          dotnet restore ApiGateway.csproj
+          dotnet build --configuration Release ApiGateway.csproj
+
+  build-document-api:
+    name: Build Document API
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Build
+        run: |
+          cd Document/Document.Api
+          dotnet restore Document.Api.csproj
+          dotnet build --configuration Release Document.Api.csproj
+
+  build-user-api:
+    name: Build User API
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Build
+        run: |
+          cd User/User.Api
+          dotnet restore User.Api.csproj
+          dotnet build --configuration Release User.Api.csproj
+
+  test-api-gateway:
+    name: Test API Gateway
+    runs-on: ubuntu-latest
+    needs: build-api-gateway
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Run Tests
+        run: |
+          cd ApiGateway
+          dotnet test ApiGateway.csproj --logger:"trx" --results-directory "TestResults" --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-gateway-test-results
+          path: ApiGateway/TestResults
+
+  test-document-api:
+    name: Test Document API
+    runs-on: ubuntu-latest
+    needs: build-document-api
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Run Tests
+        run: |
+          cd Document/Document.Api
+          dotnet test Document.Api.csproj --logger:"trx" --results-directory "TestResults" --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: document-api-test-results
+          path: Document/Document.Api/TestResults
+
+  test-user-api:
+    name: Test User API
+    runs-on: ubuntu-latest
+    needs: build-user-api
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Run Tests
+        run: |
+          cd User/User.Api
+          dotnet test User.Api.csproj --logger:"trx" --results-directory "TestResults" --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: user-api-test-results
+          path: User/User.Api/TestResults
+
+  snyk-api-gateway:
+    name: Snyk Scan - API Gateway
+    runs-on: ubuntu-latest
+    needs: test-api-gateway
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Snyk
+        run: npm install -g snyk
+      - name: Run Snyk Test
+        run: snyk test --all-projects --token=${{ secrets.SNYK_TOKEN }} --path=ApiGateway
+
+  snyk-document-api:
+    name: Snyk Scan - Document API
+    runs-on: ubuntu-latest
+    needs: test-document-api
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Snyk
+        run: npm install -g snyk
+      - name: Run Snyk Test
+        run: snyk test --all-projects --token=${{ secrets.SNYK_TOKEN }} --path=Document
+
+  snyk-user-api:
+    name: Snyk Scan - User API
+    runs-on: ubuntu-latest
+    needs: test-user-api
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Snyk
+        run: npm install -g snyk
+      - name: Run Snyk Test
+        run: snyk test --all-projects --token=${{ secrets.SNYK_TOKEN }} --path=User
