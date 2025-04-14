@@ -120,7 +120,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Setup .NET
-        uses: actions/setup-dotnet@4
+        uses: actions/setup-dotnet@v3  # Use v3 instead of v4
       - name: Restore dependencies
         run: dotnet restore ./path/to/your.sln
       - name: Run Snyk to check for vulnerabilities
