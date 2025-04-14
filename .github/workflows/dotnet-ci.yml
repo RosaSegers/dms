@@ -119,12 +119,17 @@ jobs:
       - test-user-api
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+
+      - name: Validate Snyk Token
+        if: ${{ !secrets.SNYK_TOKEN }}
+        run: |
+          echo "❌ SNYK_TOKEN secret is missing!" && exit 1
 
       - name: Install Snyk CLI
         run: npm install -g snyk
@@ -133,4 +138,4 @@ jobs:
         run: dotnet restore DocumentManagementSystem.sln
 
       - name: Run Snyk Test (All .NET Projects)
-        run: snyk test --all-projects --detection-depth=4 --project-type=dotnet --token=${{ secrets.SNYK_TOKEN }}
+        run: snyk test --all-projects --detection-depth=5 --project-type=dotnet --token=${{ secrets.SNYK_TOKEN }}
