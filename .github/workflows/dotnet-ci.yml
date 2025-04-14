@@ -127,9 +127,11 @@ jobs:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
 
       - name: Validate Snyk Token
-        if: ${{ secrets.SNYK_TOKEN == '' }}
         run: |
-          echo "❌ SNYK_TOKEN secret is missing!" && exit 1
+          if [ -z "${{ secrets.SNYK_TOKEN }}" ]; then
+            echo "❌ SNYK_TOKEN secret is missing!"
+            exit 1
+          fi
 
       - name: Install Snyk CLI
         run: npm install -g snyk
