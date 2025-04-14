@@ -111,26 +111,26 @@ jobs:
           name: user-api-test-results
           path: User/User.Api/TestResults
 
-snyk-scan:
-  name: Snyk Security Scan (.NET Projects)
-  runs-on: ubuntu-latest
-  needs:
-    - test-document-api
-    - test-user-api
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+  snyk-scan:
+    name: Snyk Security Scan (.NET Projects)
+    runs-on: ubuntu-latest
+    needs:
+      - test-document-api
+      - test-user-api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
 
-    - name: Install Snyk CLI
-      run: npm install -g snyk
+      - name: Install Snyk CLI
+        run: npm install -g snyk
 
-    - name: Restore .NET Solution
-      run: dotnet restore DocumentManagementSystem.sln
+      - name: Restore .NET Solution
+        run: dotnet restore DocumentManagementSystem.sln
 
-    - name: Run Snyk Test (All .NET Projects)
-      run: snyk test --all-projects --detection-depth=4 --project-type=dotnet --token=${{ secrets.SNYK_TOKEN }}
+      - name: Run Snyk Test (All .NET Projects)
+        run: snyk test --all-projects --detection-depth=4 --project-type=dotnet --token=${{ secrets.SNYK_TOKEN }}
