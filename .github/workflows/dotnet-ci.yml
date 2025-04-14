@@ -111,6 +111,7 @@ jobs:
           name: user-api-test-results
           path: User/User.API/TestResults
 
+
   snyk-scan:
     name: Snyk Security Scan (.NET Projects)
     runs-on: ubuntu-latest
@@ -118,14 +119,29 @@ jobs:
       - test-document-api
       - test-user-api
     steps:
-      - uses: actions/checkout@master
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3  # Use v3 instead of v4
-      - name: Restore dependencies
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Restore .NET Solution
         run: dotnet restore DocumentManagementSystem.sln
+
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/dotnet@master
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: test DocumentManagementSystem.sln
+          args: --sarif-file-output=snyk.sarif
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
