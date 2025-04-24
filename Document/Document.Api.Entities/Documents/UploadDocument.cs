@@ -28,16 +28,19 @@ namespace Document.Api.Features.Documents
     internal sealed class UploadDocumentQueryValidator : AbstractValidator<UploadDocumentQuery>
     {
         private readonly IVirusScanner _scanner;
+        private readonly DocumentStorage _storage;
 
-        public UploadDocumentQueryValidator(IVirusScanner scanner)
+        public UploadDocumentQueryValidator(IVirusScanner scanner, DocumentStorage storage)
         {
             _scanner = scanner;
+            _storage = storage;
 
             RuleFor(x => x.File)
-                .MustAsync(IsNotVirus).WithMessage(UploadDocumentQueryValidatorConstants.MALICIOUS_FILE);
+                .MustAsync(NotBeVirus).WithMessage(UploadDocumentQueryValidatorConstants.MALICIOUS_FILE);
         }
 
-        private async Task<bool> IsNotVirus(IFormFile file, CancellationToken token) => (await _scanner.ScanFile(file));
+        // add file unique checks
+        private async Task<bool> NotBeVirus(IFormFile file, CancellationToken token) => (await _scanner.ScanFile(file));
     }
 
     internal static class UploadDocumentQueryValidatorConstants
