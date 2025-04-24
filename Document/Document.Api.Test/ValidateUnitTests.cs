@@ -1,4 +1,4 @@
-namespace User.Api.Test
+namespace Document.Api.Test
 {
     public class ValidateUnitTests
     {

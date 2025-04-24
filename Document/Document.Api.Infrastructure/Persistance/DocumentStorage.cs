@@ -3,7 +3,7 @@ using Document.Api.Domain.Events;
 
 namespace Document.Api.Infrastructure.Persistance
 {
-    public class DocumentStorage
+    public class DocumentStorage : IDocumentStorage
     {
         private List<IDocumentEvent> documentList = new List<IDocumentEvent>();
 

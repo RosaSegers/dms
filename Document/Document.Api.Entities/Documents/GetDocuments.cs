@@ -40,9 +40,9 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class GetDocumentQueryHandler(DocumentStorage storage) : IRequestHandler<GetDocumentQuery, ErrorOr<List<Domain.Entities.Document>>>
+    public sealed class GetDocumentQueryHandler(IDocumentStorage storage) : IRequestHandler<GetDocumentQuery, ErrorOr<List<Domain.Entities.Document>>>
     {
-        private readonly DocumentStorage _storage = storage;
+        private readonly IDocumentStorage _storage = storage;
         public async Task<ErrorOr<List<Domain.Entities.Document>>> Handle(GetDocumentQuery request, CancellationToken cancellationToken)
         {
             var documents = new List<Domain.Entities.Document>();

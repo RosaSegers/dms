@@ -33,9 +33,9 @@ namespace Document.Api.Features.Documents
     internal sealed class UpdateDocumentQueryValidator : AbstractValidator<UpdateDocumentQuery>
     {
         private readonly IVirusScanner _scanner;
-        private readonly DocumentStorage _storage;
+        private readonly IDocumentStorage _storage;
 
-        public UpdateDocumentQueryValidator(IVirusScanner scanner, DocumentStorage storage)
+        public UpdateDocumentQueryValidator(IVirusScanner scanner, IDocumentStorage storage)
         {
             _scanner = scanner;
             _storage = storage;
@@ -59,9 +59,9 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class UpdateDocumentQueryHandler(DocumentStorage storage) : IRequestHandler<UpdateDocumentQuery, ErrorOr<Guid>>
+    public sealed class UpdateDocumentQueryHandler(IDocumentStorage storage) : IRequestHandler<UpdateDocumentQuery, ErrorOr<Guid>>
     {
-        private readonly DocumentStorage _storage = storage;
+        private readonly IDocumentStorage _storage = storage;
         public async Task<ErrorOr<Guid>> Handle(UpdateDocumentQuery request, CancellationToken cancellationToken)
         {
             var e = new DocumentUpdatedEvent(request.Id, request.Name, request.Description, request.File, "");
