@@ -12,7 +12,7 @@ namespace Document.Api.Infrastructure
         {
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IVirusScanner, VirusScanner>();
-            services.AddSingleton<DocumentStorage>();
+            services.AddSingleton<IDocumentStorage, DocumentStorage>();
 
             return services;
         }

@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"  # or the folder containing your .csproj
+    schedule:
+      interval: "weekly"
