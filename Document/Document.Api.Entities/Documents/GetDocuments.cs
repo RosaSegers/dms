@@ -6,6 +6,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 
 namespace Document.Api.Features.Documents
 {
@@ -44,7 +45,19 @@ namespace Document.Api.Features.Documents
         private readonly DocumentStorage _storage = storage;
         public async Task<ErrorOr<List<Domain.Entities.Document>>> Handle(GetDocumentQuery request, CancellationToken cancellationToken)
         {
-            return _storage.GetDocumentList();
+            var documents = new List<Domain.Entities.Document>();
+            var events = (await _storage.GetDocumentList()).GroupBy(e => e.Id).ToList();
+
+            foreach (var group in events) 
+            {
+                var doc = new Domain.Entities.Document();
+                foreach (var e in group.OrderBy(e => e.OccurredAt))
+                    doc.Apply(e);
+
+                documents.Add(doc);
+            }
+
+            return documents;
         }
     }
 }

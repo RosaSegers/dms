@@ -1,16 +1,18 @@
-﻿namespace Document.Api.Infrastructure.Persistance
+﻿using Document.Api.Domain.Events;
+
+namespace Document.Api.Infrastructure.Persistance
 {
     public class DocumentStorage
     {
-        private List<Domain.Entities.Document> documentList = new List<Domain.Entities.Document>();
+        private List<DocumentUploadedEvent> documentList = new List<DocumentUploadedEvent>();
 
-        public bool AddDocument(Domain.Entities.Document document)
+        public async Task<bool> AddDocument(DocumentUploadedEvent document)
         {
             documentList.Add(document);
             return true;
         }
 
-        public List<Domain.Entities.Document> GetDocumentList()
+        public async Task<List<DocumentUploadedEvent>> GetDocumentList()
         {
             return documentList;
         }

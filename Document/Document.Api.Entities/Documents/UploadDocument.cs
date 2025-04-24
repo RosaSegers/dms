@@ -1,5 +1,6 @@
 ﻿using Document.Api.Common;
 using Document.Api.Common.Interfaces;
+using Document.Api.Domain.Events;
 using Document.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
@@ -50,9 +51,11 @@ namespace Document.Api.Features.Documents
         private readonly DocumentStorage _storage = storage;
         public async Task<ErrorOr<Guid>> Handle(UploadDocumentQuery request, CancellationToken cancellationToken)
         {
-            if(_storage.AddDocument(new Domain.Entities.Document(request.Name, request.Description, request.File.FileName)))
-                return Guid.NewGuid();
-            return Error.Failure("something went wrong");
+            var e = new DocumentUploadedEvent(request.Name, request.Description, request.File, "");
+
+            if(await _storage.AddDocument(e))
+                return e.Id;
+            return Error.Failure("something went wrong trying so save the file.");
         }
     }
 }
