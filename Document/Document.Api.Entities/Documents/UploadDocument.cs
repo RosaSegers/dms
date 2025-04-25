@@ -18,7 +18,7 @@ namespace Document.Api.Features.Documents
             var result = await Mediator.Send(query);
 
             return result.Match(
-                id => Results.Ok(id),
+                id => Results.Created("/api/documents", id),
                 error => Results.BadRequest(error.First().Description));
         }
     }
@@ -39,7 +39,6 @@ namespace Document.Api.Features.Documents
                 .MustAsync(NotBeVirus).WithMessage(UploadDocumentQueryValidatorConstants.MALICIOUS_FILE);
         }
 
-        // add file unique checks
         private async Task<bool> NotBeVirus(IFormFile file, CancellationToken token) => (await _scanner.ScanFile(file));
     }
 

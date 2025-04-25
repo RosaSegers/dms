@@ -17,13 +17,13 @@ namespace Document.Api.Features.Documents
 {
     public class DeleteDocumentsController() : ApiControllerBase
     {
-        [HttpDelete("/api/documents")]
-        public async Task<IResult> UploadDocument([FromForm] DeleteDocumentQuery query)
+        [HttpDelete("/api/documents/{id:guid}")]
+        public async Task<IResult> UploadDocument([FromRoute] DeleteDocumentQuery query)
         {
             var result = await Mediator.Send(query);
 
             return result.Match(
-                id => Results.Ok(id),
+                id => Results.NoContent(),
                 error => Results.BadRequest(error.First().Description));
         }
     }

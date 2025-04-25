@@ -10,12 +10,12 @@ namespace Document.Api.Test
     public class GetDocumentQueryHandlerTest
     {
         private readonly Mock<IDocumentStorage> _storageMock;
-        private readonly GetDocumentQueryHandler _handler;
+        private readonly GetDocumentsWithPaginationQueryHandler _handler;
 
         public GetDocumentQueryHandlerTest()
         {
             _storageMock = new();
-            _handler = new GetDocumentQueryHandler(_storageMock.Object);
+            _handler = new GetDocumentsWithPaginationQueryHandler(_storageMock.Object);
         }
 
         [Fact]
@@ -26,14 +26,14 @@ namespace Document.Api.Test
                 .Setup(s => s.GetDocumentList())
                 .ReturnsAsync(new List<IDocumentEvent>());
 
-            var query = new GetDocumentQuery();
+            var query = new GetDocumentsWithPaginationQuery();
 
             // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
             Assert.False(result.IsError);
-            Assert.Empty(result.Value);
+            Assert.Empty(result.Value.Items);
         }
 
         [Fact]
@@ -52,14 +52,14 @@ namespace Document.Api.Test
                 .Setup(s => s.GetDocumentList())
                 .ReturnsAsync(events);
 
-            var query = new GetDocumentQuery();
+            var query = new GetDocumentsWithPaginationQuery();
 
             // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
             Assert.False(result.IsError);
-            Assert.Single(result.Value);
+            Assert.Single(result.Value.Items);
         }
 
         [Fact]
@@ -81,14 +81,14 @@ namespace Document.Api.Test
                 .Setup(s => s.GetDocumentList())
                 .ReturnsAsync(events);
 
-            var query = new GetDocumentQuery();
+            var query = new GetDocumentsWithPaginationQuery();
 
             // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
             Assert.False(result.IsError);
-            Assert.Equal(2, result.Value.Count);
+            Assert.Equal(2, result.Value.TotalCount);
         }
 
         // Dummy test implementation of IDocumentEvent

@@ -1,30 +1,42 @@
 {
-    "Routes": [
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/users",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
         {
-            "DownstreamPathTemplate": "/api/users",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 5092
-                }
-            ],
-            "UpstreamPathTemplate": "/apigateway/users",
-            "UpstreamHttpMethod": [ "Get", "Post" ]
-        },
-        {
-            "DownstreamPathTemplate": "/api/documents",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 5093
-                }
-            ],
-            "UpstreamPathTemplate": "/apigateway/documents",
-            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+          "Host": "localhost",
+          "Port": 5092
         }
-    ],
+      ],
+      "UpstreamPathTemplate": "/apigateway/users",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/documents",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5093
+        }
+      ],
+      "UpstreamPathTemplate": "/apigateway/documents",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/documents/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5093
+        }
+      ],
+      "UpstreamPathTemplate": "/apigateway/documents/{id}",
+      "UpstreamHttpMethod": [ "Get", "Put", "Delete" ]
+    }
+  ],
     "GlobalConfiguration": {
         "BaseUrl": "http://localhost:5285"
     }

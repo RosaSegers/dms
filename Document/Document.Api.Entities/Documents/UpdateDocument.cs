@@ -17,13 +17,18 @@ namespace Document.Api.Features.Documents
 {
     public class UpdateDocumentsController() : ApiControllerBase
     {
-        [HttpPut("/api/documents")]
-        public async Task<IResult> UploadDocument([FromForm] UpdateDocumentQuery query)
+        [HttpPut("/api/documents/{id:guid}")]
+        public async Task<IResult> UploadDocument(
+            [FromRoute] Guid id,
+            [FromForm] string name,
+            [FromForm] string description,
+            [FromForm] IFormFile file)
         {
+            var query = new UpdateDocumentQuery(id, name, description, file);
             var result = await Mediator.Send(query);
 
             return result.Match(
-                id => Results.Ok(id),
+                id => Results.NoContent(),
                 error => Results.BadRequest(error.First().Description));
         }
     }
