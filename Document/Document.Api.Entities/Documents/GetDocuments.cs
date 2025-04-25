@@ -1,11 +1,15 @@
 ﻿using Document.Api.Common;
+using Document.Api.Common.Constants;
 using Document.Api.Common.Interfaces;
 using Document.Api.Common.Models;
+using Document.Api.Domain.Events;
+using Document.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Document.Api.Features.Documents
 {
@@ -22,7 +26,7 @@ namespace Document.Api.Features.Documents
         }
     }
 
-    public record GetDocumentsWithPaginationQuery(int PageNumber = 1, int PageSize = 10) : IRequest<ErrorOr<PaginatedList<Domain.Entities.Document>>>;
+    public record GetDocumentsWithPaginationQuery(int PageNumber = 1, int PageSize = 10, bool IsDeleted = false) : IRequest<ErrorOr<PaginatedList<Domain.Entities.Document>>>;
 
     internal sealed class GetDocumentsWithPaginationQueryValidator : AbstractValidator<GetDocumentsWithPaginationQuery>
     {
@@ -43,16 +47,27 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class GetDocumentsWithPaginationQueryHandler(IDocumentStorage storage) : IRequestHandler<GetDocumentsWithPaginationQuery, ErrorOr<PaginatedList<Domain.Entities.Document>>>
+    public sealed class GetDocumentsWithPaginationQueryHandler(IDocumentStorage storage, CacheService cache) : IRequestHandler<GetDocumentsWithPaginationQuery, ErrorOr<PaginatedList<Domain.Entities.Document>>>
     {
         private readonly IDocumentStorage _storage = storage;
+        private readonly CacheService _cache = cache;
+
         public async Task<ErrorOr<PaginatedList<Domain.Entities.Document>>> Handle(GetDocumentsWithPaginationQuery request, CancellationToken cancellationToken)
         {
+            var cacheKey = CacheKeys.GetDocumentsCacheKey(request.PageNumber, request.PageSize, request.IsDeleted);
+            if (_cache.TryGetCache(cacheKey, out object cachedDocuments))
+            {
+                return (PaginatedList<Domain.Entities.Document>?)cachedDocuments??new PaginatedList<Domain.Entities.Document>(new List<Domain.Entities.Document>(), 0, request.PageNumber, request.PageSize);
+            }
+
             var documents = new List<Domain.Entities.Document>();
             var events = (await _storage.GetDocumentList()).GroupBy(e => e.Id).ToList();
 
             foreach (var group in events) 
             {
+                if (group.Any(x => x.GetType() == typeof(DocumentDeletedEvent)) && !request.IsDeleted)
+                    continue;
+
                 var doc = new Domain.Entities.Document();
                 foreach (var e in group.OrderBy(e => e.OccurredAt))
                     doc.Apply(e);
@@ -64,8 +79,11 @@ namespace Document.Api.Features.Documents
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToList();
+            var paginatedQuery = new PaginatedList<Domain.Entities.Document>(paginatedDocuments, documents.Count, request.PageNumber, request.PageSize);
 
-            return new PaginatedList<Domain.Entities.Document>(paginatedDocuments, documents.Count, request.PageNumber, request.PageSize);
+            _cache.SetCache(cacheKey, paginatedQuery);
+
+            return paginatedQuery;
         }
     }
 }

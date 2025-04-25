@@ -10,6 +10,9 @@ namespace Document.Api.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
+            services.AddMemoryCache();
+            services.AddSingleton<CacheService>();
+
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IVirusScanner, VirusScanner>();
             services.AddSingleton<IDocumentStorage, DocumentStorage>();
