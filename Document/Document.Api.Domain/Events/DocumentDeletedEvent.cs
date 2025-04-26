@@ -7,7 +7,9 @@ namespace Document.Api.Domain.Events
 
         public Guid Id { get; set; }
         public DateTime OccurredAt { get; set; }
+        public float? Version { get; set; } = null;
         public Guid DeletedByUserId { get; set; }
+
 
         public DocumentDeletedEvent(Guid id, Guid deletedByUserId)
         {

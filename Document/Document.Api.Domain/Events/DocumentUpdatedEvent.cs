@@ -12,6 +12,7 @@ namespace Document.Api.Domain.Events
     {
         public Guid Id { get; set; }
         public DateTime OccurredAt { get; set; }
+        public float? Version { get; set; }
         public string? NewDocumentName { get; set; }
         public string? NewDocumentDescription { get; set; }
         public string? NewFileName { get; set; }
@@ -21,7 +22,7 @@ namespace Document.Api.Domain.Events
         public string[] UpdatedTags { get; set; } = Array.Empty<string>();
         public Guid UpdatedByUserId { get; set; } = default!;
 
-        public DocumentUpdatedEvent(Guid id, string name, string description, IFormFile file, string fileUrl, Guid? userId = null, string[]? tags = null)
+        public DocumentUpdatedEvent(Guid id, string name, string description, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
         {
             Id = id;
             OccurredAt = DateTime.UtcNow;
@@ -31,8 +32,9 @@ namespace Document.Api.Domain.Events
             NewContentType = file.ContentType;
             NewFileSize = file.Length;
             NewFileUrl = fileUrl;
-            UpdatedByUserId = userId??Guid.Empty;
+            UpdatedByUserId = userId;
             UpdatedTags = tags;
+            Version = version;
         }
     }
 }

@@ -6,6 +6,7 @@ namespace Document.Api.Domain.Events
     public class DocumentUploadedEvent : IDocumentEvent
     {
         public Guid Id { get; set; }
+        public float? Version { get; set; }
         public string DocumentName { get; set; }
         public string DocumentDescription { get; set; }
         public string FileName { get; set; }
@@ -16,7 +17,7 @@ namespace Document.Api.Domain.Events
         public DateTime OccurredAt { get; set; }
         public string[]? Tags { get; set; }
 
-        public DocumentUploadedEvent(string documentName, string documentDescription, IFormFile file, string fileUrl, Guid? userId = null, string[]? tags = null)
+        public DocumentUploadedEvent(string documentName, string documentDescription, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
         {
             Id = Guid.NewGuid();
             DocumentName = documentName;
@@ -25,9 +26,10 @@ namespace Document.Api.Domain.Events
             FileUrl = fileUrl;
             ContentType = file.ContentType;
             FileSize = file.Length;
-            UploadedByUserId = userId??Guid.Empty;
+            UploadedByUserId = userId;
             OccurredAt = DateTime.UtcNow;
             Tags = tags;
+            Version = version;
         }
 
     }

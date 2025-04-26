@@ -22,9 +22,10 @@ namespace Document.Api.Features.Documents
             [FromRoute] Guid id,
             [FromForm] string name,
             [FromForm] string description,
+            [FromForm] float version,
             [FromForm] IFormFile file)
         {
-            var query = new UpdateDocumentQuery(id, name, description, file);
+            var query = new UpdateDocumentQuery(id, name, description, version, file);
             var result = await Mediator.Send(query);
 
             return result.Match(
@@ -33,7 +34,7 @@ namespace Document.Api.Features.Documents
         }
     }
 
-    public record UpdateDocumentQuery(Guid Id, string Name, string Description, IFormFile File) : IRequest<ErrorOr<Guid>>;
+    public record UpdateDocumentQuery(Guid Id, string Name, string Description, float Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
 
     internal sealed class UpdateDocumentQueryValidator : AbstractValidator<UpdateDocumentQuery>
     {
@@ -64,12 +65,14 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class UpdateDocumentQueryHandler(IDocumentStorage storage) : IRequestHandler<UpdateDocumentQuery, ErrorOr<Guid>>
+    public sealed class UpdateDocumentQueryHandler(IDocumentStorage storage, ICurrentUserService userService) : IRequestHandler<UpdateDocumentQuery, ErrorOr<Guid>>
     {
         private readonly IDocumentStorage _storage = storage;
+        private readonly ICurrentUserService _userService = userService;
+
         public async Task<ErrorOr<Guid>> Handle(UpdateDocumentQuery request, CancellationToken cancellationToken)
         {
-            var e = new DocumentUpdatedEvent(request.Id, request.Name, request.Description, request.File, "");
+            var e = new DocumentUpdatedEvent(request.Id, request.Name, request.Description, request.Version, request.File, "", _userService.UserId);
 
             if (await _storage.AddDocument(e))
                 return e.Id;

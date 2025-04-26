@@ -8,11 +8,11 @@ namespace Document.Api.Domain.Entities
         public Guid Id { get; set; }
         public string Name { get; set; } = default!;
         public string Description { get; set; } = default!;
+        public float? Version { get; set; }
         public string FileUrl { get; set; } = default!;
         public string ContentType { get; set; } = default!;
         public long FileSize { get; set; }
-        public Guid CreatedByUserId { get; set; }
-        public Guid UpdatedByUserId { get; set; }
+        public Guid ChangedByUserId { get; set; }
         public DateTime UploadedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string[]? Tags { get; set; }
@@ -31,9 +31,9 @@ namespace Document.Api.Domain.Entities
                 case DocumentDeletedEvent evt:
                     Apply(evt);
                     break;
-                    //case DocumentVersionRevertedEvent evt:
-                    //    Apply(evt);
-                    //    break;
+                case DocumentRolebackEvent evt:
+                    Apply(evt);
+                    break;
             }
         }
 
@@ -45,9 +45,10 @@ namespace Document.Api.Domain.Entities
             FileUrl = e.FileUrl;
             ContentType = e.ContentType;
             FileSize = e.FileSize;
-            UpdatedByUserId = e.UploadedByUserId;
+            ChangedByUserId = e.UploadedByUserId;
             UploadedAt = e.OccurredAt;
             Tags = e.Tags;
+            Version = e.Version;
         }
 
         private void Apply(DocumentUpdatedEvent e)
@@ -71,7 +72,8 @@ namespace Document.Api.Domain.Entities
                 Tags = e.UpdatedTags;
 
             UpdatedAt = e.OccurredAt;
-            UpdatedByUserId = e.UpdatedByUserId;
+            ChangedByUserId = e.UpdatedByUserId;
+            Version = e.Version;
         }
 
         private void Apply(DocumentDeletedEvent e)
@@ -79,7 +81,31 @@ namespace Document.Api.Domain.Entities
             FileUrl = "[Deleted]";
             FileSize = 0;
             UpdatedAt = e.OccurredAt;
-            UpdatedByUserId = e.DeletedByUserId;
+            ChangedByUserId = e.DeletedByUserId;
+            Version = e.Version;
+        }
+
+        private void Apply(DocumentRolebackEvent e)
+        {
+            Id = default;
+            Name = default!;
+            Description = default!;
+            FileUrl = default!;
+            ContentType = default!;
+            FileSize = 0;
+            ChangedByUserId = Guid.Empty;
+            UploadedAt = default;
+            UpdatedAt = e.OccurredAt;
+            Tags = null;
+            Version = 0;
+
+            foreach (var pastEvent in e.EventsToReapply.OrderBy(x => x.OccurredAt))
+            {
+                Apply(pastEvent);
+            }
+
+            ChangedByUserId = e.RolledBackByUserId;
+            Version = e.Version;
         }
     }
 }

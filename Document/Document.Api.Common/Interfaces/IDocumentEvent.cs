@@ -10,5 +10,6 @@ namespace Document.Api.Common.Interfaces
     {
         Guid Id { get; }
         DateTime OccurredAt { get; }
+        float? Version { get; }
     }
 }

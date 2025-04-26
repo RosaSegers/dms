@@ -23,7 +23,7 @@ namespace Document.Api.Features.Documents
         }
     }
 
-    public record UploadDocumentQuery(string Name, string Description, IFormFile File) : IRequest<ErrorOr<Guid>>;
+    public record UploadDocumentQuery(string Name, string Description, float Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
 
     internal sealed class UploadDocumentQueryValidator : AbstractValidator<UploadDocumentQuery>
     {
@@ -48,12 +48,14 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class UploadDocumentQueryHandler(IDocumentStorage storage) : IRequestHandler<UploadDocumentQuery, ErrorOr<Guid>>
+    public sealed class UploadDocumentQueryHandler(IDocumentStorage storage, ICurrentUserService userService) : IRequestHandler<UploadDocumentQuery, ErrorOr<Guid>>
     {
         private readonly IDocumentStorage _storage = storage;
+        private readonly ICurrentUserService _userService = userService;
+
         public async Task<ErrorOr<Guid>> Handle(UploadDocumentQuery request, CancellationToken cancellationToken)
         {
-            var e = new DocumentUploadedEvent(request.Name, request.Description, request.File, "");
+            var e = new DocumentUploadedEvent(request.Name, request.Description, request.Version, request.File, "", _userService.UserId);
 
             if(await _storage.AddDocument(e))
                 return e.Id;

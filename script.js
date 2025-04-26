@@ -10,7 +10,7 @@ export const options = {
     { duration: '30s', target: 100 },  // ramp-up to 100 VUs
     { duration: '30s', target: 200 },  // ramp-up to 200 VUs
     { duration: '20m', target: 200 },  // ramp-up to 200 VUs
-    // { duration: '30s', target: 500 },  // ramp-up to 500 VUs
+    { duration: '30s', target: 500 },  // ramp-up to 500 VUs
     { duration: '30s', target: 0 },    // ramp-down to 0
   ],
 };

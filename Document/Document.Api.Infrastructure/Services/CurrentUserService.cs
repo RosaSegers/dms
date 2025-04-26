@@ -13,6 +13,7 @@ namespace Document.Api.Infrastructure.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string UserId => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+        //public string UserId => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+        public Guid UserId => Guid.NewGuid();
     }
 }

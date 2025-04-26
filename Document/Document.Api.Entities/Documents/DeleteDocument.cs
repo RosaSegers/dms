@@ -42,12 +42,14 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class DeleteDocumentQueryHandler(IDocumentStorage storage) : IRequestHandler<DeleteDocumentQuery, ErrorOr<Guid>>
+    public sealed class DeleteDocumentQueryHandler(IDocumentStorage storage, ICurrentUserService userService) : IRequestHandler<DeleteDocumentQuery, ErrorOr<Guid>>
     {
         private readonly IDocumentStorage _storage = storage;
+        private readonly ICurrentUserService _userService = userService;
+
         public async Task<ErrorOr<Guid>> Handle(DeleteDocumentQuery request, CancellationToken cancellationToken)
         {
-            var e = new DocumentDeletedEvent(request.Id, Guid.Empty);
+            var e = new DocumentDeletedEvent(request.Id, _userService.UserId);
 
             if (await _storage.AddDocument(e))
                 return e.Id;
