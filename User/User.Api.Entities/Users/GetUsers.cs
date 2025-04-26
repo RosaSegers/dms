@@ -11,7 +11,6 @@ using User.API.Common.Models;
 
 namespace User.Api.Features.Users
 {
-
     public class GetUsersController() : ApiControllerBase
     {
         [HttpGet("/api/users")]

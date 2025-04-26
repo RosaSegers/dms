@@ -22,7 +22,7 @@ internal class Program
         builder.Services.AddControllers();
         builder.Services.AddHttpContextAccessor();
 
-        builder.Services.AddApplication();
+        builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructure();
         builder.Services.AddValidation();
 

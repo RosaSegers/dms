@@ -34,12 +34,10 @@ namespace Document.Api.Features.Documents
 
     internal sealed class RolebackDocumentQueryValidator : AbstractValidator<UpdateDocumentQuery>
     {
-        private readonly IVirusScanner _scanner;
         private readonly IDocumentStorage _storage;
 
-        public RolebackDocumentQueryValidator(IVirusScanner scanner, IDocumentStorage storage)
+        public RolebackDocumentQueryValidator(IDocumentStorage storage)
         {
-            _scanner = scanner;
             _storage = storage;
 
             RuleFor(x => x.Id)

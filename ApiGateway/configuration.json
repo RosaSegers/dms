@@ -13,6 +13,30 @@
       "UpstreamHttpMethod": [ "Get", "Post" ]
     },
     {
+      "DownstreamPathTemplate": "/api/auth/login",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5092
+        }
+      ],
+      "UpstreamPathTemplate": "/apigateway/auth/login",
+      "UpstreamHttpMethod": [ "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/refresh",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5092
+        }
+      ],
+      "UpstreamPathTemplate": "/apigateway/auth/refresh",
+      "UpstreamHttpMethod": [ "Post" ]
+    },
+    {
       "DownstreamPathTemplate": "/api/documents",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
