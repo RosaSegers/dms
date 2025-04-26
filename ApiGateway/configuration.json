@@ -34,7 +34,7 @@
         }
       ],
       "UpstreamPathTemplate": "/apigateway/documents/{id}",
-      "UpstreamHttpMethod": [ "Get", "Put", "Delete" ]
+      "UpstreamHttpMethod": [ "Get", "Put", "Delete", "Patch" ]
     }
   ],
     "GlobalConfiguration": {
