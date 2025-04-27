@@ -4,18 +4,37 @@ using Document.Api.Features.Documents;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
+using System;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Document.Api.Test
 {
     public class UpdateDocumentQueryHandlerTest
     {
         private readonly Mock<IDocumentStorage> _storageMock;
+        private readonly Mock<ICurrentUserService> _userServiceMock;
         private readonly UpdateDocumentQueryHandler _handler;
 
         public UpdateDocumentQueryHandlerTest()
         {
             _storageMock = new();
-            _handler = new UpdateDocumentQueryHandler(_storageMock.Object);
+            _userServiceMock = new();
+            _userServiceMock.Setup(u => u.UserId).Returns(Guid.Parse("5ae4677f-0d15-4572-ae18-597c1399f185"));
+
+            _handler = new UpdateDocumentQueryHandler(_storageMock.Object, _userServiceMock.Object);
+        }
+
+        private static IFormFile CreateFakeFile(string fileName = "uploaded_file.pdf", string content = "Fake file content")
+        {
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+            return new FormFile(stream, 0, stream.Length, "file", fileName)
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "application/pdf"
+            };
         }
 
         [Fact]
@@ -23,9 +42,9 @@ namespace Document.Api.Test
         {
             // Arrange
             var documentId = Guid.NewGuid();
-            var mockFile = new Mock<IFormFile>();
+            var mockFile = CreateFakeFile();
 
-            var query = new UpdateDocumentQuery(documentId, "Updated Name", "Updated Description", mockFile.Object);
+            var query = new UpdateDocumentQuery(documentId, "Updated Name", "Updated Description", 1, mockFile);
 
             _storageMock
                 .Setup(s => s.AddDocument(It.IsAny<DocumentUpdatedEvent>()))
@@ -44,9 +63,9 @@ namespace Document.Api.Test
         {
             // Arrange
             var documentId = Guid.NewGuid();
-            var mockFile = new Mock<IFormFile>();
+            var mockFile = CreateFakeFile();
 
-            var query = new UpdateDocumentQuery(documentId, "Updated Name", "Updated Description", mockFile.Object);
+            var query = new UpdateDocumentQuery(documentId, "Updated Name", "Updated Description", 1, mockFile);
 
             _storageMock
                 .Setup(s => s.AddDocument(It.IsAny<DocumentUpdatedEvent>()))
@@ -66,12 +85,12 @@ namespace Document.Api.Test
         {
             // Arrange
             var documentId = Guid.NewGuid();
-            var mockFile = new Mock<IFormFile>();
-            mockFile.Setup(f => f.FileName).Returns("file.pdf");
+            var mockFile = CreateFakeFile("custom_file.docx", "some content here");
 
-            var query = new UpdateDocumentQuery(documentId, "Updated Name", "Updated Description", mockFile.Object);
+            var query = new UpdateDocumentQuery(documentId, "Updated Name", "Updated Description", 1, mockFile);
 
             IDocumentEvent? capturedEvent = null;
+
             _storageMock
                 .Setup(s => s.AddDocument(It.IsAny<DocumentUpdatedEvent>()))
                 .Callback<IDocumentEvent>(e => capturedEvent = e)
@@ -83,6 +102,7 @@ namespace Document.Api.Test
             // Assert
             Assert.NotNull(capturedEvent);
             Assert.Equal(documentId, capturedEvent.Id);
+            Assert.NotEqual(Guid.Empty, capturedEvent.Id);
         }
     }
 }

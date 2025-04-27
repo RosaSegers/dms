@@ -12,7 +12,7 @@ namespace Document.Api.Infrastructure.Persistance
         public async Task<bool> AddDocument(IDocumentEvent document)
         {
             documentList.Add(document);
-            _cache.InvaldiateCaches();
+            _cache.InvalidateCaches();
 
             return true;
         }

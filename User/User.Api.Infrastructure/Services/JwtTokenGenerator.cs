@@ -10,7 +10,7 @@ using User.Api.Infrastructure.Persistance;
 
 namespace User.Api.Infrastructure.Services
 {
-    public class JwtTokenGenerator(IConfiguration config)
+    public class JwtTokenGenerator(IConfiguration config) : IJwtTokenGenerator
     {
         public string GenerateToken(Domain.Entities.User user)
         {
@@ -35,7 +35,7 @@ namespace User.Api.Infrastructure.Services
         }
     }
 
-    public class RefreshTokenGenerator(UserDatabaseContext _context)
+    public class RefreshTokenGenerator(UserDatabaseContext _context) : IRefreshTokenGenerator
     {
         public string GenerateRefreshToken()
         {
@@ -80,5 +80,17 @@ namespace User.Api.Infrastructure.Services
 
             await _context.SaveChangesAsync();
         }
+    }
+
+    public interface IJwtTokenGenerator
+    {
+        string GenerateToken(Domain.Entities.User user);
+    }
+
+    public interface IRefreshTokenGenerator
+    {
+        string GenerateRefreshToken();
+
+        Task<string> GenerateAndStoreRefreshTokenAsync(Domain.Entities.User user);
     }
 }

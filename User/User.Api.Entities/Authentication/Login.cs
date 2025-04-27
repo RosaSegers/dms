@@ -44,14 +44,17 @@ namespace User.Api.Features.Authentication
 
     }
 
-    public sealed class LoginQueryHandler(UserDatabaseContext context, JwtTokenGenerator jwt, RefreshTokenGenerator refresh, IHashingService hashService) : IRequestHandler<LoginQuery, ErrorOr<LoginResult>>
+    public sealed class LoginQueryHandler(UserDatabaseContext context, IJwtTokenGenerator jwt, IRefreshTokenGenerator refresh, IHashingService hashService) : IRequestHandler<LoginQuery, ErrorOr<LoginResult>>
     {
         public async Task<ErrorOr<LoginResult>> Handle(LoginQuery request, CancellationToken cancellationToken)
         {
-            var user = context.Users.Single(u => u.Email == request.Email);
+            var user = context.Users.DefaultIfEmpty(null).SingleOrDefault(u => u.Email == request.Email);
 
-            if (user is null || !hashService.Validate(request.Password, user.Password))
+            if (user is null)
                 return Error.Unauthorized("Invalid credentials.");
+            if (!hashService.Validate(request.Password, user.Password))
+                return Error.Unauthorized("Invalid credentials.");
+
 
             var accessToken = jwt.GenerateToken(user);
             var refreshToken = await refresh.GenerateAndStoreRefreshTokenAsync(user);

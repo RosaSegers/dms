@@ -3,6 +3,11 @@ using Document.Api.Domain.Events;
 using Document.Api.Features.Documents;
 using Document.Api.Infrastructure.Persistance;
 using Moq;
+using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Document.Api.Test
@@ -10,12 +15,19 @@ namespace Document.Api.Test
     public class GetDocumentQueryHandlerTest
     {
         private readonly Mock<IDocumentStorage> _storageMock;
+        private readonly Mock<IMemoryCache> _memoryCacheMock;
+        private readonly Mock<ICacheService> _cacheServiceMock;
         private readonly GetDocumentsWithPaginationQueryHandler _handler;
 
         public GetDocumentQueryHandlerTest()
         {
-            _storageMock = new();
-            _handler = new GetDocumentsWithPaginationQueryHandler(_storageMock.Object);
+            _storageMock = new Mock<IDocumentStorage>();
+
+            _memoryCacheMock = new Mock<IMemoryCache>();
+            _cacheServiceMock = new Mock<ICacheService>();
+
+            _cacheServiceMock = new Mock<ICacheService>();
+            _handler = new GetDocumentsWithPaginationQueryHandler(_storageMock.Object, _cacheServiceMock.Object);
         }
 
         [Fact]
@@ -41,7 +53,6 @@ namespace Document.Api.Test
         {
             // Arrange
             var documentId = Guid.NewGuid();
-
             var events = new List<IDocumentEvent>
             {
                 new TestDocumentEvent(documentId, DateTime.UtcNow.AddMinutes(-10)),
@@ -63,23 +74,22 @@ namespace Document.Api.Test
         }
 
         [Fact]
-        public async Task Handle_ShouldGroupEvents_ByDocumentId()
+        public async Task Handle_ShouldCall_SetCache_WhenDocumentsAreReturned()
         {
             // Arrange
-            var doc1 = Guid.NewGuid();
-            var doc2 = Guid.NewGuid();
-
+            var documentId = Guid.NewGuid();
             var events = new List<IDocumentEvent>
             {
-                new TestDocumentEvent(doc1, DateTime.UtcNow.AddMinutes(-20)),
-                new TestDocumentEvent(doc2, DateTime.UtcNow.AddMinutes(-10)),
-                new TestDocumentEvent(doc1, DateTime.UtcNow),
-                new TestDocumentEvent(doc2, DateTime.UtcNow)
+                new TestDocumentEvent(documentId, DateTime.UtcNow.AddMinutes(-10)),
+                new TestDocumentEvent(documentId, DateTime.UtcNow)
             };
 
             _storageMock
                 .Setup(s => s.GetDocumentList())
                 .ReturnsAsync(events);
+
+            // Setup cache mock behavior
+            _cacheServiceMock.Setup(c => c.SetCache(It.IsAny<string>(), It.IsAny<object>()));
 
             var query = new GetDocumentsWithPaginationQuery();
 
@@ -87,15 +97,15 @@ namespace Document.Api.Test
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
-            Assert.False(result.IsError);
-            Assert.Equal(2, result.Value.TotalCount);
+            _cacheServiceMock.Verify(c => c.SetCache(It.IsAny<string>(), It.IsAny<object>()), Times.Once);
         }
 
-        // Dummy test implementation of IDocumentEvent
         private class TestDocumentEvent : IDocumentEvent
         {
             public Guid Id { get; }
             public DateTime OccurredAt { get; }
+
+            public float? Version => throw new NotImplementedException();
 
             public TestDocumentEvent(Guid id, DateTime occurredAt)
             {

@@ -26,7 +26,7 @@ namespace User.Api.Features.Authentication
     }
 
     public record RefreshTokenQuery(string RefreshToken) : IRequest<ErrorOr<RefreshTokenResult>>;
-    public record RefreshTokenResult(string AccessToken, string RefreshTokenToken);
+    public record RefreshTokenResult(string AccessToken, string RefreshToken);
 
     internal sealed class RefreshTokenQueryValidator : AbstractValidator<RefreshTokenQuery>
     {
@@ -41,15 +41,15 @@ namespace User.Api.Features.Authentication
 
     }
 
-    public sealed class RefreshTokenQueryHandler(UserDatabaseContext context, JwtTokenGenerator jwt, RefreshTokenGenerator refresh, IHashingService hashService) : IRequestHandler<RefreshTokenQuery, ErrorOr<RefreshTokenResult>>
+    public sealed class RefreshTokenQueryHandler(UserDatabaseContext context, IJwtTokenGenerator jwt, IRefreshTokenGenerator refresh, IHashingService hashService) : IRequestHandler<RefreshTokenQuery, ErrorOr<RefreshTokenResult>>
     {
         public async Task<ErrorOr<RefreshTokenResult>> Handle(RefreshTokenQuery request, CancellationToken cancellationToken)
         {
-            var refreshToken = context.RefreshTokens.Single(x => x.Token == request.RefreshToken);
+            var refreshToken = context.RefreshTokens.SingleOrDefault(x => x.Token == request.RefreshToken);
             if (refreshToken == null)
                 return Error.Unauthorized("Invalid refresh token");
 
-            var user = context.Users.Single(x => x.Id == refreshToken.UserId);
+            var user = context.Users.SingleOrDefault(x => x.Id == refreshToken.UserId);
             if (user == null)
                 return Error.Unauthorized("Invalid refresh token");
 

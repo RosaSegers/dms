@@ -1,13 +1,9 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Document.Api.Common.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Document.Api.Infrastructure.Persistance
 {
-    public class CacheService(IMemoryCache cache)
+    public class CacheService(IMemoryCache cache) : ICacheService
     {
         private readonly IMemoryCache _cache = cache;
         private readonly List<string> _keys = new List<string>();
@@ -23,7 +19,7 @@ namespace Document.Api.Infrastructure.Persistance
             return _cache.TryGetValue(key, out value);
         }
 
-        public void InvaldiateCaches()
+        public void InvalidateCaches()
         {
             foreach (var key in _keys)
             {

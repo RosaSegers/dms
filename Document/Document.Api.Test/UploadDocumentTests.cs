@@ -3,45 +3,61 @@ using Document.Api.Domain.Events;
 using Document.Api.Features.Documents;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using Xunit;
+using System.Text;
 
 namespace Document.Api.Test
 {
     public class UploadDocumentQueryHandlerTest
     {
         private readonly Mock<IDocumentStorage> _storageMock;
+        private readonly Mock<ICurrentUserService> _userServiceMock;
         private readonly UploadDocumentQueryHandler _handler;
 
         public UploadDocumentQueryHandlerTest()
         {
             _storageMock = new();
-            _handler = new UploadDocumentQueryHandler(_storageMock.Object);
+            _userServiceMock = new();
+            _userServiceMock.Setup(u => u.UserId).Returns(Guid.Parse("5ae4677f-0d15-4572-ae18-597c1399f185"));
+
+            _handler = new UploadDocumentQueryHandler(_storageMock.Object, _userServiceMock.Object);
         }
 
-       [Fact]
+        private static IFormFile CreateFakeFile(string fileName = "uploaded_file.pdf", string content = "Fake file content")
+        {
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+            return new FormFile(stream, 0, stream.Length, "file", fileName)
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "application/pdf"
+            };
+        }
+
+        [Fact]
         public async Task Handle_ShouldReturnGuid_WhenAddDocumentSucceeds()
-    {
-        // Arrange
-        var mockFile = new Mock<IFormFile>();
-        var query = new UploadDocumentQuery("Test Name", "Test Description", mockFile.Object);
+        {
+            // Arrange
+            var file = CreateFakeFile();
+            var query = new UploadDocumentQuery("Test Name", "Test Description", 1, file);
 
-        _storageMock
-            .Setup(s => s.AddDocument(It.IsAny<DocumentUploadedEvent>()))
-            .ReturnsAsync(true);
+            _storageMock
+                .Setup(s => s.AddDocument(It.IsAny<DocumentUploadedEvent>()))
+                .ReturnsAsync(true);
 
-        // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+            // Act
+            var result = await _handler.Handle(query, CancellationToken.None);
 
-        // Assert
-        Assert.False(result.IsError);
-    }
+            // Assert
+            Assert.False(result.IsError);
+            Assert.IsType<Guid>(result.Value);
+            Assert.NotEqual(Guid.Empty, result.Value);
+        }
 
-    [Fact]
+        [Fact]
         public async Task Handle_ShouldReturnError_WhenAddDocumentFails()
         {
             // Arrange
-            var mockFile = new Mock<IFormFile>();
-            var query = new UploadDocumentQuery("Test Name", "Test Description", mockFile.Object);
+            var file = CreateFakeFile();
+            var query = new UploadDocumentQuery("Test Name", "Test Description", 1, file);
 
             _storageMock
                 .Setup(s => s.AddDocument(It.IsAny<DocumentUploadedEvent>()))
@@ -60,12 +76,10 @@ namespace Document.Api.Test
         public async Task Handle_ShouldCall_AddDocument_WithCorrectEventData()
         {
             // Arrange
-            var mockFile = new Mock<IFormFile>();
-            mockFile.Setup(f => f.FileName).Returns("uploaded_file.pdf");
-
-            var query = new UploadDocumentQuery("Test Name", "Test Description", mockFile.Object);
-
+            var file = CreateFakeFile("custom_file.docx", "some content here");
+            var query = new UploadDocumentQuery("Doc Title", "Doc Desc", 1, file);
             IDocumentEvent? capturedEvent = null;
+
             _storageMock
                 .Setup(s => s.AddDocument(It.IsAny<DocumentUploadedEvent>()))
                 .Callback<IDocumentEvent>(e => capturedEvent = e)
@@ -76,6 +90,8 @@ namespace Document.Api.Test
 
             // Assert
             Assert.NotNull(capturedEvent);
+            Assert.NotEqual(Guid.Empty, capturedEvent.Id);
+            Assert.Equal(1, capturedEvent.Version);
         }
     }
 }

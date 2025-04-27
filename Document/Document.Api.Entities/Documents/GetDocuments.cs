@@ -47,10 +47,10 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class GetDocumentsWithPaginationQueryHandler(IDocumentStorage storage, CacheService cache) : IRequestHandler<GetDocumentsWithPaginationQuery, ErrorOr<PaginatedList<Domain.Entities.Document>>>
+    public sealed class GetDocumentsWithPaginationQueryHandler(IDocumentStorage storage, ICacheService cache) : IRequestHandler<GetDocumentsWithPaginationQuery, ErrorOr<PaginatedList<Domain.Entities.Document>>>
     {
         private readonly IDocumentStorage _storage = storage;
-        private readonly CacheService _cache = cache;
+        private readonly ICacheService _cache = cache;
 
         public async Task<ErrorOr<PaginatedList<Domain.Entities.Document>>> Handle(GetDocumentsWithPaginationQuery request, CancellationToken cancellationToken)
         {

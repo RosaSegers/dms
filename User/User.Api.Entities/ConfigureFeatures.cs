@@ -15,8 +15,8 @@ namespace User.Api.Features
     {
         public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration config)
         {
-            services.AddScoped<JwtTokenGenerator>();
-            services.AddScoped<RefreshTokenGenerator>();
+            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {

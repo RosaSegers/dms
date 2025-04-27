@@ -45,10 +45,10 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class GetDocumentByIdQueryHandler(IDocumentStorage storage, CacheService cache) : IRequestHandler<GetDocumentByIdQuery, ErrorOr<Domain.Entities.Document>>
+    public sealed class GetDocumentByIdQueryHandler(IDocumentStorage storage, ICacheService cache) : IRequestHandler<GetDocumentByIdQuery, ErrorOr<Domain.Entities.Document>>
     {
         private readonly IDocumentStorage _storage = storage;
-        private readonly CacheService _cache = cache;
+        private readonly ICacheService _cache = cache;
 
         public async Task<ErrorOr<Domain.Entities.Document>> Handle(GetDocumentByIdQuery request, CancellationToken cancellationToken)
         {
