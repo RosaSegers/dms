@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using User.Api.Domain.Mappers;
 using User.API.Common.Constants;
 
 namespace User.Api.Domain
@@ -37,6 +38,13 @@ namespace User.Api.Domain
         public static IServiceCollection AddValidation(this IServiceCollection services)
         {
             services.AddValidatorsFromAssemblyContaining<UserValidator>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddMapping(this IServiceCollection services)
+        {
+            services.AddAutoMapper(typeof(MappingProfile));
 
             return services;
         }

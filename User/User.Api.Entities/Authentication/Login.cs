@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,7 +49,10 @@ namespace User.Api.Features.Authentication
     {
         public async Task<ErrorOr<LoginResult>> Handle(LoginQuery request, CancellationToken cancellationToken)
         {
-            var user = context.Users.DefaultIfEmpty(null).SingleOrDefault(u => u.Email == request.Email);
+            var user = context.Users.Where(u => u.Email == request.Email)
+                .Include(u => u.Roles)
+                .ThenInclude(r => r.Permissions)
+                .SingleOrDefault();
 
             if (user is null)
                 return Error.Unauthorized("Invalid credentials.");

@@ -4,10 +4,10 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Document.Api.Infrastructure.Persistance
 {
-    public class DocumentStorage(CacheService cache) : IDocumentStorage
+    public class DocumentStorage(ICacheService cache) : IDocumentStorage
     {
         private List<IDocumentEvent> documentList = new List<IDocumentEvent>();
-        private readonly CacheService _cache = cache;
+        private readonly ICacheService _cache = cache;
 
         public async Task<bool> AddDocument(IDocumentEvent document)
         {

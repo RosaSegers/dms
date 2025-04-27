@@ -14,6 +14,7 @@ using User.API.Common.Constants;
 using User.Api.Common.Interfaces;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
+using User.Api.Common.Authorization.Requirements;
 
 namespace User.Api.Features.Users
 {
@@ -21,6 +22,7 @@ namespace User.Api.Features.Users
     {
 
         [HttpPost("/api/users")]
+        [PermissionAuthorize("User.CREATE")]
         public async Task<IResult> GetUsers([FromForm] CreateUserQuery query)
         {
             var result = await Mediator.Send(query);
