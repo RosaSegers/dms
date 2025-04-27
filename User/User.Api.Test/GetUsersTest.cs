@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 using User.Api.Features.Users;
@@ -11,6 +12,7 @@ namespace User.Api.Test
     {
         private readonly Mock<UserDatabaseContext> _dbContext;
         private readonly Mock<ICurrentUserService> _userService;
+        private readonly Mock<IMapper> _mapper;
 
         public GetUsersTest()
         {
@@ -20,9 +22,11 @@ namespace User.Api.Test
                 entities.Add(new Domain.Entities.User($"Rosa{i}", $"Rosa{i}@Email.com", "123123asdasdASDASD"));
             }
 
+
             var optionsBuilder = new DbContextOptionsBuilder<UserDatabaseContext>();
             optionsBuilder.UseInMemoryDatabase("Users");
 
+            _mapper = new();
             _userService = new();
             _dbContext = new Mock<UserDatabaseContext>(_userService.Object, optionsBuilder.Options);
             _dbContext.Setup(p => p.Users).ReturnsDbSet(entities.AsQueryable());
@@ -33,8 +37,15 @@ namespace User.Api.Test
         public async Task Handle_Should_ReturnTenRecords_WhenPaginationIsNotSet()
         {
             // Arrange
+            var dtos = new List<Domain.Dtos.User>();
+            for (int i = 0; i < 100; i++)
+                dtos.Add(new Domain.Dtos.User() { Name = $"Rosa{i}", Email = $"Rosa{i}@Email.com", Id = Guid.NewGuid() });
+
+            _mapper.Setup(m => m.Map<List<Domain.Dtos.User>>(It.IsAny<List<Domain.Entities.User>>())).Returns(dtos.Slice(0, 10));
+
             var command = new GetUsersWithPaginationQuery();
-            var handler = new GetUserItemsWithPaginationQueryHandler(_dbContext.Object);
+            var handler = new GetUserItemsWithPaginationQueryHandler(_dbContext.Object, _mapper.Object);
+
 
             // Act
             var result = await handler.Handle(command, new CancellationToken());
@@ -53,8 +64,15 @@ namespace User.Api.Test
         public async Task Handle_Should_ReturnTwoRecords_WhenPageSizeIsSetToTwo()
         {
             // Arrange
+            var dtos = new List<Domain.Dtos.User>();
+            for (int i = 0; i < 100; i++)
+                dtos.Add(new Domain.Dtos.User() { Name = $"Rosa{i}", Email = $"Rosa{i}@Email.com", Id = Guid.NewGuid() });
+
+            _mapper.Setup(m => m.Map<List<Domain.Dtos.User>>(It.IsAny<List<Domain.Entities.User>>())).Returns(dtos.Slice(0, 2));
+
             var command = new GetUsersWithPaginationQuery(PageSize: 2);
-            var handler = new GetUserItemsWithPaginationQueryHandler(_dbContext.Object);
+            var handler = new GetUserItemsWithPaginationQueryHandler(_dbContext.Object, _mapper.Object);
+
 
             // Act
             var result = await handler.Handle(command, new CancellationToken());
@@ -73,8 +91,15 @@ namespace User.Api.Test
         public async Task Handle_Should_ReturnPageTwo_WhenPageNumberIsSetToTwo()
         {
             // Arrange
+            var dtos = new List<Domain.Dtos.User>();
+            for (int i = 0; i < 100; i++)
+                dtos.Add(new Domain.Dtos.User() { Name = $"Rosa{i}", Email = $"Rosa{i}@Email.com", Id = Guid.NewGuid() });
+
+            _mapper.Setup(m => m.Map<List<Domain.Dtos.User>>(It.IsAny<List<Domain.Entities.User>>())).Returns(dtos.Slice(0, 10));
+
             var command = new GetUsersWithPaginationQuery(PageNumber: 2);
-            var handler = new GetUserItemsWithPaginationQueryHandler(_dbContext.Object);
+            var handler = new GetUserItemsWithPaginationQueryHandler(_dbContext.Object, _mapper.Object);
+
 
             // Act
             var result = await handler.Handle(command, new CancellationToken());
@@ -98,7 +123,7 @@ namespace User.Api.Test
             emptyDbContextMock.Setup(p => p.Users).ReturnsDbSet(Enumerable.Empty<Domain.Entities.User>().AsQueryable());
 
             var command = new GetUsersWithPaginationQuery();
-            var handler = new GetUserItemsWithPaginationQueryHandler(emptyDbContextMock.Object);
+            var handler = new GetUserItemsWithPaginationQueryHandler(emptyDbContextMock.Object, _mapper.Object);
 
             // Act
             var result = await handler.Handle(command, new CancellationToken());

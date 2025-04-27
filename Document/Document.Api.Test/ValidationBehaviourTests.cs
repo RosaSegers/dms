@@ -4,7 +4,7 @@ using FluentValidation;
 using MediatR;
 using Moq;
 
-namespace User.Api.Test
+namespace Document.Api.Test
 {
     public class ValidationBehaviourTests
     {

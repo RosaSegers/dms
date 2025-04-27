@@ -1,5 +1,6 @@
 ﻿using Document.Api.Common;
 using Document.Api.Common.Interfaces;
+using Document.Api.Domain.Events;
 using Document.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
@@ -17,26 +18,28 @@ namespace Document.Api.Features.Documents
             var result = await Mediator.Send(query);
 
             return result.Match(
-                id => Results.Ok(id),
+                id => Results.Created("/api/documents", id),
                 error => Results.BadRequest(error.First().Description));
         }
     }
 
-    public record UploadDocumentQuery(string Name, string Description, IFormFile File) : IRequest<ErrorOr<Guid>>;
+    public record UploadDocumentQuery(string Name, string Description, float Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
 
     internal sealed class UploadDocumentQueryValidator : AbstractValidator<UploadDocumentQuery>
     {
         private readonly IVirusScanner _scanner;
+        private readonly IDocumentStorage _storage;
 
-        public UploadDocumentQueryValidator(IVirusScanner scanner)
+        public UploadDocumentQueryValidator(IVirusScanner scanner, IDocumentStorage storage)
         {
             _scanner = scanner;
+            _storage = storage;
 
             RuleFor(x => x.File)
-                .MustAsync(IsNotVirus).WithMessage(UploadDocumentQueryValidatorConstants.MALICIOUS_FILE);
+                .MustAsync(NotBeVirus).WithMessage(UploadDocumentQueryValidatorConstants.MALICIOUS_FILE);
         }
 
-        private async Task<bool> IsNotVirus(IFormFile file, CancellationToken token) => (await _scanner.ScanFile(file));
+        private async Task<bool> NotBeVirus(IFormFile file, CancellationToken token) => (await _scanner.ScanFile(file));
     }
 
     internal static class UploadDocumentQueryValidatorConstants
@@ -45,14 +48,18 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class UploadDocumentQueryHandler(DocumentStorage storage) : IRequestHandler<UploadDocumentQuery, ErrorOr<Guid>>
+    public sealed class UploadDocumentQueryHandler(IDocumentStorage storage, ICurrentUserService userService) : IRequestHandler<UploadDocumentQuery, ErrorOr<Guid>>
     {
-        private readonly DocumentStorage _storage = storage;
+        private readonly IDocumentStorage _storage = storage;
+        private readonly ICurrentUserService _userService = userService;
+
         public async Task<ErrorOr<Guid>> Handle(UploadDocumentQuery request, CancellationToken cancellationToken)
         {
-            if(_storage.AddDocument(new Domain.Entities.Document(request.Name, request.Description, request.File.FileName)))
-                return Guid.NewGuid();
-            return Error.Failure("something went wrong");
+            var e = new DocumentUploadedEvent(request.Name, request.Description, request.Version, request.File, "", _userService.UserId);
+
+            if(await _storage.AddDocument(e))
+                return e.Id;
+            return Error.Failure("something went wrong trying so save the file.");
         }
     }
 }
