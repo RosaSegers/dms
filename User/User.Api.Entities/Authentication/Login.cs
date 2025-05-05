@@ -49,9 +49,7 @@ namespace User.Api.Features.Authentication
     {
         public async Task<ErrorOr<LoginResult>> Handle(LoginQuery request, CancellationToken cancellationToken)
         {
-            var user = context.Users.Where(u => u.Email == request.Email)
-                .Include(u => u.Roles)
-                .ThenInclude(r => r.Permissions)
+            var user = context.Users.Where(u => u.Email.ToLower() == request.Email.ToLower())
                 .SingleOrDefault();
 
             if (user is null)

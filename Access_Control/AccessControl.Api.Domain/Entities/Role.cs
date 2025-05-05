@@ -1,18 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace User.Api.Domain.Entities
+namespace AccessControl.Api.Domain.Entities
 {
     public class Role
     {
-        [Key]
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public List<Permission> Permissions { get; set; }
-        public virtual ICollection<User> Users { get; set; }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Role() { }
@@ -20,6 +19,14 @@ namespace User.Api.Domain.Entities
 
         public Role(string name, List<Permission> permissions)
         {
+            Id = Guid.NewGuid();
+            Name = name;
+            Permissions = permissions;
+        }
+
+        public Role(Guid id, string name, List<Permission> permissions)
+        {
+            Id = id;
             Name = name;
             Permissions = permissions;
         }
@@ -30,8 +37,9 @@ namespace User.Api.Domain.Entities
             Permissions.Add(permission);
         }
 
-        public void RemovePermission(string permission) {
-            Permissions.RemoveAt(Permissions.FindIndex(p => p.Name == permission)); 
+        public void RemovePermission(string permission)
+        {
+            Permissions.RemoveAt(Permissions.FindIndex(p => p.Name == permission));
         }
 
         public bool HasPermission(string permission)

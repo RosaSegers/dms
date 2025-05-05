@@ -23,13 +23,6 @@ namespace User.Api.Infrastructure.Services
                 new(ClaimTypes.Email, user.Email),
             };
 
-            foreach (var role in user.Roles)
-            {
-                claims.Add(new(ClaimTypes.Role, role.Name));
-                foreach (var permission in role.Permissions)
-                    claims.Add(new("permission", permission.Name));
-            }
-
             var descriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),

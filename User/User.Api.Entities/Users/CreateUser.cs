@@ -22,7 +22,6 @@ namespace User.Api.Features.Users
     {
 
         [HttpPost("/api/users")]
-        [PermissionAuthorize("User.CREATE")]
         public async Task<IResult> GetUsers([FromForm] CreateUserQuery query)
         {
             var result = await Mediator.Send(query);

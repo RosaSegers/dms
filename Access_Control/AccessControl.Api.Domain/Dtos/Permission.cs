@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace User.Api.Domain.Dtos
+namespace AccessControl.Api.Domain.Dtos
 {
-    public class Role
+    public class Permission
     {
         public string Name { get; set; }
-        public List<Permission> Permissions { get; set; }
+        public string Description { get; set; }
     }
 }

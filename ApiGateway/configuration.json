@@ -13,6 +13,18 @@
       "UpstreamHttpMethod": [ "Get", "Post" ]
     },
     {
+      "DownstreamPathTemplate": "/api/users/{id}/roles",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5092
+        }
+      ],
+      "UpstreamPathTemplate": "/apigateway/users/{id}/roles",
+      "UpstreamHttpMethod": [ "Post" ]
+    },
+    {
       "DownstreamPathTemplate": "/api/auth/login",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

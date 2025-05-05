@@ -13,7 +13,7 @@ internal class Program
             options.AddPolicy(name: "ApiGateway",
                 policy =>
                 {
-                    policy.WithOrigins("http://localhost:5285")
+                    policy.WithOrigins(builder.Configuration["Gateway"])
                                         .AllowAnyHeader()
                                         .AllowAnyMethod();
                 });

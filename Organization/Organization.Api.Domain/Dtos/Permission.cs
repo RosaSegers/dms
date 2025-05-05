@@ -1,4 +1,4 @@
-﻿namespace User.Api.Domain.Dtos
+﻿namespace Organization.Api.Domain.Dtos
 {
     public class Permission
     {
