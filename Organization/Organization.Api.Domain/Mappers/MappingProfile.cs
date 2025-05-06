@@ -11,13 +11,9 @@ namespace Organization.Api.Domain.Mappers
     {
         public MappingProfile()
         {
-            CreateMap<Entities.User, Dtos.User>()
-                .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Roles));
-
-            CreateMap<Domain.Entities.Role, Dtos.Role>()
-                .ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.Permissions));
-
-            CreateMap<Domain.Entities.Permission, Dtos.Permission>();
+            CreateMap<Entities.Invite, Dtos.Invite>();
+            CreateMap<Entities.Member, Dtos.Member>();
+            CreateMap<Entities.Organization, Dtos.Organization>();
         }
     }
 }

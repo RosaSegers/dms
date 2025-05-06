@@ -15,7 +15,7 @@ using Organization.Api.Infrastructure.Persistance;
 
 namespace User.API.Migrations
 {
-    [DbContext(typeof(UserDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20250320111017_initial_migration")]
     partial class initial_migration
     {

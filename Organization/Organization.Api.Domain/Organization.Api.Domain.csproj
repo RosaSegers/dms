@@ -16,4 +16,8 @@
     <ProjectReference Include="..\Organization.Api.Common\Organization.Api.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Factories\" />
+  </ItemGroup>
+
 </Project>

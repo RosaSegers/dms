@@ -14,7 +14,7 @@ using Organization.Api.Infrastructure.Persistance;
 
 namespace User.API.Migrations
 {
-    [DbContext(typeof(UserDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20250320130651_added_shadow_propperties")]
     partial class added_shadow_propperties
     {

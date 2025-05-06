@@ -26,8 +26,6 @@ namespace Organization.Api.Features
     {
         public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration config)
         {
-            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-            services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
             services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 
             services.AddAuthorization(options =>

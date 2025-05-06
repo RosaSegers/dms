@@ -13,7 +13,7 @@ using Organization.Api.Infrastructure.Persistance;
 
 namespace User.API.Migrations
 {
-    [DbContext(typeof(UserDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     partial class UserDatabaseContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

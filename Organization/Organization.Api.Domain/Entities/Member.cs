@@ -6,14 +6,10 @@ using System.Threading.Tasks;
 
 namespace Organization.Api.Domain.Entities
 {
-    public class RefreshToken
+    public class Member
     {
         public Guid Id { get; set; }
+        public Guid OrganizationId { get; set; }
         public Guid UserId { get; set; }
-        public string Token { get; set; }
-        public DateTime ExpiresAt { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public bool IsRevoked { get; set; }
-        public bool IsUsed { get; set; }
     }
 }
