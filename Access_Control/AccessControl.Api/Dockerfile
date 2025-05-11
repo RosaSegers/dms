@@ -1,34 +1,32 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
+# Use the official .NET 8 runtime image as the base for running the application
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
 WORKDIR /app
-EXPOSE 443
 EXPOSE 80
+EXPOSE 443
 
-
-# This stage is used to build the service project
+# Use the official .NET 8 SDK image for building the application
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["User.API/User.API.csproj", "User.API/"]
-COPY ["User.Api.Entities/User.Api.Features.csproj", "User.Api.Entities/"]
-COPY ["User.Api.Infrastructure/User.Api.Infrastructure.csproj", "User.Api.Infrastructure/"]
-COPY ["User.Api.Domain/User.Api.Domain.csproj", "User.Api.Domain/"]
-COPY ["User.Api.Common/User.Api.Common.csproj", "User.Api.Common/"]
-RUN dotnet restore "./User.API/User.API.csproj"
+
+# Copy project files and restore dependencies
+COPY ["Access_Control/AccessControl.Api/AccessControl.Api.csproj", "Access_Control/AccessControl.Api/"]
+COPY ["Access_Control/AccessControl.Api.Common/AccessControl.Api.Common.csproj", "Access_Control/AccessControl.Api.Common/"]
+COPY ["Access_Control/AccessControl.Api.Domain/AccessControl.Api.Domain.csproj", "Access_Control/AccessControl.Api.Domain/"]
+COPY ["Access_Control/AccessControl.Api.Entities/AccessControl.Api.Features.csproj", "Access_Control/AccessControl.Api.Entities/"]
+COPY ["Access_Control/AccessControl.Api.Infrastructure/AccessControl.Api.Infrastructure.csproj", "Access_Control/AccessControl.Api.Infrastructure/"]
+RUN dotnet restore "Access_Control/AccessControl.Api/AccessControl.Api.csproj"
+
+# Copy the entire source code and build the application
 COPY . .
-WORKDIR "/src/User.API"
-RUN dotnet build "./User.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Access_Control/AccessControl.Api"
+RUN dotnet build "AccessControl.Api.csproj" -c Release -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
+# Publish the application
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./User.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "AccessControl.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
+# Use the runtime image to run the application
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "User.API.dll"]
+ENTRYPOINT ["dotnet", "AccessControl.Api.dll"]

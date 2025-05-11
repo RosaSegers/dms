@@ -1,79 +1,67 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/api/users",
+      "DownstreamPathTemplate": "/api/users/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5092
+          "Host": "user-api",
+          "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/apigateway/users",
-      "UpstreamHttpMethod": [ "Get", "Post" ]
+      "UpstreamPathTemplate": "/users/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
     },
     {
-      "DownstreamPathTemplate": "/api/users/{id}/roles",
+      "DownstreamPathTemplate": "/api/auditing/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5092
+          "Host": "auditing-api",
+          "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/apigateway/users/{id}/roles",
-      "UpstreamHttpMethod": [ "Post" ]
+      "UpstreamPathTemplate": "/auditing/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
     },
     {
-      "DownstreamPathTemplate": "/api/auth/login",
+      "DownstreamPathTemplate": "/api/accesscontrol/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5092
+          "Host": "accesscontrol-api",
+          "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/apigateway/auth/login",
-      "UpstreamHttpMethod": [ "Post" ]
+      "UpstreamPathTemplate": "/accesscontrol/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
     },
     {
-      "DownstreamPathTemplate": "/api/auth/refresh",
+      "DownstreamPathTemplate": "/api/organization/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5092
+          "Host": "organization-api",
+          "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/apigateway/auth/refresh",
-      "UpstreamHttpMethod": [ "Post" ]
+      "UpstreamPathTemplate": "/organization/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
     },
     {
-      "DownstreamPathTemplate": "/api/documents",
+      "DownstreamPathTemplate": "/api/documents/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5093
+          "Host": "document-api",
+          "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/apigateway/documents",
-      "UpstreamHttpMethod": [ "Get", "Post" ]
-    },
-    {
-      "DownstreamPathTemplate": "/api/documents/{id}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5093
-        }
-      ],
-      "UpstreamPathTemplate": "/apigateway/documents/{id}",
-      "UpstreamHttpMethod": [ "Get", "Put", "Delete", "Patch" ]
+      "UpstreamPathTemplate": "/documents/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Patch" ]
     }
   ],
-    "GlobalConfiguration": {
-        "BaseUrl": "http://localhost:5285"
-    }
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5285"
+  }
 }

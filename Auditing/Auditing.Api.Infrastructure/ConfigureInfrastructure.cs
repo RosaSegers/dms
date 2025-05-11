@@ -14,8 +14,9 @@ namespace Auditing.Api.Infrastructure
             services.AddSingleton<ICacheService, CacheService>();
 
             services.AddScoped<ICurrentUserService, CurrentUserService>();
-            services.AddScoped<IVirusScanner, VirusScanner>();
-            services.AddSingleton<IAuditingStorage, AuditingStorage>();
+
+            var logConsumer = new RabbitMqLogConsumer();
+            logConsumer.StartListening();
 
             return services;
         }

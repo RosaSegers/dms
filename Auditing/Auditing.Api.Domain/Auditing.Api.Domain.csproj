@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Audit.Api.Common\Audit.Api.Common.csproj" />
+    <ProjectReference Include="..\Auditing.Api.Common\Auditing.Api.Common.csproj" />
   </ItemGroup>
 
 </Project>

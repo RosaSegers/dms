@@ -13,6 +13,8 @@ namespace AccessControl.Api.Infrastructure
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IHashingService, HashingService>();
 
+            services.AddSingleton<RabbitMqLogProducer>();
+
             services.AddDbContext<Context>(options =>
             {
 #if DEBUG

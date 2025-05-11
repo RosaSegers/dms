@@ -15,11 +15,12 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Audit.Api.Common\Audit.Api.Common.csproj" />
-    <ProjectReference Include="..\Audit.Api.Domain\Audit.Api.Domain.csproj" />
+    <ProjectReference Include="..\Auditing.Api.Common\Auditing.Api.Common.csproj" />
+    <ProjectReference Include="..\Auditing.Api.Domain\Auditing.Api.Domain.csproj" />
   </ItemGroup>
 
 </Project>

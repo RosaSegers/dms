@@ -1,8 +1,96 @@
+version: '3.8'
 services:
-  user.api:
-    image: ${DOCKER_REGISTRY-}userapi
+  api-gateway:
     build:
       context: .
-      dockerfile: User.API/Dockerfile
+      dockerfile: ApiGateway/Dockerfile
+    container_name: api-gateway
     ports:
-      - "4202:80"
+      - "5285:80"
+    depends_on:
+      - user-api
+      - auditing-api
+      - accesscontrol-api
+      - organization-api
+      - document-api
+
+  user-api:
+    build:
+      context: .
+      dockerfile: User/User.API/Dockerfile
+    container_name: user-api
+    ports:
+      - "5001:80"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=UserDb;User=sa;Password=YourStrong!Password;"
+      RabbitMq__Host: "rabbitmq"
+    depends_on:
+      - sqlserver
+      - rabbitmq
+
+  auditing-api:
+    build:
+      context: .
+      dockerfile: Auditing/Auditing.Api/Dockerfile
+    container_name: auditing-api
+    ports:
+      - "5002:80"
+    depends_on:
+      - rabbitmq
+
+  accesscontrol-api:
+    build:
+      context: .
+      dockerfile: Access_Control/AccessControl.Api/Dockerfile
+    container_name: accesscontrol-api
+    ports:
+      - "5003:80"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=AccessControlDb;User=sa;Password=YourStrong!Password;"
+      RabbitMq__Host: "rabbitmq"
+    depends_on:
+      - sqlserver
+      - rabbitmq
+
+  organization-api:
+    build:
+      context: .
+      dockerfile: Organization/Organization.Api/Dockerfile
+    container_name: organization-api
+    ports:
+      - "5004:80"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=OrganizationDb;User=sa;Password=YourStrong!Password;"
+      RabbitMq__Host: "rabbitmq"
+    depends_on:
+      - sqlserver
+      - rabbitmq
+
+  document-api:
+    build:
+      context: .
+      dockerfile: Document/Document.API/Dockerfile
+    container_name: document-api
+    ports:
+      - "5005:80"
+    depends_on:
+      - rabbitmq
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "YourStrong!Password"
+      ACCEPT_EULA: "Y"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
