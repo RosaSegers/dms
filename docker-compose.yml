@@ -13,6 +13,8 @@ services:
       - accesscontrol-api
       - organization-api
       - document-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
 
   user-api:
     build:
@@ -24,8 +26,8 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=UserDb;User=sa;Password=YourStrong!Password;"
       RabbitMq__Host: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
-      - sqlserver
       - rabbitmq
 
   auditing-api:
@@ -35,6 +37,9 @@ services:
     container_name: auditing-api
     ports:
       - "5002:80"
+    environment:
+      RabbitMq__Host: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
       - rabbitmq
 
@@ -48,8 +53,8 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=AccessControlDb;User=sa;Password=YourStrong!Password;"
       RabbitMq__Host: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
-      - sqlserver
       - rabbitmq
 
   organization-api:
@@ -62,8 +67,8 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=OrganizationDb;User=sa;Password=YourStrong!Password;"
       RabbitMq__Host: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
-      - sqlserver
       - rabbitmq
 
   document-api:
@@ -73,6 +78,10 @@ services:
     container_name: document-api
     ports:
       - "5005:80"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=DocumentDb;User=sa;Password=YourStrong!Password;"
+      RabbitMq__Host: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
       - rabbitmq
 
