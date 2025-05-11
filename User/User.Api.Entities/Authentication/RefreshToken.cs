@@ -21,7 +21,7 @@ namespace User.Api.Features.Authentication
 
             return result.Match(
                 id => Results.Ok(id),
-                error => Results.BadRequest(error.First().Description));
+                error => Results.BadRequest(error.First().Code));
         }
     }
 
@@ -46,7 +46,7 @@ namespace User.Api.Features.Authentication
         public async Task<ErrorOr<RefreshTokenResult>> Handle(RefreshTokenQuery request, CancellationToken cancellationToken)
         {
             var refreshToken = context.RefreshTokens.SingleOrDefault(x => x.Token == request.RefreshToken);
-            if (refreshToken == null)
+            if (refreshToken == null || refreshToken.IsUsed || refreshToken.IsRevoked)
                 return Error.Unauthorized("Invalid refresh token");
 
             var user = context.Users.Where(x => x.Id == refreshToken.UserId)

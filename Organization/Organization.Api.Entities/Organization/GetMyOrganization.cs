@@ -3,25 +3,18 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Organization.Api.Common;
 using Organization.Api.Common.Interfaces;
 using Organization.Api.Infrastructure.Persistance;
 
 namespace Organization.Api.Features.Organization
 {
-    [Route("api/[controller]")]
-    public class OrganizationsController : ControllerBase
+    public class GetMyOrganizationsController : ApiControllerBase
     {
-        private readonly ISender _mediator;
-
-        public OrganizationsController(ISender mediator)
+        [HttpGet("/api/organization/me")]
+        public async Task<IResult> GetMyOrganization()
         {
-            _mediator = mediator;
-        }
-
-        [HttpGet("my")]
-        public async Task<IResult> GetMy()
-        {
-            var result = await _mediator.Send(new GetMyOrganizationQuery());
+            var result = await Mediator.Send(new GetMyOrganizationQuery());
 
             return result.Match(
                 org => Results.Ok(org),
@@ -50,16 +43,6 @@ namespace Organization.Api.Features.Organization
             // Try to find as owner
             var org = await context.Organizations
                 .FirstOrDefaultAsync(o => o.OwnerId == userId, cancellationToken);
-
-            if (org is null)
-            {
-                // Try to find as member
-                org = await context.Members
-                    .Include(m => m.Organization)
-                    .Where(m => m.UserId == userId)
-                    .Select(m => m.Organization)
-                    .FirstOrDefaultAsync(cancellationToken);
-            }
 
             if (org is null)
                 return Error.NotFound("Organization not found");

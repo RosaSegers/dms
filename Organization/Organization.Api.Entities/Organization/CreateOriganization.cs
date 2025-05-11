@@ -9,8 +9,7 @@ using Organization.Api.Infrastructure.Persistance;
 namespace Organization.Api.Features.Organization
 {
     [Route("api/[controller]")]
-    [ApiController]
-    public class OrganizationsController : ApiControllerBase
+    public class CreateOrganizationsController : ApiControllerBase
     {
         [HttpPost]
         public async Task<IResult> CreateOrganization([FromBody] CreateOrganizationCommand command)
@@ -26,9 +25,9 @@ namespace Organization.Api.Features.Organization
     public record CreateOrganizationCommand(string Name, string Slug) : IRequest<ErrorOr<Guid>>;
 
     public sealed class CreateOrganizationCommandHandler(
-    DatabaseContext context,
-    ICurrentUserService currentUserService
-) : IRequestHandler<CreateOrganizationCommand, ErrorOr<Guid>>
+        DatabaseContext context,
+        ICurrentUserService currentUserService
+    ) : IRequestHandler<CreateOrganizationCommand, ErrorOr<Guid>>
     {
         public async Task<ErrorOr<Guid>> Handle(CreateOrganizationCommand request, CancellationToken cancellationToken)
         {

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Configurations>Debug;Release;Test</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Audit.Api.Common\Audit.Api.Common.csproj" />
+    <ProjectReference Include="..\Audit.Api.Entities\Audit.Api.Features.csproj" />
+    <ProjectReference Include="..\Audit.Api.Infrastructure\Audit.Api.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

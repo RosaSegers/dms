@@ -11,6 +11,9 @@ namespace Organization.Api.Infrastructure.Persistance
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Domain.Entities.Member>()
+                .HasKey(m => new { m.UserId, m.OrganizationId });
+
             base.OnModelCreating(modelBuilder);
         }
 
