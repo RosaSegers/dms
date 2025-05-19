@@ -23,10 +23,11 @@ internal class Program
         builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddApplication(builder.Configuration);
-        builder.Services.AddInfrastructure();
+        builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddValidation();
         builder.Services.AddMapping();
 
+        builder.WebHost.UseUrls("http://0.0.0.0:80");
 
         var app = builder.Build();
         app.UseHttpsRedirection();

@@ -11,7 +11,7 @@ namespace User.Api.Features.Users
 {
     public class UpdateOrganizationController : ApiControllerBase
     {
-        [HttpDelete("/api/organization")]
+        [HttpPut("/api/organization")]
         public async Task<IResult> UpdateOrganization([FromBody] UpdateOrganizationQuery query)
         {
             var result = await Mediator.Send(query);

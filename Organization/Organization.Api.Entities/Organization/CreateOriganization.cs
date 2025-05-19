@@ -8,10 +8,9 @@ using Organization.Api.Infrastructure.Persistance;
 
 namespace Organization.Api.Features.Organization
 {
-    [Route("api/[controller]")]
     public class CreateOrganizationsController : ApiControllerBase
     {
-        [HttpPost]
+        [HttpPost(("/api/organization"))]
         public async Task<IResult> CreateOrganization([FromBody] CreateOrganizationCommand command)
         {
             var result = await Mediator.Send(command);

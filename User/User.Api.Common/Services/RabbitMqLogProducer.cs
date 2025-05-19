@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using Microsoft.Extensions.Configuration;
+using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
 
@@ -6,17 +7,22 @@ namespace User.Api.Infrastructure.Services
 {
     public class RabbitMqLogProducer : IDisposable
     {
-        private readonly string _hostname = "localhost"; // RabbitMQ hostname
+        private readonly string _hostname;
         private readonly string _queueName = "logs";
         private readonly IConnection _connection;
         private readonly IChannel _channel;
 
-        public RabbitMqLogProducer()
+        public RabbitMqLogProducer(IConfiguration configuration)
         {
-            var factory = new ConnectionFactory { HostName = _hostname };
+            _hostname = configuration.GetSection("RabbitMQ:Host").Value??"";
+
+            var factory = new ConnectionFactory
+            {
+                HostName = _hostname
+            };
             _connection = factory.CreateConnectionAsync().Result;
             _channel = _connection.CreateChannelAsync().Result;
-            _channel.QueueDeclareAsync(_queueName, durable: false, exclusive: false, autoDelete: false, arguments: null).Wait();
+            _channel.QueueDeclareAsync(_queueName, durable: true, exclusive: false, autoDelete: false, arguments: null).Wait();
         }
 
         public async void PublishLog(object log)

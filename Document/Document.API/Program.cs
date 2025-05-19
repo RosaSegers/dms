@@ -1,5 +1,7 @@
+using Document.Api.Common.Interfaces;
 using Document.Api.Features;
 using Document.Api.Infrastructure;
+using Document.Api.Infrastructure.Services;
 
 internal class Program
 {
@@ -21,9 +23,12 @@ internal class Program
         builder.Services.AddControllers();
         builder.Services.AddHttpContextAccessor();
 
+        builder.Services.AddHttpClient<IVirusScanner, VirusScanner>();
+
         builder.Services.AddApplication();
         builder.Services.AddInfrastructure();
         //builder.Services.AddValidation();
+
 
 
         var app = builder.Build();

@@ -16,7 +16,7 @@ namespace Organization.Api.Features.Organization.Members
 {
     public class RemoveOrganizationMemberController : ApiControllerBase
     {
-        [HttpDelete]
+        [HttpDelete("/api/organization/member")]
         public async Task<IResult> RemoveOrganizationMember([FromBody] RemoveOrganizationMemberCommand command)
         {
             var result = await Mediator.Send(command);

@@ -1,34 +1,71 @@
-version: '3.8'
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api-gateway:
     build:
-      context: .
-      dockerfile: ApiGateway/Dockerfile
+      context: ./ApiGateway
+      dockerfile: Dockerfile
     container_name: api-gateway
     ports:
       - "5285:80"
-    depends_on:
-      - user-api
-      - auditing-api
-      - accesscontrol-api
-      - organization-api
-      - document-api
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:80"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      user-api:
+        condition: service_started
+      auditing-api:
+        condition: service_started
+      accesscontrol-api:
+        condition: service_started
+      organization-api:
+        condition: service_started
+      document.api:
+        condition: service_started
 
   user-api:
     build:
-      context: .
-      dockerfile: User/User.API/Dockerfile
+      context: ./User
+      dockerfile: Dockerfile
     container_name: user-api
     ports:
       - "5001:80"
     environment:
-      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=UserDb;User=sa;Password=YourStrong!Password;"
-      RabbitMq__Host: "rabbitmq"
+      ConnectionStrings__DefaultConnection: "Server=user-sqlserver;Database=UserDb;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__User: "guest"
+      RabbitMQ__Pass: "guest"
       ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      user-sqlserver:
+        condition: service_started
+
+  user-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: user-sqlserver
+    ports:
+      - "1434:1434"
+    environment:
+      SA_USER: "sa"
+      SA_PASSWORD: "YourStrong!Password"
+      ACCEPT_EULA: "Y"
 
   auditing-api:
     build:
@@ -38,10 +75,27 @@ services:
     ports:
       - "5002:80"
     environment:
-      RabbitMq__Host: "rabbitmq"
+      ConnectionStrings__DefaultConnection: "Server=audit-sqlserver;Database=Logs;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__User: "guest"
+      RabbitMQ__Pass: "guest"
       ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:80"
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      audit-sqlserver:
+        condition: service_started
+
+  audit-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: audit-sqlserver
+    ports:
+      - "1435:1435"
+    environment:
+      SA_USER: "sa"
+      SA_PASSWORD: "YourStrong!Password"
+      ACCEPT_EULA: "Y"
 
   accesscontrol-api:
     build:
@@ -49,13 +103,13 @@ services:
       dockerfile: Access_Control/AccessControl.Api/Dockerfile
     container_name: accesscontrol-api
     ports:
-      - "5003:80"
+      - "5004:80"
     environment:
-      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=AccessControlDb;User=sa;Password=YourStrong!Password;"
       RabbitMq__Host: "rabbitmq"
       ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
   organization-api:
     build:
@@ -63,15 +117,15 @@ services:
       dockerfile: Organization/Organization.Api/Dockerfile
     container_name: organization-api
     ports:
-      - "5004:80"
+      - "5003:80"
     environment:
-      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=OrganizationDb;User=sa;Password=YourStrong!Password;"
       RabbitMq__Host: "rabbitmq"
       ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
-  document-api:
+  document.api:
     build:
       context: .
       dockerfile: Document/Document.API/Dockerfile
@@ -82,8 +136,10 @@ services:
       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=DocumentDb;User=sa;Password=YourStrong!Password;"
       RabbitMq__Host: "rabbitmq"
       ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:80"
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -93,13 +149,3 @@ services:
     environment:
       SA_PASSWORD: "YourStrong!Password"
       ACCEPT_EULA: "Y"
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest

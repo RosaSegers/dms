@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Auditing.Api.Common\Auditing.Api.Common.csproj" />
     <ProjectReference Include="..\Auditing.Api.Domain\Auditing.Api.Domain.csproj" />
+    <ProjectReference Include="..\Auditing.Api.Infrastructure\Auditing.Api.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

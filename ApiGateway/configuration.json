@@ -1,67 +1,67 @@
 {
-  "Routes": [
-    {
-      "DownstreamPathTemplate": "/api/users/{everything}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
+    "Routes": [
         {
-          "Host": "user-api",
-          "Port": 80
-        }
-      ],
-      "UpstreamPathTemplate": "/users/{everything}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
-    },
-    {
-      "DownstreamPathTemplate": "/api/auditing/{everything}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
+            "DownstreamPathTemplate": "/api/users/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "user-api",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/gateway/users/{everything}",
+            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+        },
         {
-          "Host": "auditing-api",
-          "Port": 80
-        }
-      ],
-      "UpstreamPathTemplate": "/auditing/{everything}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
-    },
-    {
-      "DownstreamPathTemplate": "/api/accesscontrol/{everything}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
+            "DownstreamPathTemplate": "/api/logs/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "auditing-api",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/gateway/logs/{everything}",
+            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+        },
         {
-          "Host": "accesscontrol-api",
-          "Port": 80
-        }
-      ],
-      "UpstreamPathTemplate": "/accesscontrol/{everything}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
-    },
-    {
-      "DownstreamPathTemplate": "/api/organization/{everything}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
+            "DownstreamPathTemplate": "/api/accesscontrol/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "accesscontrol-api",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/gateway/accesscontrol/{everything}",
+            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+        },
         {
-          "Host": "organization-api",
-          "Port": 80
-        }
-      ],
-      "UpstreamPathTemplate": "/organization/{everything}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
-    },
-    {
-      "DownstreamPathTemplate": "/api/documents/{everything}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
+            "DownstreamPathTemplate": "/api/organization/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "organization-api",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/gateway/organization/{everything}",
+            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+        },
         {
-          "Host": "document-api",
-          "Port": 80
+            "DownstreamPathTemplate": "/api/documents/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "document-api",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/gateway/documents/{everything}",
+            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Patch" ]
         }
-      ],
-      "UpstreamPathTemplate": "/documents/{everything}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Patch" ]
+    ],
+    "GlobalConfiguration": {
+        "BaseUrl": "http://api-gateway"
     }
-  ],
-  "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:5285"
-  }
 }

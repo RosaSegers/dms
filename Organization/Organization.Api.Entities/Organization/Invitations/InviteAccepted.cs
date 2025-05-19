@@ -16,7 +16,7 @@ namespace Organization.Api.Features.Organization.Invitations
 {
     public class AcceptOrganizationInviteController : ApiControllerBase
     {
-        [HttpGet]
+        [HttpGet("/api/organization/invitation")]
         public async Task<IResult> AcceptOrganizationInvite([FromBody] AcceptOrganizationInviteCommand command)
         {
             var result = await Mediator.Send(command);

@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using Microsoft.Extensions.Configuration;
+using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
 
@@ -11,9 +12,14 @@ namespace Organization.Api.Infrastructure.Services
         private readonly IConnection _connection;
         private readonly IChannel _channel;
 
-        public RabbitMqLogProducer()
+        public RabbitMqLogProducer(IConfiguration configuration)
         {
-            var factory = new ConnectionFactory { HostName = _hostname };
+            var factory = new ConnectionFactory
+            {
+                HostName = _hostname,
+                UserName = configuration.GetRequiredSection("RabbitMQ:Credentials:Username").Value ?? "",
+                Password = configuration.GetRequiredSection("RabbitMQ:Credentials:Password").Value ?? ""
+            };
             _connection = factory.CreateConnectionAsync().Result;
             _channel = _connection.CreateChannelAsync().Result;
             _channel.QueueDeclareAsync(_queueName, durable: false, exclusive: false, autoDelete: false, arguments: null).Wait();

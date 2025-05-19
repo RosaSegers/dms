@@ -14,7 +14,7 @@ namespace Organization.Api.Features.Organization.Members
 {
     public class GetOrganizationMembersController : ApiControllerBase
     {
-        [HttpGet]
+        [HttpGet("/api/organization/member")]
         public async Task<IResult> AddOrganizationMembers([FromBody] GetOrganizationMembersCommand command)
         {
             var result = await Mediator.Send(command);

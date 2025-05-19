@@ -12,7 +12,7 @@ WORKDIR /src
 COPY ["Access_Control/AccessControl.Api/AccessControl.Api.csproj", "Access_Control/AccessControl.Api/"]
 COPY ["Access_Control/AccessControl.Api.Common/AccessControl.Api.Common.csproj", "Access_Control/AccessControl.Api.Common/"]
 COPY ["Access_Control/AccessControl.Api.Domain/AccessControl.Api.Domain.csproj", "Access_Control/AccessControl.Api.Domain/"]
-COPY ["Access_Control/AccessControl.Api.Entities/AccessControl.Api.Features.csproj", "Access_Control/AccessControl.Api.Entities/"]
+COPY ["Access_Control/AccessControl.Api.Features/AccessControl.Api.Features.csproj", "Access_Control/AccessControl.Api.Features/"]
 COPY ["Access_Control/AccessControl.Api.Infrastructure/AccessControl.Api.Infrastructure.csproj", "Access_Control/AccessControl.Api.Infrastructure/"]
 RUN dotnet restore "Access_Control/AccessControl.Api/AccessControl.Api.csproj"
 
