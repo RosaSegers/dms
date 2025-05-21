@@ -40,8 +40,7 @@ services:
 
   user-api:
     build:
-      context: ./User
-      dockerfile: Dockerfile
+      context: ./User/User.API/Dockerfile
     container_name: user-api
     ports:
       - "5001:80"
