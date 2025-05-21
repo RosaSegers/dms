@@ -9,7 +9,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy project files and restore dependencies
-COPY ["Organization/Organization.Api/Organization.Api.csproj", "Organization/Organization.Api/"]
+COPY ["Organization/Organization.Api/Organization.API.csproj", "Organization/Organization.API/"]
 COPY ["Organization/Organization.Api.Common/Organization.Api.Common.csproj", "Organization/Organization.Api.Common/"]
 COPY ["Organization/Organization.Api.Domain/Organization.Api.Domain.csproj", "Organization/Organization.Api.Domain/"]
 COPY ["Organization/Organization.Api.Entities/Organization.Api.Features.csproj", "Organization/Organization.Api.Entities/"]

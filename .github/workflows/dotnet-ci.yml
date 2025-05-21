@@ -27,33 +27,33 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
 
-  # lint:
-  #   name: Roslyn Code Analysis
-  #   runs-on: ubuntu-latest
-  #   needs: setup
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Setup .NET
-  #       uses: actions/setup-dotnet@v4
-  #       with:
-  #         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-  #     - name: Run build with warnings as errors
-  #       run: dotnet build DocumentManagementSystem.sln -warnaserror
+  lint:
+    name: Roslyn Code Analysis
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Run build with warnings as errors
+        run: dotnet build DocumentManagementSystem.sln -warnaserror
 
-  # format-check:
-  #   name: Code Format Check
-  #   runs-on: ubuntu-latest
-  #   needs: setup
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Setup .NET
-  #       uses: actions/setup-dotnet@v4
-  #       with:
-  #         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-  #     - name: Install dotnet-format
-  #       run: dotnet tool install -g dotnet-format
-  #     - name: Run dotnet-format
-  #       run: dotnet format --verify-no-changes DocumentManagementSystem.sln
+  format-check:
+    name: Code Format Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Install dotnet-format
+        run: dotnet tool install -g dotnet-format
+      - name: Run dotnet-format
+        run: dotnet format --verify-no-changes DocumentManagementSystem.sln
 
   ##############################
   # BUILD / TEST / COVERAGE / DOCKER JOBS FOR ALL SERVICES
@@ -62,7 +62,7 @@ jobs:
   # --- Document API ---
   build-document-api:
     runs-on: ubuntu-latest
-    needs: [setup]
+    needs: [setup, lint, format-check]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -109,7 +109,7 @@ jobs:
   # --- User API ---
   build-user-api:
     runs-on: ubuntu-latest
-    needs: [setup]
+    needs: [setup, lint, format-check]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -158,7 +158,7 @@ jobs:
   # --- Access Control ---
   build-access-control:
     runs-on: ubuntu-latest
-    needs: [setup]
+    needs: [setup, lint, format-check]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -205,7 +205,7 @@ jobs:
   # --- Auditing ---
   build-auditing:
     runs-on: ubuntu-latest
-    needs: [setup]
+    needs: [setup, lint, format-check]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -252,7 +252,7 @@ jobs:
   # --- Organization ---
   build-organization:
     runs-on: ubuntu-latest
-    needs: [setup]
+    needs: [setup, lint, format-check]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
