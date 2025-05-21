@@ -237,7 +237,7 @@ jobs:
           
   docker-build-auditing:
     runs-on: ubuntu-latest
-    # needs: test-auditing
+    needs: build-auditing
     steps:
       - uses: actions/checkout@v4
       - name: Log in to Docker Hub
@@ -260,8 +260,8 @@ jobs:
           ls -al Organization/Organization.Api
       - run: |
           cd Organization/Organization.Api
-          dotnet restore Organization.Api.csproj
-          dotnet build --configuration Release Organization.Api.csproj
+          dotnet restore Organization.API.csproj
+          dotnet build --configuration Release Organization.API.csproj
 
   test-organization:
     runs-on: ubuntu-latest
