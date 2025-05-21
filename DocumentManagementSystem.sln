@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{29B97AC4-0AEF-4EF0-9DE2-03C5765036EB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "User Service", "User Service", "{19519460-1A27-4843-88E7-D8465FC5625F}"
+	ProjectSection(SolutionItems) = preProject
+		User\Dockerfile = User\Dockerfile
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gateway", "Gateway", "{267FC568-44F6-4E94-B573-229562B514A1}"
 EndProject
