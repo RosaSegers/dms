@@ -18,15 +18,15 @@ RUN dotnet restore "Organization/Organization.Api/Organization.Api.csproj"
 
 # Copy the entire source code and build the application
 COPY . .
-WORKDIR "/src/Organization/Organization.Api"
-RUN dotnet build "Organization.Api.csproj" -c Release -o /app/build
+WORKDIR "/src/Organization/Organization.API"
+RUN dotnet build "Organization.API.csproj" -c Release -o /app/build
 
 # Publish the application
 FROM build AS publish
-RUN dotnet publish "Organization.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Organization.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Use the runtime image to run the application
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Organization.Api.dll"]
+ENTRYPOINT ["dotnet", "Organization.API.dll"]
