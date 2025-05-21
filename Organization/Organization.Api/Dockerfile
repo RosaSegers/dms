@@ -14,7 +14,7 @@ COPY ["Organization/Organization.Api.Common/Organization.Api.Common.csproj", "Or
 COPY ["Organization/Organization.Api.Domain/Organization.Api.Domain.csproj", "Organization/Organization.Api.Domain/"]
 COPY ["Organization/Organization.Api.Entities/Organization.Api.Features.csproj", "Organization/Organization.Api.Entities/"]
 COPY ["Organization/Organization.Api.Infrastructure/Organization.Api.Infrastructure.csproj", "Organization/Organization.Api.Infrastructure/"]
-RUN dotnet restore "Organization/Organization.Api/Organization.Api.csproj"
+RUN dotnet restore "Organization/Organization.API/Organization.API.csproj"
 
 # Copy the entire source code and build the application
 COPY . .

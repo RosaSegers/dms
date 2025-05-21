@@ -76,7 +76,7 @@ namespace User.Api.Test
             // Assert
             Assert.True(result.IsError);
             Assert.True(result.Value == Guid.Empty);
-            Assert.True(result.Errors.Any(x => x.Code == "Hashing error"));
+            Assert.Equal("Hashing error", result.Errors.First().Code);
         }
     }
 }
