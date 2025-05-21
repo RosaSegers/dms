@@ -18,7 +18,7 @@ RUN dotnet restore "Organization/Organization.API/Organization.API.csproj"
 
 # Copy the entire source code and build the application
 COPY . .
-WORKDIR "/src/Organization/Organization.API"
+WORKDIR "/src/Organization/Organization.Api"
 RUN dotnet build "Organization.API.csproj" -c Release -o /app/build
 
 # Publish the application
