@@ -17,7 +17,6 @@ namespace User.Api.Domain.Entities
             Name = name;
             Email = email;
             Password = password;
-            Roles = new List<Role>();
         }
 
         public User(Guid id, string name, string email, string password)
@@ -26,16 +25,6 @@ namespace User.Api.Domain.Entities
             Name = name;
             Email = email;
             Password = password;
-            Roles = new List<Role>();
-        }
-
-        public User(Guid id, string name, string email, string password, List<Role> roles)
-        {
-            Id = id;
-            Name = name;
-            Email = email;
-            Password = password;
-            Roles = roles;
         }
 
         [Key]
@@ -43,23 +32,9 @@ namespace User.Api.Domain.Entities
         public string Name { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public List<Role> Roles { get; set; }
 
-        public void AddRole(Role role) 
-        { 
-            Roles.Add(role);
-        }
-
-        public void RemoveRole(string role)
-        {
-            Roles.RemoveAt(Roles.FindIndex(x => x.Name == role));
-        }
-
-        public bool HasPermission(string permission)
-        {
-            return Roles.Any(r => r.HasPermission(permission));
-        }
-
+        public int LoginAttempts { get; set; } = 0;
+        public DateTime? LastFailedLoginAttempt { get; set; }
 
     }
 }

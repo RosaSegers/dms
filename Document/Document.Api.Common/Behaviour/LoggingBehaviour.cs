@@ -1,23 +1,20 @@
-﻿using MediatR;
+using Document.Api.Common.Interfaces;
+using Document.Api.Infrastructure.Services;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Document.Api.Common.Behaviour
 {
-    public class LoggingBehaviour<TRequest, TResponse>(ILogger<TRequest> logger) : IPipelineBehavior<TRequest, TResponse>
+    public class LoggingBehaviour<TRequest, TResponse>(ILogger<TRequest> logger, RabbitMqLogProducer logProducer, ICurrentUserService userService) : IPipelineBehavior<TRequest, TResponse>
     {
         private readonly ILogger<TRequest> _logger = logger;
+        private readonly RabbitMqLogProducer _logProducer = logProducer;
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var requestName = request.GetType().Name;
             var requestId = Guid.NewGuid().ToString();
-
             var requestNameWithGuid = $"{requestName} [{requestId}]";
 
             _logger.LogInformation($"[START] {requestNameWithGuid}");
@@ -31,12 +28,23 @@ namespace Document.Api.Common.Behaviour
             finally
             {
                 stopwatch.Stop();
-                _logger.LogInformation(
-                    $"[END] {requestNameWithGuid}; Execution time = {stopwatch.Elapsed}");
+                _logger.LogInformation($"[END] {requestNameWithGuid}; Execution time = {stopwatch.Elapsed}");
+
+                // Create and send log to RabbitMQ
+                var log = new
+                {
+                    userService.UserId,
+                    Message = $"Request {requestNameWithGuid} completed in {stopwatch.Elapsed}",
+                    RequestName = requestName,
+                    RequestId = requestId,
+                    Severity = "Information",
+                    Metadata = $"ExecutionTime: {stopwatch.Elapsed}"
+                };
+
+                _logProducer.PublishLog(log);
             }
 
             return response;
-
         }
     }
 }

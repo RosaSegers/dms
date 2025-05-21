@@ -13,7 +13,7 @@ internal class Program
             options.AddPolicy(name: "ApiGateway",
                 policy =>
                 {
-                    policy.WithOrigins("http://localhost:5285")
+                    policy.WithOrigins(builder.Configuration["Gateway"])
                                         .AllowAnyHeader()
                                         .AllowAnyMethod();
                 });
@@ -23,10 +23,11 @@ internal class Program
         builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddApplication(builder.Configuration);
-        builder.Services.AddInfrastructure();
+        builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddValidation();
         builder.Services.AddMapping();
 
+        builder.WebHost.UseUrls("http://0.0.0.0:80");
 
         var app = builder.Build();
         app.UseHttpsRedirection();

@@ -1,8 +1,151 @@
 services:
-  user.api:
-    image: ${DOCKER_REGISTRY-}userapi
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: ./ApiGateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "5285:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:80"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      user-api:
+        condition: service_started
+      auditing-api:
+        condition: service_started
+      accesscontrol-api:
+        condition: service_started
+      organization-api:
+        condition: service_started
+      document.api:
+        condition: service_started
+
+  user-api:
+    build:
+      context: ./User
+      dockerfile: Dockerfile
+    container_name: user-api
+    ports:
+      - "5001:80"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=user-sqlserver;Database=UserDb;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__User: "guest"
+      RabbitMQ__Pass: "guest"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      user-sqlserver:
+        condition: service_started
+
+  user-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: user-sqlserver
+    ports:
+      - "1434:1434"
+    environment:
+      SA_USER: "sa"
+      SA_PASSWORD: "YourStrong!Password"
+      ACCEPT_EULA: "Y"
+
+  auditing-api:
     build:
       context: .
-      dockerfile: User.API/Dockerfile
+      dockerfile: Auditing/Auditing.Api/Dockerfile
+    container_name: auditing-api
     ports:
-      - "4202:80"
+      - "5002:80"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=audit-sqlserver;Database=Logs;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__User: "guest"
+      RabbitMQ__Pass: "guest"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:80"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      audit-sqlserver:
+        condition: service_started
+
+  audit-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: audit-sqlserver
+    ports:
+      - "1435:1435"
+    environment:
+      SA_USER: "sa"
+      SA_PASSWORD: "YourStrong!Password"
+      ACCEPT_EULA: "Y"
+
+  accesscontrol-api:
+    build:
+      context: .
+      dockerfile: Access_Control/AccessControl.Api/Dockerfile
+    container_name: accesscontrol-api
+    ports:
+      - "5004:80"
+    environment:
+      RabbitMq__Host: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  organization-api:
+    build:
+      context: .
+      dockerfile: Organization/Organization.Api/Dockerfile
+    container_name: organization-api
+    ports:
+      - "5003:80"
+    environment:
+      RabbitMq__Host: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  document.api:
+    build:
+      context: .
+      dockerfile: Document/Document.API/Dockerfile
+    container_name: document-api
+    ports:
+      - "5005:80"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=DocumentDb;User=sa;Password=YourStrong!Password;"
+      RabbitMq__Host: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:80"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "YourStrong!Password"
+      ACCEPT_EULA: "Y"

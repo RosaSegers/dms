@@ -52,6 +52,7 @@ namespace User.Api.Features
                     };
                 });
 
+            services.AddScoped<RabbitMqLogProducer>();
 
             services.AddMediatR(options =>
             {

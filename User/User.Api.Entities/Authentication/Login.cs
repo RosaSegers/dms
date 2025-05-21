@@ -3,12 +3,6 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using User.Api.Common.Interfaces;
 using User.Api.Infrastructure.Persistance;
 using User.Api.Infrastructure.Services;
@@ -49,16 +43,24 @@ namespace User.Api.Features.Authentication
     {
         public async Task<ErrorOr<LoginResult>> Handle(LoginQuery request, CancellationToken cancellationToken)
         {
-            var user = context.Users.Where(u => u.Email == request.Email)
-                .Include(u => u.Roles)
-                .ThenInclude(r => r.Permissions)
+            var user = context.Users.Where(u => u.Email.ToLower() == request.Email.ToLower())
                 .SingleOrDefault();
 
             if (user is null)
                 return Error.Unauthorized("Invalid credentials.");
-            if (!hashService.Validate(request.Password, user.Password))
-                return Error.Unauthorized("Invalid credentials.");
 
+            if (user.LoginAttempts >= 3 && user.LastFailedLoginAttempt?.AddMinutes(5) > DateTime.UtcNow)
+                return Error.Unauthorized("Too many failed login attemtps.");
+
+            if (!hashService.Validate(request.Password, user.Password))
+            {
+                user.LastFailedLoginAttempt = DateTime.UtcNow;
+                user.LoginAttempts++;
+                return Error.Unauthorized("Invalid credentials.");
+            }
+
+            user.LoginAttempts = 0;
+            user.LastFailedLoginAttempt = null;
 
             var accessToken = jwt.GenerateToken(user);
             var refreshToken = await refresh.GenerateAndStoreRefreshTokenAsync(user);

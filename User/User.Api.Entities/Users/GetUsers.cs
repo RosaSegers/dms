@@ -17,7 +17,6 @@ namespace User.Api.Features.Users
     public class GetUsersController() : ApiControllerBase
     {
         [HttpGet("/api/users")]
-        [PermissionAuthorize("User.READ")]
         public async Task<IResult> GetUsers([FromQuery] GetUsersWithPaginationQuery query)
         {
             var result = await Mediator.Send(query);
@@ -56,8 +55,6 @@ namespace User.Api.Features.Users
         {
             var x = await _context.Users
                 .OrderBy(item => item.Name)
-                .Include(x => x.Roles)
-                .ThenInclude(x => x.Permissions)
                 .PaginatedListAsync(request.PageNumber, request.PageSize);
 
             var dtos = _mapper.Map<List<Domain.Dtos.User>>(x.Items)??new();
