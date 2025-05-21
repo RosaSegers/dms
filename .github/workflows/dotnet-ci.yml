@@ -116,6 +116,8 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
       - run: |
+          ls -al User/User.API
+      - run: |
           cd User/User.API
           dotnet restore User.API.csproj
           dotnet build --configuration Release User.API.csproj
