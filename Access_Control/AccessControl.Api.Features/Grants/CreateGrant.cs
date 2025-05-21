@@ -41,7 +41,7 @@ namespace AccessControl.Api.Features.Grants
 
             public async Task<ErrorOr<Unit>> Handle(CreateGrantCommand request, CancellationToken cancellationToken)
             {
-                var grant = new Domain.Entities.Grant(request.UserId, request.ResourceId, request.Permission);
+                var grant = new Domain.Entities.Grant(request.UserId, request.ResourceId, _context.Permissions.Single(x => x.Name == request.Permission));
 
                 _context.Grants.Add(grant);
                 await _context.SaveChangesAsync(cancellationToken);

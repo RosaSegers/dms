@@ -8,16 +8,20 @@ namespace AccessControl.Api.Domain.Entities
 {
     public class Assignment
     {
-        public Assignment(Guid userId, Guid resourceId, Guid roleId)
+        public Assignment()
+        {
+        }
+
+        public Assignment(Guid userId, Guid resourceId, Role role)
         {
             UserId = userId;
             ResourceId = resourceId;
-            RoleId = roleId;
+            this.Role = role;
         }
 
         public Guid UserId { get; set; }
         public Guid ResourceId { get; set; }
-        public Guid RoleId { get; set; }
+        public Role Role{ get; set; }
 
     }
 }

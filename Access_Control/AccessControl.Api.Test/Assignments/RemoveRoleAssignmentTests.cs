@@ -36,8 +36,9 @@ namespace AccessControl.Api.Test.Assignments
             var userId = Guid.NewGuid();
             var resourceId = Guid.NewGuid();
             var roleId = Guid.NewGuid();
+            var role = new Role(roleId, "", new List<Permission>());
 
-            var assignment = new Assignment(userId, resourceId, roleId);
+            var assignment = new Assignment(userId, resourceId, role);
 
             _dbContext.Assignment.Add(assignment);
             await _dbContext.SaveChangesAsync();
@@ -52,7 +53,7 @@ namespace AccessControl.Api.Test.Assignments
             Assert.Equal(Unit.Value, result.Value);
 
             var assignmentInDb = await _dbContext.Assignment
-                .FirstOrDefaultAsync(a => a.UserId == userId && a.ResourceId == resourceId && a.RoleId == roleId);
+                .FirstOrDefaultAsync(a => a.UserId == userId && a.ResourceId == resourceId && a.Role.Id == roleId);
             Assert.Null(assignmentInDb); // Ensure it was removed
         }
 

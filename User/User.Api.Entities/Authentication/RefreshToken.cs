@@ -46,13 +46,24 @@ namespace User.Api.Features.Authentication
         public async Task<ErrorOr<RefreshTokenResult>> Handle(RefreshTokenQuery request, CancellationToken cancellationToken)
         {
             var refreshToken = context.RefreshTokens.SingleOrDefault(x => x.Token == request.RefreshToken);
-            if (refreshToken == null || refreshToken.IsUsed || refreshToken.IsRevoked)
-                return Error.Unauthorized("Invalid refresh token");
-
             var user = context.Users.Where(x => x.Id == refreshToken.UserId)
                 .SingleOrDefault();
             if (user == null)
                 return Error.Unauthorized("Invalid refresh token");
+
+            if (refreshToken is null)
+                return Error.Unauthorized("Invalid refresh token");
+
+
+            if (refreshToken.IsUsed)
+            {
+                await refresh.RevokeOldRefreshTokenAsync(user);
+                return Error.Unauthorized("Invalid refresh token");
+            }
+
+            if (refreshToken.IsRevoked)
+                return Error.Unauthorized("Invalid refresh token");
+
 
             var newAccessToken = jwt.GenerateToken(user);
             var newRefreshToken = await refresh.GenerateAndStoreRefreshTokenAsync(user);

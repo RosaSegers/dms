@@ -43,7 +43,7 @@ namespace AccessControl.Api.Features.Grants
                 var grant = await context.Grants
                     .SingleOrDefaultAsync(x => x.UserId == request.UserId &&
                                               x.ResourceId == request.ResourceId &&
-                                              x.Permission == request.Permission, cancellationToken);
+                                              x.Permission.Name == request.Permission, cancellationToken);
 
                 if (grant is null)
                     return Error.NotFound("Grant.NotFound", "The specified permission grant does not exist.");

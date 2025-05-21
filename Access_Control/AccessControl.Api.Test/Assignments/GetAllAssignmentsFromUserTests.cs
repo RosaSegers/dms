@@ -35,8 +35,8 @@ namespace AccessControl.Api.Test.Assignments
 
             var assignments = new List<Assignment>
             {
-                new Assignment(userId, resourceId, roleId),
-                new Assignment(userId, Guid.NewGuid(), Guid.NewGuid()) // different ResourceId
+                new Assignment(userId, resourceId, new Role(roleId, "", new())),
+                new Assignment(userId, Guid.NewGuid(), new Role(Guid.NewGuid(), "", new())) // different ResourceId
             };
 
             await _dbContext.Assignment.AddRangeAsync(assignments);
@@ -62,8 +62,8 @@ namespace AccessControl.Api.Test.Assignments
 
             var assignments = new List<Assignment>
             {
-                new Assignment(userId, resourceId, roleId),
-                new Assignment(userId, Guid.NewGuid(), Guid.NewGuid()) // different ResourceId
+                new Assignment(userId, resourceId, new Role(roleId, "", new())),
+                new Assignment(userId, Guid.NewGuid(), new Role(Guid.NewGuid(), "", new())) // different ResourceId
             };
 
             await _dbContext.Assignment.AddRangeAsync(assignments);

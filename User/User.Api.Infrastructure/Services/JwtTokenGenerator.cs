@@ -14,7 +14,7 @@ namespace User.Api.Infrastructure.Services
     {
         public string GenerateToken(Domain.Entities.User user)
         {
-            var key = Encoding.UTF8.GetBytes(config["Jwt:Key"]);
+            var key = Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? "");
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var claims = new List<Claim>
@@ -54,9 +54,9 @@ namespace User.Api.Infrastructure.Services
 
         }
 
-        private async Task RevokeOldRefreshTokenAsync(Domain.Entities.User user)
+        public async Task RevokeOldRefreshTokenAsync(Domain.Entities.User user)
         {
-            var oldTokens = await _context.RefreshTokens.Where(rt => rt.UserId == user.Id).ToListAsync();
+            var oldTokens = await _context.RefreshTokens.Where(rt => rt.UserId == user.Id && rt.IsRevoked != true).ToListAsync();
 
             foreach (var oldToken in oldTokens)
             {
@@ -92,5 +92,7 @@ namespace User.Api.Infrastructure.Services
         string GenerateRefreshToken();
 
         Task<string> GenerateAndStoreRefreshTokenAsync(Domain.Entities.User user);
+
+        Task RevokeOldRefreshTokenAsync(Domain.Entities.User user);
     }
 }

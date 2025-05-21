@@ -2,18 +2,21 @@
 using Document.Api.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace Document.Api.Infrastructure.Services
 {
     public class VirusScanner : IVirusScanner
     {
         private readonly HttpClient _httpClient;
-        private const string VirusTotalApiKey = "22fa922586c549a2d77f12ee36651e23e43e41f31a7ff49807fc7e78f14a9484";
+        private readonly string VirusTotalApiKey;
         private const string UploadUrl = "https://www.virustotal.com/api/v3/files";
 
-        public VirusScanner(HttpClient httpClient)
+
+        public VirusScanner(HttpClient httpClient, IConfiguration config)
         {
             _httpClient = httpClient;
+            VirusTotalApiKey = config.GetRequiredSection("VirusTotal:ApiKey").Value ?? throw new ArgumentNullException("VirusTotal API key is not set in configuration.");
         }
 
         public async Task<bool> ScanFile(IFormFile file)

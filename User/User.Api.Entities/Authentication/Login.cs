@@ -48,9 +48,19 @@ namespace User.Api.Features.Authentication
 
             if (user is null)
                 return Error.Unauthorized("Invalid credentials.");
-            if (!hashService.Validate(request.Password, user.Password))
-                return Error.Unauthorized("Invalid credentials.");
 
+            if (user.LoginAttempts >= 3 && user.LastFailedLoginAttempt?.AddMinutes(5) > DateTime.UtcNow)
+                return Error.Unauthorized("Too many failed login attemtps.");
+
+            if (!hashService.Validate(request.Password, user.Password))
+            {
+                user.LastFailedLoginAttempt = DateTime.UtcNow;
+                user.LoginAttempts++;
+                return Error.Unauthorized("Invalid credentials.");
+            }
+
+            user.LoginAttempts = 0;
+            user.LastFailedLoginAttempt = null;
 
             var accessToken = jwt.GenerateToken(user);
             var refreshToken = await refresh.GenerateAndStoreRefreshTokenAsync(user);

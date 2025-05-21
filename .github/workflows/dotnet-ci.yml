@@ -21,129 +21,297 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v4
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
 
-  build-api-gateway:
-    name: Build API Gateway
+  lint:
+    name: Roslyn Code Analysis
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - name: Build
-        run: |
-          cd ApiGateway
-          dotnet restore ApiGateway.csproj
-          dotnet build --configuration Release ApiGateway.csproj
+      - name: Run build with warnings as errors
+        run: dotnet build DocumentManagementSystem.sln -warnaserror
 
+  format-check:
+    name: Code Format Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Install dotnet-format
+        run: dotnet tool install -g dotnet-format
+      - name: Run dotnet-format
+        run: dotnet format --verify-no-changes DocumentManagementSystem.sln
+
+  ##############################
+  # BUILD / TEST / COVERAGE / DOCKER JOBS FOR ALL SERVICES
+  ##############################
+
+  # --- Document API ---
   build-document-api:
-    name: Build Document API
     runs-on: ubuntu-latest
-    needs: setup
+    needs: [setup, lint, format-check]
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - name: Build
-        run: |
+      - run: |
           cd Document/Document.API
           dotnet restore Document.API.csproj
           dotnet build --configuration Release Document.API.csproj
 
-  build-user-api:
-    name: Build User API
+  test-document:
     runs-on: ubuntu-latest
-    needs: setup
+    needs: build-document
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+      - uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+      - name: Install dependencies
+        run: dotnet restore Document/Document.Api.Test/Document.Api.Test.csproj
+      - name: Run tests
+        run: |
+          cd Document/Document.Api.Test
+          dotnet test --configuration Release
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: document-api-test-results
+          path: Document/Document.Api.Test/TestResults
+
+  docker-build-document:
+    runs-on: ubuntu-latest
+    needs: test-document
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      - name: Build Docker image for Document API
+        run: docker build -t gyliana/document-api:${{ github.sha }} -f Document/Document.API/Dockerfile .
+      - name: Push Docker image to Docker Hub
+        run: docker push gyliana/document-api:${{ github.sha }}
+
+  # --- User API ---
+  build-user-api:
+    runs-on: ubuntu-latest
+    needs: [setup, lint, format-check]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - name: Build
-        run: |
+      - run: |
           cd User/User.API
           dotnet restore User.API.csproj
           dotnet build --configuration Release User.API.csproj
 
-  test-document-api:
-    name: Test Document API
+  test-user:
     runs-on: ubuntu-latest
-    needs: build-document-api
+    needs: build-user
     steps:
       - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - name: Run Tests
-        run: |
-          cd Document/Document.API
-          dotnet test Document.API.csproj --logger:"trx" --results-directory "TestResults" --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: document-api-test-results
-          path: Document/Document.API/TestResults
-
-  test-user-api:
-    name: Test User API
-    runs-on: ubuntu-latest
-    needs: build-user-api
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - name: Run Tests
-        run: |
-          cd User/User.API
-          dotnet test User.API.csproj --logger:"trx" --results-directory "TestResults" --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=cobertura
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: user-api-test-results
-          path: User/User.API/TestResults
-
-
-
-  snyk-scan:
-    name: Snyk Security Scan (.NET Projects)
-    runs-on: ubuntu-latest
-    needs:
-      - test-document-api
-      - test-user-api
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
+          dotnet-version: '8.0'
+      - name: Install dependencies
+        run: dotnet restore User/User.Api.Test/User.Api.Test.csproj
+      - name: Run tests
+        run: |
+          cd User/User.Api.Test
+          dotnet test --configuration Release
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: user-api-test-results
+          path: User/User.Api.Test/TestResults
+
+docker-build-user:
+  runs-on: ubuntu-latest
+  needs: test-user
+  steps:
+    - uses: actions/checkout@v4
+    - name: Log in to Docker Hub
+      run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+    - name: Build Docker image for User API
+      run: docker build -t gyliana/user-api:${{ github.sha }} -f User/Dockerfile .
+    - name: Push Docker image to Docker Hub
+      run: docker push gyliana/user-api:${{ github.sha }}
+
+  # --- Access Control ---
+  build-access-control:
+    runs-on: ubuntu-latest
+    needs: [setup, lint, format-check]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - run: |
+          cd Access_Control/AccessControl.Api
+          dotnet restore AccessControl.Api.csproj
+          dotnet build --configuration Release AccessControl.Api.csproj
 
-      - name: Install Snyk CLI
-        run: npm install -g snyk
+  test-access-control:
+    runs-on: ubuntu-latest
+    needs: build-access-control
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+      - name: Install dependencies
+        run: dotnet restore Access_Control/AccessControl.Api.Test/AccessControl.Api.Test.csproj
+      - name: Run tests
+        run: |
+          cd Access_Control/AccessControl.Api.Test
+          dotnet test --configuration Release
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: access-control-api-test-results
+          path: Access_Control/AccessControl.Api.Test/TestResults
 
-      - name: Restore .NET Solution
-        run: dotnet restore DocumentManagementSystem.sln
+  docker-build-access-control:
+    runs-on: ubuntu-latest
+    needs: test-access-control
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      - name: Build Docker image for Access Control API
+        run: docker build -t gyliana/access-control-api:${{ github.sha }} -f Access_Control/AccessControl.Api/Dockerfile .
+      - name: Push Docker image to Docker Hub
+        run: docker push gyliana/access-control-api:${{ github.sha }}
 
-      - name: Run Snyk to check for vulnerabilities
+  # --- Auditing ---
+  build-auditing:
+    runs-on: ubuntu-latest
+    needs: [setup, lint, format-check]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - run: |
+          cd Auditing/Auditing.Api
+          dotnet restore Auditing.API.csproj
+          dotnet build --configuration Release Auditing.API.csproj
+
+  test-auditing:
+    runs-on: ubuntu-latest
+    needs: build-auditing
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+      - name: Install dependencies
+        run: dotnet restore Auditing/Auditing.Api.Test/AccessControl.Api.Test.csproj
+      - name: Run tests
+        run: |
+          cd Auditing/Auditing.Api.Test
+          dotnet test --configuration Release
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: auditing-api-test-results
+          path: Auditing/Auditing.Api.Test/TestResults
+          
+  docker-build-auditing:
+    runs-on: ubuntu-latest
+    needs: test-auditing
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      - name: Build Docker image for Auditing API
+        run: docker build -t gyliana/auditing-api:${{ github.sha }} -f Auditing/Auditing.Api/Dockerfile .
+      - name: Push Docker image to Docker Hub
+        run: docker push gyliana/auditing-api:${{ github.sha }}
+
+  # --- Organization ---
+  build-organization:
+    runs-on: ubuntu-latest
+    needs: [setup, lint, format-check]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - run: |
+          cd Organization/Organization.Api
+          dotnet restore Organization.API.csproj
+          dotnet build --configuration Release Organization.API.csproj
+
+  test-organization:
+    runs-on: ubuntu-latest
+    needs: build-organization
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+      - name: Install dependencies
+        run: dotnet restore Organization/Organization.Api.Test/Organization.Api.Test.csproj
+      - name: Run tests
+        run: |
+          cd Organization/Organization.Api.Test
+          dotnet test --configuration Release
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: organization-api-test-results
+          path: Organization/Organization.Api.Test/TestResults
+
+  docker-build-organization:
+    runs-on: ubuntu-latest
+    needs: test-organization
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      - name: Build Docker image for Organization API
+        run: docker build -t gyliana/organization-api:${{ github.sha }} -f Organization/Organization.Api/Dockerfile .
+      - name: Push Docker image to Docker Hub
+        run: docker push gyliana/organization-api:${{ github.sha }}
+
+  # --- Snyk Security Scan ---
+  snyk-scan:
+    runs-on: ubuntu-latest
+    needs:
+      - test-document
+      - test-user
+      - test-access-control
+      - test-auditing
+      - test-organization
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - run: npm install -g snyk
+      - run: dotnet restore DocumentManagementSystem.sln
+      - run: snyk test --all-projects --project-type=dotnet --detection-depth=5 --sarif-file-output=snyk.sarif
         continue-on-error: true
-        run: snyk test --all-projects --project-type=dotnet --detection-depth=5 --sarif-file-output=snyk.sarif
-
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif

@@ -51,7 +51,7 @@ namespace AccessControl.Api.Features.Assignment
             var assignment = await _context.Assignment
                 .FirstOrDefaultAsync(a => a.UserId == request.UserId
                                        && a.ResourceId == request.ResourceId
-                                       && a.RoleId == request.RoleId, cancellationToken);
+                                       && a.Role.Id == request.RoleId, cancellationToken);
 
             if (assignment == null)
             {

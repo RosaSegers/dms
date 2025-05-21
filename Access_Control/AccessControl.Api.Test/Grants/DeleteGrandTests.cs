@@ -31,7 +31,7 @@ namespace AccessControl.Api.Test.Grants
             var resourceId = Guid.NewGuid();
             var permission = "read";
 
-            var grant = new Grant(userId, resourceId, permission);
+            var grant = new Grant(userId, resourceId, new Permission(permission, permission));
             _dbContext.Grants.Add(grant);
             await _dbContext.SaveChangesAsync();
 
@@ -45,7 +45,7 @@ namespace AccessControl.Api.Test.Grants
             Assert.Equal(Result.Deleted, result.Value);
 
             var grantInDb = await _dbContext.Grants
-                .FirstOrDefaultAsync(g => g.UserId == userId && g.ResourceId == resourceId && g.Permission == permission);
+                .FirstOrDefaultAsync(g => g.UserId == userId && g.ResourceId == resourceId && g.Permission.Name == permission);
 
             Assert.Null(grantInDb);
         }

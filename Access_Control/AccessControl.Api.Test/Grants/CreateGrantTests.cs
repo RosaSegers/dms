@@ -40,7 +40,7 @@ namespace AccessControl.Api.Test.Grants
             Assert.Equal(Unit.Value, result.Value);
 
             var grantInDb = await _dbContext.Grants
-                .FirstOrDefaultAsync(g => g.UserId == userId && g.ResourceId == resourceId && g.Permission == permission);
+                .FirstOrDefaultAsync(g => g.UserId == userId && g.ResourceId == resourceId && g.Permission.Name == permission);
 
             Assert.NotNull(grantInDb);
         }
@@ -63,7 +63,7 @@ namespace AccessControl.Api.Test.Grants
             Assert.NotNull(savedGrant);
             Assert.Equal(userId, savedGrant.UserId);
             Assert.Equal(resourceId, savedGrant.ResourceId);
-            Assert.Equal(permission, savedGrant.Permission);
+            Assert.Equal(permission, savedGrant.Permission.Name);
         }
     }
 }

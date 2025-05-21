@@ -45,7 +45,8 @@ namespace AccessControl.Api.Features.Assignment
 
         public async Task<ErrorOr<Unit>> Handle(AssignAssignmentToUserCommand request, CancellationToken cancellationToken)
         {
-            var assignment = new Domain.Entities.Assignment(request.UserId, request.ResourceId, request.RoleId);
+            
+            var assignment = new Domain.Entities.Assignment(request.UserId, request.ResourceId, _context.Roles.Single(x => x.Id == request.RoleId));
 
             await _context.Assignment.AddAsync(assignment);
             await _context.SaveChangesAsync(); 

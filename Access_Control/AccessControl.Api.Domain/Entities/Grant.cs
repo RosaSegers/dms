@@ -8,7 +8,11 @@ namespace AccessControl.Api.Domain.Entities
 {
     public class Grant
     {
-        public Grant(Guid userId, Guid resourceId, string permission)
+        public Grant()
+        {
+        }
+
+        public Grant(Guid userId, Guid resourceId, Permission permission)
         {
             UserId = userId;
             ResourceId = resourceId;
@@ -17,6 +21,6 @@ namespace AccessControl.Api.Domain.Entities
 
         public Guid UserId { get; set; }
         public Guid ResourceId { get; set; }
-        public string Permission { get; set; }
+        public Permission Permission { get; set; }
     }
 }

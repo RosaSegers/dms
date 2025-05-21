@@ -31,9 +31,9 @@ namespace AccessControl.Api.Test.Grants
 
             var grants = new List<Grant>
             {
-                new(userId, Guid.NewGuid(), "read"),
-                new(userId, Guid.NewGuid(), "write"),
-                new(Guid.NewGuid(), Guid.NewGuid(), "admin") // Belongs to another user
+                new(userId, Guid.NewGuid(), new Permission("Read", "Read")),
+                new(userId, Guid.NewGuid(),  new Permission("Write", "Write")),
+                new(Guid.NewGuid(), Guid.NewGuid(), new Permission("Read", "Read")) // Belongs to another user
             };
 
             _dbContext.Grants.AddRange(grants);
@@ -59,8 +59,8 @@ namespace AccessControl.Api.Test.Grants
 
             var grants = new List<Grant>
             {
-                new(userId, resourceId, "read"),
-                new(userId, Guid.NewGuid(), "write")
+                new(userId, resourceId, new Permission("Read", "Read")),
+                new(userId, Guid.NewGuid(), new Permission("Write", "Write"))
             };
 
             _dbContext.Grants.AddRange(grants);

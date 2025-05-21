@@ -61,7 +61,7 @@ namespace User.Api.Features.Users
 
             RuleFor(user => user.password)
                 .NotEmpty().WithMessage(CreateUserQueryValidatorConstants.PASSWORD_EMPTY_STRING)
-                .MinimumLength(12).WithMessage(CreateUserQueryValidatorConstants.PASSWORD_SHORT_STRING)
+                .MinimumLength(15).WithMessage(CreateUserQueryValidatorConstants.PASSWORD_SHORT_STRING)
                 .Matches(@"[A-Z]+").WithMessage(CreateUserQueryValidatorConstants.PASSWORD_CONTAINS_CAPITAL_STRING)
                 .Matches(@"[a-z]+").WithMessage(CreateUserQueryValidatorConstants.PASSWORD_CONTAINS_LOWER_STRING);
         }

@@ -1,3 +1,4 @@
+using Document.Api.Common.Interfaces;
 using Document.Api.Infrastructure.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -5,7 +6,7 @@ using System.Diagnostics;
 
 namespace Document.Api.Common.Behaviour
 {
-    public class LoggingBehaviour<TRequest, TResponse>(ILogger<TRequest> logger, RabbitMqLogProducer logProducer) : IPipelineBehavior<TRequest, TResponse>
+    public class LoggingBehaviour<TRequest, TResponse>(ILogger<TRequest> logger, RabbitMqLogProducer logProducer, ICurrentUserService userService) : IPipelineBehavior<TRequest, TResponse>
     {
         private readonly ILogger<TRequest> _logger = logger;
         private readonly RabbitMqLogProducer _logProducer = logProducer;
@@ -32,6 +33,7 @@ namespace Document.Api.Common.Behaviour
                 // Create and send log to RabbitMQ
                 var log = new
                 {
+                    userService.UserId,
                     Message = $"Request {requestNameWithGuid} completed in {stopwatch.Elapsed}",
                     RequestName = requestName,
                     RequestId = requestId,

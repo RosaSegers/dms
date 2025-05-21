@@ -1,67 +1,98 @@
 {
-    "Routes": [
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/users/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
         {
-            "DownstreamPathTemplate": "/api/users/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "user-api",
-                    "Port": 80
-                }
-            ],
-            "UpstreamPathTemplate": "/gateway/users/{everything}",
-            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
-        },
-        {
-            "DownstreamPathTemplate": "/api/logs/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "auditing-api",
-                    "Port": 80
-                }
-            ],
-            "UpstreamPathTemplate": "/gateway/logs/{everything}",
-            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
-        },
-        {
-            "DownstreamPathTemplate": "/api/accesscontrol/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "accesscontrol-api",
-                    "Port": 80
-                }
-            ],
-            "UpstreamPathTemplate": "/gateway/accesscontrol/{everything}",
-            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
-        },
-        {
-            "DownstreamPathTemplate": "/api/organization/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "organization-api",
-                    "Port": 80
-                }
-            ],
-            "UpstreamPathTemplate": "/gateway/organization/{everything}",
-            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
-        },
-        {
-            "DownstreamPathTemplate": "/api/documents/{everything}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "document-api",
-                    "Port": 80
-                }
-            ],
-            "UpstreamPathTemplate": "/gateway/documents/{everything}",
-            "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Patch" ]
+          "Host": "user-api",
+          "Port": 80
         }
-    ],
-    "GlobalConfiguration": {
-        "BaseUrl": "http://api-gateway"
+      ],
+      "UpstreamPathTemplate": "/gateway/users/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "1s",
+        "Limit": 200
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/logs/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "auditing-api",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/logs/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "1s",
+        "Limit": 200
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/accesscontrol/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "accesscontrol-api",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/accesscontrol/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "1s",
+        "Limit": 200
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/organization/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "organization-api",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/organization/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "1s",
+        "Limit": 200
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/documents/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "document-api",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/documents/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Patch" ],
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "1s",
+        "Limit": 200
+      }
     }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://api-gateway",
+    "RateLimitOptions": {
+      "ClientIdHeader": "Client-Id",
+      "EnableRateLimiting": true,
+      "HttpStatusCode": 429,
+      "QuotaExceededMessage": "Too many requests. Please try again later."
+    }
+  }
 }
