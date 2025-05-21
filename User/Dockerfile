@@ -7,12 +7,12 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy project files and restore dependencies
-COPY ["User.API/User.API.csproj", "User.API/"]
-COPY ["User.Api.Common/User.Api.Common.csproj", "User.Api.Common/"]
-COPY ["User.Api.Domain/User.Api.Domain.csproj", "User.Api.Domain/"]
-COPY ["User.Api.Entities/User.Api.Features.csproj", "User.Api.Entities/"]
-COPY ["User.Api.Infrastructure/User.Api.Infrastructure.csproj", "User.Api.Infrastructure/"]
-RUN dotnet restore "User.API/User.API.csproj"
+COPY ["User.API.csproj", "User.API/"]
+COPY ["User.Api.Common.csproj", "User.Api.Common/"]
+COPY ["User.Api.Domain.csproj", "User.Api.Domain/"]
+COPY ["User.Api.Features.csproj", "User.Api.Entities/"]
+COPY ["User.Api.Infrastructure.csproj", "User.Api.Infrastructure/"]
+RUN dotnet restore "User.API.csproj"
 
 # Copy the entire solution
 COPY . .
