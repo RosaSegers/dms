@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Document.Api.Test", "Docume
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Organization Service", "Organization Service", "{DAD8DB10-F229-4B40-8A9F-41BA2D5AAE64}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Organization.Api", "Organization\Organization.Api\Organization.Api.csproj", "{7E6783C7-BC5F-4FF2-8FE5-2AA2CB1E56C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Organization.API", "Organization\Organization.Api\Organization.API.csproj", "{7E6783C7-BC5F-4FF2-8FE5-2AA2CB1E56C9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Organization.Api.Common", "Organization\Organization.Api.Common\Organization.Api.Common.csproj", "{368030D3-007E-49FF-BAB4-171BE2652406}"
 EndProject

@@ -305,7 +305,7 @@ jobs:
       - test-document
       - test-user
       - test-access-control
-      # - test-auditing
+      - build-auditing
       - test-organization
     steps:
       - uses: actions/checkout@v4
