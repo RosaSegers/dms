@@ -258,8 +258,8 @@ jobs:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
       - run: |
           cd Organization/Organization.Api
-          dotnet restore Organization.API.csproj
-          dotnet build --configuration Release Organization.API.csproj
+          dotnet restore Organization.Api.csproj
+          dotnet build --configuration Release Organization.Api.csproj
 
   test-organization:
     runs-on: ubuntu-latest
