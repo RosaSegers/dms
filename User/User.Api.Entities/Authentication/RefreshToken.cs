@@ -46,6 +46,8 @@ namespace User.Api.Features.Authentication
         public async Task<ErrorOr<RefreshTokenResult>> Handle(RefreshTokenQuery request, CancellationToken cancellationToken)
         {
             var refreshToken = context.RefreshTokens.SingleOrDefault(x => x.Token == request.RefreshToken);
+            if(refreshToken == null)
+                return Error.Unauthorized("Invalid refresh token");
             var user = context.Users.Where(x => x.Id == refreshToken.UserId)
                 .SingleOrDefault();
             if (user == null)

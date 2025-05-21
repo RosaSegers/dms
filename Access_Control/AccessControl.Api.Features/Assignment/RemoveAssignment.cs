@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace AccessControl.Api.Features.Assignment
 {
@@ -59,7 +60,13 @@ namespace AccessControl.Api.Features.Assignment
             }
 
             _context.Assignment.Remove(assignment);
-            await _context.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+            }catch(Exception ex)
+            {
+                return Error.Failure(ex.Message);
+            }
 
             return Unit.Value;
         }

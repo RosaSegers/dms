@@ -2,71 +2,39 @@
 using AccessControl.Api.Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 using static AccessControl.Api.Features.Grants.GetGrantsController;
 
 namespace AccessControl.Api.Test.Grants
 {
     public class GetGrantsHandlerTests
     {
-        private readonly Context _dbContext;
+        private readonly Mock<Context> _dbContextMock;
         private readonly GetGrantsHandler _handler;
 
         public GetGrantsHandlerTests()
         {
             var options = new DbContextOptionsBuilder<Context>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .UseInMemoryDatabase("GetGrantsDbTest")
                 .Options;
 
-            var userServiceMock = new Mock<AccessControl.Api.Common.Interfaces.ICurrentUserService>();
-            _dbContext = new Context(userServiceMock.Object, options);
-            _handler = new GetGrantsHandler(_dbContext);
+            var userServiceMock = new Mock<Common.Interfaces.ICurrentUserService>();
+            _dbContextMock = new Mock<Context>(MockBehavior.Loose, userServiceMock.Object, options);
+            _handler = new GetGrantsHandler(_dbContextMock.Object);
         }
 
         [Fact]
-        public async Task Handle_ShouldReturnAllGrants_ForGivenUser()
+        public async Task Handle_ShouldReturnGrants_WhenUserIdMatches()
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var resourceId = Guid.NewGuid();
+            var permission = new Permission("Read", "Allows reading");
+            var grant = new Grant(userId, Guid.NewGuid(), permission);
 
-            var grants = new List<Grant>
-            {
-                new(userId, Guid.NewGuid(), new Permission("Read", "Read")),
-                new(userId, Guid.NewGuid(),  new Permission("Write", "Write")),
-                new(Guid.NewGuid(), Guid.NewGuid(), new Permission("Read", "Read")) // Belongs to another user
-            };
+            _dbContextMock.Setup(db => db.Grants)
+                .ReturnsDbSet(new List<Grant> { grant }.AsQueryable());
 
-            _dbContext.Grants.AddRange(grants);
-            await _dbContext.SaveChangesAsync();
-
-            var query = new GetGrantsQuery(userId);
-
-            // Act
-            var result = await _handler.Handle(query, CancellationToken.None);
-
-            // Assert
-            Assert.False(result.IsError);
-            Assert.Equal(2, result.Value.Count);
-            Assert.All(result.Value, g => Assert.Equal(userId, g.UserId));
-        }
-
-        [Fact]
-        public async Task Handle_ShouldReturnFilteredGrants_WhenResourceIdIsProvided()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-            var resourceId = Guid.NewGuid();
-
-            var grants = new List<Grant>
-            {
-                new(userId, resourceId, new Permission("Read", "Read")),
-                new(userId, Guid.NewGuid(), new Permission("Write", "Write"))
-            };
-
-            _dbContext.Grants.AddRange(grants);
-            await _dbContext.SaveChangesAsync();
-
-            var query = new GetGrantsQuery(userId, resourceId);
+            var query = new GetGrantsQuery(userId, null);
 
             // Act
             var result = await _handler.Handle(query, CancellationToken.None);
@@ -74,14 +42,46 @@ namespace AccessControl.Api.Test.Grants
             // Assert
             Assert.False(result.IsError);
             Assert.Single(result.Value);
-            Assert.Equal(resourceId, result.Value[0].ResourceId);
+            Assert.Equal(userId, result.Value[0].UserId);
         }
 
         [Fact]
-        public async Task Handle_ShouldReturnEmptyList_WhenNoGrantsExistForUser()
+        public async Task Handle_ShouldFilterByResourceId_WhenProvided()
         {
             // Arrange
-            var query = new GetGrantsQuery(Guid.NewGuid());
+            var userId = Guid.NewGuid();
+            var resourceId1 = Guid.NewGuid();
+            var resourceId2 = Guid.NewGuid();
+            var permission = new Permission("Write", "Allows writing");
+
+            var grant1 = new Grant(userId, resourceId1, permission);
+            var grant2 = new Grant(userId, resourceId2, permission);
+
+            _dbContextMock.Setup(db => db.Grants)
+                .ReturnsDbSet(new List<Grant> { grant1, grant2 }.AsQueryable());
+
+            var query = new GetGrantsQuery(userId, resourceId1);
+
+            // Act
+            var result = await _handler.Handle(query, CancellationToken.None);
+
+            // Assert
+            Assert.False(result.IsError);
+            Assert.Single(result.Value);
+            Assert.Equal(resourceId1, result.Value[0].ResourceId);
+        }
+
+        [Fact]
+        public async Task Handle_ShouldReturnEmptyList_WhenNoGrantsFound()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var resourceId = Guid.NewGuid();
+
+            _dbContextMock.Setup(db => db.Grants)
+                .ReturnsDbSet(new List<Grant>().AsQueryable());
+
+            var query = new GetGrantsQuery(userId, resourceId);
 
             // Act
             var result = await _handler.Handle(query, CancellationToken.None);

@@ -5,6 +5,7 @@ using AccessControl.Api.Infrastructure.Persistance;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 
 namespace AccessControl.Api.Test.Assignments
 {
@@ -36,6 +37,15 @@ namespace AccessControl.Api.Test.Assignments
 
             var dbSetMock = new Mock<DbSet<Assignment>>();
             _dbContextMock.Setup(db => db.Assignment).Returns(dbSetMock.Object);
+            _dbContextMock.Setup(db => db.Roles).ReturnsDbSet(new List<Role>
+            {
+                new Role
+                {
+                    Id = command.RoleId,
+                    Name = "Admin",
+                    Permissions = new List<Permission>()
+                }
+            }.AsQueryable());
             dbSetMock.Setup(d => d.AddAsync(It.IsAny<Assignment>(), It.IsAny<CancellationToken>()));
 
             _dbContextMock.Setup(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()))

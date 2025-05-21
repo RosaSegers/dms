@@ -1,36 +1,54 @@
-﻿using AccessControl.Api.Infrastructure.Persistance;
+﻿using AccessControl.Api.Common.Interfaces;
+using AccessControl.Api.Domain.Entities;
+using AccessControl.Api.Infrastructure.Persistance;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 using static AccessControl.Api.Features.Grants.CreateGrantController;
 
 namespace AccessControl.Api.Test.Grants
 {
     public class CreateGrantHandlerTests
     {
-        private readonly Context _dbContext;
+        private readonly Mock<Context> _dbContextMock;
         private readonly CreateGrantHandler _handler;
+        private readonly Mock<ICurrentUserService> _userServiceMock;
 
         public CreateGrantHandlerTests()
         {
+            _userServiceMock = new Mock<ICurrentUserService>();
+
             var options = new DbContextOptionsBuilder<Context>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString()) // Isolated DB per test
+                .UseInMemoryDatabase("GrantDbTest")
                 .Options;
 
-            var userServiceMock = new Mock<AccessControl.Api.Common.Interfaces.ICurrentUserService>();
-            _dbContext = new Context(userServiceMock.Object, options);
-            _handler = new CreateGrantHandler(_dbContext);
+            _dbContextMock = new Mock<Context>(_userServiceMock.Object, options);
+            _handler = new CreateGrantHandler(_dbContextMock.Object);
         }
 
         [Fact]
-        public async Task Handle_ShouldReturnUnit_WhenGrantIsCreatedSuccessfully()
+        public async Task Handle_ShouldCreateGrant_WhenPermissionExists()
         {
             // Arrange
             var userId = Guid.NewGuid();
             var resourceId = Guid.NewGuid();
-            var permission = "read";
+            var permissionName = "Read";
 
-            var command = new CreateGrantCommand(userId, resourceId, permission);
+            var permission = new Permission(permissionName, "Allows read access");
+            var command = new CreateGrantCommand(userId, resourceId, permissionName);
+
+            var permissions = new List<Permission> { permission }.AsQueryable();
+            var grants = new List<Grant>();
+
+            _dbContextMock.Setup(db => db.Permissions)
+                          .ReturnsDbSet(permissions);
+
+            _dbContextMock.Setup(db => db.Grants)
+                          .ReturnsDbSet(grants.AsQueryable());
+
+            _dbContextMock.Setup(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(1);
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -39,31 +57,27 @@ namespace AccessControl.Api.Test.Grants
             Assert.False(result.IsError);
             Assert.Equal(Unit.Value, result.Value);
 
-            var grantInDb = await _dbContext.Grants
-                .FirstOrDefaultAsync(g => g.UserId == userId && g.ResourceId == resourceId && g.Permission.Name == permission);
+            _dbContextMock.Verify(db => db.Grants.Add(It.Is<Grant>(
+                g => g.UserId == userId &&
+                     g.ResourceId == resourceId &&
+                     g.Permission == permission
+            )), Times.Once);
 
-            Assert.NotNull(grantInDb);
+            _dbContextMock.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public async Task Handle_ShouldPersistGrant_WithCorrectValues()
+        public async Task Handle_ShouldThrowInvalidOperation_WhenPermissionNotFound()
         {
             // Arrange
-            var userId = Guid.NewGuid();
-            var resourceId = Guid.NewGuid();
-            var permission = "write";
+            var command = new CreateGrantCommand(Guid.NewGuid(), Guid.NewGuid(), "NonExistent");
 
-            var command = new CreateGrantCommand(userId, resourceId, permission);
+            _dbContextMock.Setup(db => db.Permissions)
+                          .ReturnsDbSet(new List<Permission>().AsQueryable());
 
-            // Act
-            await _handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            var savedGrant = await _dbContext.Grants.FirstOrDefaultAsync();
-            Assert.NotNull(savedGrant);
-            Assert.Equal(userId, savedGrant.UserId);
-            Assert.Equal(resourceId, savedGrant.ResourceId);
-            Assert.Equal(permission, savedGrant.Permission.Name);
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _handler.Handle(command, CancellationToken.None));
         }
     }
 }
