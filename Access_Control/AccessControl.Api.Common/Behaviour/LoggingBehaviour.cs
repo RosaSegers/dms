@@ -5,10 +5,16 @@ using System.Diagnostics;
 
 namespace AccessControl.Api.Common.Behaviour
 {
-    public class LoggingBehaviour<TRequest, TResponse>(ILogger<TRequest> logger, RabbitMqLogProducer logProducer) : IPipelineBehavior<TRequest, TResponse>
+    public class LoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
-        private readonly ILogger<TRequest> _logger = logger;
-        private readonly RabbitMqLogProducer _logProducer = logProducer;
+        private readonly ILogger<TRequest> _logger;
+        private readonly RabbitMqLogProducer _logProducer;
+
+        public LoggingBehaviour(ILogger<TRequest> logger, RabbitMqLogProducer logProducer)
+        {
+            _logger = logger;
+            _logProducer = logProducer;
+        }
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {

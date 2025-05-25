@@ -32,12 +32,12 @@ namespace Auditing.Api.Infrastructure.Services
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
                     var log = JsonSerializer.Deserialize<Log>(message);
-                    Console.WriteLine($"{log.Message}");
+                    Console.WriteLine($"{log?.Message}");
 
                     using var scope = _scopeFactory.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
 
-                    dbContext.Logs.Add(log);
+                    dbContext.Logs.Add(log!);
                     await dbContext.SaveChangesAsync();
 
                     await channel.BasicAckAsync(ea.DeliveryTag, false);

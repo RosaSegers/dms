@@ -1,5 +1,6 @@
 ﻿using AccessControl.Api.Common;
 using AccessControl.Api.Common.Authorization.Requirements;
+using AccessControl.Api.Domain.Dtos;
 using AccessControl.Api.Infrastructure.Persistance;
 using AutoMapper;
 using ErrorOr;

@@ -9,9 +9,14 @@ using System.Threading.Tasks;
 
 namespace Auditing.Api.Common.Behaviour
 {
-    public class LoggingBehaviour<TRequest, TResponse>(ILogger<TRequest> logger) : IPipelineBehavior<TRequest, TResponse>
+    public class LoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
-        private readonly ILogger<TRequest> _logger = logger;
+        private readonly ILogger<TRequest> _logger;
+
+        public LoggingBehaviour(ILogger<TRequest> logger)
+        {
+            _logger = logger;
+        }
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
@@ -36,7 +41,6 @@ namespace Auditing.Api.Common.Behaviour
             }
 
             return response;
-
         }
     }
 }

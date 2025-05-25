@@ -13,7 +13,7 @@ namespace Document.Api.Test
     {
         private readonly Mock<IDocumentStorage> _storageMock;
         private readonly Mock<ICurrentUserService> _userServiceMock;
-        private readonly DeleteDocumentQueryHandler _handler;
+        private readonly DeleteDocumentCommandHandler _handler;
 
         public DeleteDocumentQueryHandlerTest()
         {
@@ -21,7 +21,7 @@ namespace Document.Api.Test
             _userServiceMock = new();
             _userServiceMock.Setup(u => u.UserId).Returns(Guid.Parse("5ae4677f-0d15-4572-ae18-597c1399f185"));
 
-            _handler = new DeleteDocumentQueryHandler(_storageMock.Object, _userServiceMock.Object);
+            _handler = new DeleteDocumentCommandHandler(_storageMock.Object, _userServiceMock.Object);
         }
 
         [Fact]
@@ -29,7 +29,7 @@ namespace Document.Api.Test
         {
             // Arrange
             var documentId = Guid.NewGuid();
-            var query = new DeleteDocumentQuery(documentId);
+            var query = new DeleteDocumentCommand(documentId);
 
             _storageMock
                 .Setup(s => s.AddDocument(It.IsAny<DocumentDeletedEvent>()))
@@ -48,7 +48,7 @@ namespace Document.Api.Test
         {
             // Arrange
             var documentId = Guid.NewGuid();
-            var query = new DeleteDocumentQuery(documentId);
+            var query = new DeleteDocumentCommand(documentId);
 
             _storageMock
                 .Setup(s => s.AddDocument(It.IsAny<DocumentDeletedEvent>()))
@@ -68,7 +68,7 @@ namespace Document.Api.Test
         {
             // Arrange
             var documentId = Guid.NewGuid();
-            var query = new DeleteDocumentQuery(documentId);
+            var query = new DeleteDocumentCommand(documentId);
 
             IDocumentEvent? capturedEvent = null;
             _storageMock

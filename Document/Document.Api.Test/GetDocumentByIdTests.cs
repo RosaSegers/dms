@@ -14,13 +14,15 @@ namespace Document.Api.Test
     {
         private readonly Mock<IDocumentStorage> _storageMock;
         private readonly Mock<ICacheService> _cacheMock;
+        private readonly Mock<ICurrentUserService> _userService;
         private readonly GetDocumentByIdQueryHandler _handler;
 
         public GetDocumentByIdTests()
         {
             _storageMock = new Mock<IDocumentStorage>();
             _cacheMock = new Mock<ICacheService>();
-            _handler = new GetDocumentByIdQueryHandler(_storageMock.Object, _cacheMock.Object);
+            _userService = new Mock<ICurrentUserService>();
+            _handler = new GetDocumentByIdQueryHandler(_storageMock.Object, _userService.Object, _cacheMock.Object);
         }
 
         [Fact]

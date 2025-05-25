@@ -35,7 +35,9 @@ namespace Auditing.Api.Infrastructure
             using (var scope = services.BuildServiceProvider())
             {
                 var dataContext = scope.GetRequiredService<DatabaseContext>();
+#if !TEST
                 dataContext.Database.Migrate();
+#endif
             }
 
             return services;

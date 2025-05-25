@@ -13,7 +13,7 @@ namespace Auditing.Api.Common
     {
         private ISender? _mediator;
 
-        protected ISender Mediator => _mediator ??= HttpContext.RequestServices.GetService<ISender>();
+        protected ISender Mediator => _mediator ??= HttpContext.RequestServices.GetService<ISender>() ?? throw new Exception();
 
         protected ActionResult Problem(List<Error> errors)
         {

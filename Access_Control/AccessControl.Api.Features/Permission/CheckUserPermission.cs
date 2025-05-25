@@ -11,14 +11,14 @@ using Microsoft.EntityFrameworkCore;
 namespace AccessControl.Api.Features.Permission
 {
     [Authorize]
-    [Route("api/permissions/{id:guid}")]
+    [Route("api/permissions/{UserId:guid}")]
     public class CheckUserPermissionController : ApiControllerBase
     {
         [HttpGet]
         public async Task<IResult> GetPermissions(
-            [FromBody] string Permission,
             [FromRoute] Guid UserId,
-            [FromBody] Guid DocumentId)
+            [FromForm] string Permission,
+            [FromForm] Guid DocumentId)
         {
             var result = await Mediator.Send(new CheckUserPermissionQuery(Permission, UserId, DocumentId));
 

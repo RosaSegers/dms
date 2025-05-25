@@ -13,6 +13,17 @@ namespace User.Api.Infrastructure.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public Guid? UserId => Guid.Parse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        public Guid? UserId
+        {
+            get
+            {
+                var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(userIdClaim, out var userId))
+                {
+                    return userId;
+                }
+                return null;
+            }
+        }
     }
 }

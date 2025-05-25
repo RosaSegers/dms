@@ -10,7 +10,7 @@ using System.Text;
 
 namespace AccessControl.Api.Features
 {
-    internal static class Role
+    internal static class RoleList
     {
         internal static List<string> Items = new()
         {
@@ -27,7 +27,7 @@ namespace AccessControl.Api.Features
 
             services.AddAuthorization(options =>
             {
-                foreach (var permission in Role.Items)
+                foreach (var permission in RoleList.Items)
                     options.AddPolicy(permission, policy =>
                         policy.Requirements.Add(new RoleRequirement(permission)));
             });
