@@ -1,15 +1,18 @@
 ﻿using Document.Api.Common;
+using Document.Api.Common.Authorization.Requirements;
 using Document.Api.Common.Interfaces;
 using Document.Api.Domain.Events;
-using Document.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Document.Api.Features.Documents
 {
+    [Authorize]
+    [RoleAuthorize("User")]
     public class UploadDocumentsController() : ApiControllerBase
     {
         [HttpPost("/api/documents")]

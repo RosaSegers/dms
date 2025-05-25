@@ -11,12 +11,12 @@ namespace Auditing.Api.Domain.Entities
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-        public Guid UserId { get; set; }
-        public string Message { get; set; }
-        public string RequestName { get; set; }
-        public string RequestId { get; set; }
-        public LogSeverity Severity { get; set; }
-        public LogType Type { get; set; }
-        public string Metadata { get; set; }
+        public Guid UserId { get; set; } = Guid.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string RequestName { get; set; } = string.Empty;
+        public string RequestId { get; set; } = string.Empty;
+        public LogSeverity Severity { get; set; } = LogSeverity.Information;
+        public LogType Type { get; set; } = LogType.System;
+        public string Metadata { get; set; } = string.Empty;
     }
 }

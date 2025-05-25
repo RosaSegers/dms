@@ -2,11 +2,10 @@
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using User.Api.Common.Authorization.Requirements;
-using User.Api.Common.Interfaces;
 using User.Api.Infrastructure.Persistance;
 using User.API.Common;
 using User.API.Common.Mappers;
@@ -14,6 +13,8 @@ using User.API.Common.Models;
 
 namespace User.Api.Features.Users
 {
+    [Authorize]
+    [RoleAuthorize("Admin")]
     public class GetUsersController() : ApiControllerBase
     {
         [HttpGet("/api/users")]

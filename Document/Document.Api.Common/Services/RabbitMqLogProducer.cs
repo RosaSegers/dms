@@ -35,8 +35,8 @@ namespace Document.Api.Infrastructure.Services
 
         public async void Dispose()
         {
-            await _channel?.CloseAsync();
-            await _connection?.CloseAsync();
+            await _channel?.CloseAsync()!;
+            await _connection?.CloseAsync()!;
         }
     }
 }

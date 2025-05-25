@@ -1,26 +1,28 @@
 ﻿using Document.Api.Common;
+using Document.Api.Common.Authorization.Requirements;
 using Document.Api.Common.Interfaces;
 using Document.Api.Domain.Events;
-using Document.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Document.Api.Features.Documents
 {
-    public class DeleteDocumentsController() : ApiControllerBase
+    [Authorize]
+    [RoleAuthorize("User")]
+    public class DeleteDocumentsController(ICurrentUserService userService) : ApiControllerBase
     {
         [HttpDelete("/api/documents/{id:guid}")]
-        public async Task<IResult> UploadDocument([FromRoute] DeleteDocumentQuery query)
+        public async Task<IResult> UploadDocument([FromRoute] Guid id)
         {
-            var result = await Mediator.Send(query);
+            var document = await Mediator.Send(new GetDocumentByIdQuery(id));
+            if (document.Value.UserId != userService.UserId)
+                return Results.BadRequest("You are not allowed to delete this document.");
+
+            var result = await Mediator.Send(new DeleteDocumentCommand(id));
 
             return result.Match(
                 id => Results.NoContent(),
@@ -28,26 +30,26 @@ namespace Document.Api.Features.Documents
         }
     }
 
-    public record DeleteDocumentQuery(Guid Id) : IRequest<ErrorOr<Guid>>;
+    public record DeleteDocumentCommand(Guid Id) : IRequest<ErrorOr<Guid>>;
 
-    internal sealed class DeleteDocumentQueryValidator : AbstractValidator<DeleteDocumentQuery>
+    internal sealed class DeleteDocumentCommandValidator : AbstractValidator<DeleteDocumentCommand>
     {
-        public DeleteDocumentQueryValidator()
+        public DeleteDocumentCommandValidator()
         {
         }
     }
 
-    internal static class DeleteDocumentQueryValidatorConstants
+    internal static class DeleteDocumentCommandValidatorConstants
     {
     }
 
 
-    public sealed class DeleteDocumentQueryHandler(IDocumentStorage storage, ICurrentUserService userService) : IRequestHandler<DeleteDocumentQuery, ErrorOr<Guid>>
+    public sealed class DeleteDocumentCommandHandler(IDocumentStorage storage, ICurrentUserService userService) : IRequestHandler<DeleteDocumentCommand, ErrorOr<Guid>>
     {
         private readonly IDocumentStorage _storage = storage;
         private readonly ICurrentUserService _userService = userService;
 
-        public async Task<ErrorOr<Guid>> Handle(DeleteDocumentQuery request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<Guid>> Handle(DeleteDocumentCommand request, CancellationToken cancellationToken)
         {
             var e = new DocumentDeletedEvent(request.Id, _userService.UserId);
 

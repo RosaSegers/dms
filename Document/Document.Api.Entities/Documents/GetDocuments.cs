@@ -1,24 +1,26 @@
 ﻿using Document.Api.Common;
+using Document.Api.Common.Authorization.Requirements;
 using Document.Api.Common.Constants;
 using Document.Api.Common.Interfaces;
 using Document.Api.Common.Models;
 using Document.Api.Domain.Events;
-using Document.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Document.Api.Features.Documents
 {
+    [Authorize]
+    [RoleAuthorize("Admin")]
     public class GetDocumentsController() : ApiControllerBase
     {
         [HttpGet("/api/documents")]
-        public async Task<IResult> GetDocumentsUsingPagination([FromQuery] GetDocumentsWithPaginationQuery query)
+        public async Task<IResult> GetDocumentsUsingPagination([FromQuery] GetDocumentsWithPaginationQuery Query)
         {
-            var result = await Mediator.Send(query);
+            var result = await Mediator.Send(Query);
 
             return result.Match(
                 id => Results.Ok(result.Value),

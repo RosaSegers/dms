@@ -30,13 +30,13 @@ namespace User.Api.Features
         {
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
-            services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+            services.AddSingleton<IAuthorizationHandler, RoleHandler>();
 
             services.AddAuthorization(options =>
             {
                 foreach (var permission in Permissions.Items)
                     options.AddPolicy(permission, policy =>
-                        policy.Requirements.Add(new PermissionRequirement(permission)));
+                        policy.Requirements.Add(new RoleRequirement(permission)));
             });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -48,11 +48,11 @@ namespace User.Api.Features
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(config["Jwt:Key"]))
+                            Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? throw new Exception()))
                     };
                 });
 
-            services.AddScoped<RabbitMqLogProducer>();
+            //services.AddScoped<RabbitMqLogProducer>();
 
             services.AddMediatR(options =>
             {

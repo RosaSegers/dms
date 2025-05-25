@@ -2,9 +2,9 @@ using User.Api.Features;
 using User.Api.Domain;
 using User.Api.Infrastructure;
 
-internal class Program
+public class Program
 {
-    private static void Main(string[] args)
+    public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +13,7 @@ internal class Program
             options.AddPolicy(name: "ApiGateway",
                 policy =>
                 {
-                    policy.WithOrigins(builder.Configuration["Gateway"])
+                    policy.WithOrigins(builder.Configuration["Gateway"] ?? throw new Exception())
                                         .AllowAnyHeader()
                                         .AllowAnyMethod();
                 });

@@ -12,6 +12,7 @@ using User.API.Common;
 
 namespace User.Api.Features.Authentication
 {
+    [Authorize]
     public class RefreshTokenController() : ApiControllerBase
     {
         [HttpPost("/api/auth/refresh")]
@@ -41,7 +42,7 @@ namespace User.Api.Features.Authentication
 
     }
 
-    public sealed class RefreshTokenQueryHandler(UserDatabaseContext context, IJwtTokenGenerator jwt, IRefreshTokenGenerator refresh, IHashingService hashService) : IRequestHandler<RefreshTokenQuery, ErrorOr<RefreshTokenResult>>
+    public sealed class RefreshTokenQueryHandler(UserDatabaseContext context, IJwtTokenGenerator jwt, IRefreshTokenGenerator refresh) : IRequestHandler<RefreshTokenQuery, ErrorOr<RefreshTokenResult>>
     {
         public async Task<ErrorOr<RefreshTokenResult>> Handle(RefreshTokenQuery request, CancellationToken cancellationToken)
         {

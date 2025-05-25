@@ -4,6 +4,7 @@ using AccessControl.Api.Infrastructure.Persistance;
 using AutoMapper;
 using ErrorOr;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace AccessControl.Api.Features.Permission
 {
+    [Authorize]
     [Route("api/permissions/me")]
     public class GetUserPermissionController : ApiControllerBase
     {
@@ -51,8 +53,6 @@ namespace AccessControl.Api.Features.Permission
             string userId = _userService.UserId ?? throw new UnauthorizedAccessException();
             Guid user = Guid.Parse(userId);
 
-            permissions.AddRange(await _context.Grants.Where(x => x.UserId == user).ToListAsync(cancellationToken));
-            permissions.AddRange(await _context.Assignment.Where(x => x.UserId == user).Include(x => x.Role).ToListAsync(cancellationToken));
             permissions.AddRange(await _context.Roles.Where(x => x.Users.Any(x => x.Id == user)).Include(x => x.Permissions).ToListAsync(cancellationToken));
 
             return permissions;

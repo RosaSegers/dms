@@ -34,7 +34,10 @@ namespace User.Api.Domain.Entities
         public string Password { get; set; }
 
         public int LoginAttempts { get; set; } = 0;
-        public DateTime? LastFailedLoginAttempt { get; set; }
+        public DateTime? LastFailedLoginAttempt { get; set; } = DateTime.MinValue;
+
+        public virtual ICollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
+        public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; private set; } = new List<PasswordResetToken>();
 
     }
 }

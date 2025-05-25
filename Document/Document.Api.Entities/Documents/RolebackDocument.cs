@@ -1,26 +1,29 @@
 ﻿using Document.Api.Common;
+using Document.Api.Common.Authorization.Requirements;
 using Document.Api.Common.Interfaces;
 using Document.Api.Domain.Events;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Document.Api.Features.Documents
 {
-    public class RolebackDocumentsController() : ApiControllerBase
+    [Authorize]
+    [RoleAuthorize("User")]
+    public class RolebackDocumentsController(ICurrentUserService userService) : ApiControllerBase
     {
         [HttpPatch("/api/documents/{id:guid}")]
         public async Task<IResult> UploadDocument(
             [FromRoute] Guid id,
             [FromForm] float version)
         {
+            var document = await Mediator.Send(new GetDocumentByIdQuery(id));
+            if (document.Value.UserId != userService.UserId)
+                return Results.BadRequest("You are not allowed to delete this document.");
+
             var query = new RolebackDocumentQuery(id, version);
             var result = await Mediator.Send(query);
 

@@ -3,34 +3,27 @@ using System.Security.Claims;
 
 namespace User.Api.Common.Authorization.Requirements
 {
-    public class PermissionRequirement : IAuthorizationRequirement
+    public class RoleRequirement(string role) : IAuthorizationRequirement
     {
-        public string Permission { get; }
-
-        public PermissionRequirement(string permission)
-        {
-            Permission = permission;
-        }
+        public string Role { get; } = role ?? throw new ArgumentNullException(nameof(role));
     }
 
-    public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
+    public class RoleHandler : AuthorizationHandler<RoleRequirement>
     {
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
+        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, RoleRequirement requirement)
         {
-            if (context.User.HasClaim(c => c.Type == "permission" && c.Value == requirement.Permission))
-            {
+            if (context.User.IsInRole(requirement.Role))
                 context.Succeed(requirement);
-            }
 
             return Task.CompletedTask;
         }
     }
 
-    public class PermissionAuthorizeAttribute : AuthorizeAttribute
+    public class RoleAuthorizeAttribute : AuthorizeAttribute
     {
-        public PermissionAuthorizeAttribute(string permission)
+        public RoleAuthorizeAttribute(string Role)
         {
-            Policy = permission;
+            Policy = Role;
         }
     }
 }

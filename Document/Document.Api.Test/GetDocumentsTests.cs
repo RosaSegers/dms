@@ -1,14 +1,7 @@
 ﻿using Document.Api.Common.Interfaces;
-using Document.Api.Domain.Events;
 using Document.Api.Features.Documents;
-using Document.Api.Infrastructure.Persistance;
-using Moq;
 using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
+using Moq;
 
 namespace Document.Api.Test
 {

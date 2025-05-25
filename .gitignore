@@ -315,6 +315,8 @@ node_modules/
 **/*.Server/ModelManifest.xml
 _Pvt_Extensions
 
+**/appsettings.json
+
 # Paket dependency manager
 .paket/paket.exe
 paket-files/
@@ -398,3 +400,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+Document/Document.API/appsettings.json

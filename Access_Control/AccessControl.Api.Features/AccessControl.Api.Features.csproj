@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AccessControl.Api.Common\AccessControl.Api.Common.csproj" />
     <ProjectReference Include="..\AccessControl.Api.Domain\AccessControl.Api.Domain.csproj" />
     <ProjectReference Include="..\AccessControl.Api.Infrastructure\AccessControl.Api.Infrastructure.csproj" />
   </ItemGroup>

@@ -1,15 +1,18 @@
 ﻿using AccessControl.Api.Common;
-using AccessControl.Api.Domain.Dtos;
+using AccessControl.Api.Common.Authorization.Requirements;
 using AccessControl.Api.Infrastructure.Persistance;
 using AutoMapper;
 using ErrorOr;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AccessControl.Api.Features.Roles
 {
+    [Authorize]
+    [RoleAuthorize("Admin")]
     public class GetRoleByIdController() : ApiControllerBase
     {
         [HttpGet("/api/roles/{id:guid}")]

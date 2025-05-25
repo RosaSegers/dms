@@ -8,6 +8,26 @@ namespace User.Api.Infrastructure.Persistance
     {
         public virtual DbSet<Domain.Entities.User> Users { get; set; }
         public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+        public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Domain.Entities.User>()
+                .HasMany(u => u.RefreshTokens)
+                .WithOne()
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Domain.Entities.User>()
+                .HasMany(u => u.PasswordResetTokens)
+                .WithOne()
+                .HasForeignKey(prt => prt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RefreshToken>()
+                .Property(rt => rt.Token)
+                .IsRequired();
+        }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using AccessControl.Api.Common;
+using AccessControl.Api.Common.Authorization.Requirements;
 using AccessControl.Api.Infrastructure.Persistance;
 using AutoMapper;
 using ErrorOr;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AccessControl.Api.Features.Roles.Assignment
 {
+    [Authorize]
+    [RoleAuthorize("Admin")]
     [Route("api/roles/{roleId}/permissions")]
     public class GetPermissionsForRoleController : ApiControllerBase
     {

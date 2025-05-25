@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AccessControl.Api.Domain.Entities
 {
-    public abstract class User
+    public class User
     {
         public Guid Id { get; set; }
     }

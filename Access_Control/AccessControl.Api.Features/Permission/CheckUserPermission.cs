@@ -3,12 +3,14 @@ using AccessControl.Api.Infrastructure.Persistance;
 using AutoMapper;
 using ErrorOr;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AccessControl.Api.Features.Permission
 {
+    [Authorize]
     [Route("api/permissions/{id:guid}")]
     public class CheckUserPermissionController : ApiControllerBase
     {
@@ -42,21 +44,9 @@ namespace AccessControl.Api.Features.Permission
 
         public async Task<ErrorOr<bool>> Handle(CheckUserPermissionQuery request, CancellationToken cancellationToken)
         {
-            var grants = await _context.Grants.Where(x => x.UserId == request.UserId && x.ResourceId == request.DocumentId).ToListAsync(cancellationToken);
-            if (grants.Any(x => x.Permission.Name == request.Permission))
-                return true;
-
-            var assignments = await _context.Assignment.Where(x => x.UserId == request.UserId && x.ResourceId == request.DocumentId).ToListAsync(cancellationToken);
-            var permissions = await _context.Permissions
-                .Where(x => x.Roles.Any(r => assignments.Select(x => x.Role.Id).Contains(r.Id)))
-                .ToListAsync(cancellationToken);
-            if (permissions.Any(x => x.Name == request.Permission))
-                return true;
-
             var roles = await _context.Roles
                 .Include(x => x.Permissions)
-                .Where(x => assignments.Select(x => x.Role.Id).Contains(x.Id))
-                .ToListAsync(cancellationToken);
+                .Where(r => r.Users.Any(u => u.Id == request.UserId)).ToListAsync();
             if (roles.Any(r => r.Permissions.Any(p => p.Name == request.Permission)))
                 return true;
 

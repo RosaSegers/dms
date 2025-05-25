@@ -1,30 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using User.API.Common.Models;
-using User.API.Common;
-using MediatR;
+﻿using ErrorOr;
 using FluentValidation;
-using User.Api.Infrastructure.Persistance;
-using Microsoft.EntityFrameworkCore;
-using User.API.Common.Constants;
-using User.Api.Common.Interfaces;
-using ErrorOr;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using User.Api.Common.Authorization.Requirements;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using User.Api.Common.Interfaces;
+using User.Api.Infrastructure.Persistance;
+using User.API.Common;
 
 namespace User.Api.Features.Users
 {
-    public class CreateUsersController() : ApiControllerBase
+    [AllowAnonymous]
+    public class CreateUserController() : ApiControllerBase
     {
 
         [HttpPost("/api/users")]
-        public async Task<IResult> GetUsers([FromForm] CreateUserQuery query)
+        public async Task<IResult> GetUsers([FromForm] CreateUserCommand Command)
         {
-            var result = await Mediator.Send(query);
+            var result = await Mediator.Send(Command);
 
             return result.Match(
                 id => Results.Ok(id),
@@ -32,38 +26,38 @@ namespace User.Api.Features.Users
         }
     }
 
-    public record CreateUserQuery(string username, string email, string password) : IRequest<ErrorOr<Guid>>;
+    public record CreateUserCommand(string username, string email, string password) : IRequest<ErrorOr<Guid>>;
 
-    internal sealed class CreateUserQueryValidator : AbstractValidator<CreateUserQuery>
+    internal sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
     {
         private readonly UserDatabaseContext _context;
 
-        public CreateUserQueryValidator(UserDatabaseContext context)
+        public CreateUserCommandValidator(UserDatabaseContext context)
         {
             _context = context;
 
             RuleFor(user => user.username)
-                .MustAsync(BeUniqueUsername).WithMessage(CreateUserQueryValidatorConstants.USERNAME_NOT_UNIQUE_STRING);
+                .MustAsync(BeUniqueUsername).WithMessage(CreateUserCommandValidatorConstants.USERNAME_NOT_UNIQUE_STRING);
 
             RuleFor(user => user.email)
-                .MustAsync(BeUniqueEmail).WithMessage(CreateUserQueryValidatorConstants.EMAIL_NOT_UNIQUE_STRING);
+                .MustAsync(BeUniqueEmail).WithMessage(CreateUserCommandValidatorConstants.EMAIL_NOT_UNIQUE_STRING);
 
             RuleFor(user => user.username)
-                .NotEmpty().WithMessage(CreateUserQueryValidatorConstants.USERNAME_REQUIRED_STRING)
-                .Length(CreateUserQueryValidatorConstants.USERNAME_MINIMUM_LENGTH, CreateUserQueryValidatorConstants.USERNAME_MAXIMUM_LENGTH)
-                .WithMessage(CreateUserQueryValidatorConstants.USERNAME_INVALID_LENGTH_STRING);
+                .NotEmpty().WithMessage(CreateUserCommandValidatorConstants.USERNAME_REQUIRED_STRING)
+                .Length(CreateUserCommandValidatorConstants.USERNAME_MINIMUM_LENGTH, CreateUserCommandValidatorConstants.USERNAME_MAXIMUM_LENGTH)
+                .WithMessage(CreateUserCommandValidatorConstants.USERNAME_INVALID_LENGTH_STRING);
 
             RuleFor(user => user.email)
                 .EmailAddress(FluentValidation.Validators.EmailValidationMode.AspNetCoreCompatible)
-                .WithMessage(CreateUserQueryValidatorConstants.EMAIL_INVALID_STRING)
-                .Length(CreateUserQueryValidatorConstants.EMAIL_MINIMUM_LENGTH, CreateUserQueryValidatorConstants.EMAIL_MAXIMUM_LENGTH)
-                .WithMessage(CreateUserQueryValidatorConstants.EMAIL_INVALID_LENGTH_STRING);
+                .WithMessage(CreateUserCommandValidatorConstants.EMAIL_INVALID_STRING)
+                .Length(CreateUserCommandValidatorConstants.EMAIL_MINIMUM_LENGTH, CreateUserCommandValidatorConstants.EMAIL_MAXIMUM_LENGTH)
+                .WithMessage(CreateUserCommandValidatorConstants.EMAIL_INVALID_LENGTH_STRING);
 
             RuleFor(user => user.password)
-                .NotEmpty().WithMessage(CreateUserQueryValidatorConstants.PASSWORD_EMPTY_STRING)
-                .MinimumLength(15).WithMessage(CreateUserQueryValidatorConstants.PASSWORD_SHORT_STRING)
-                .Matches(@"[A-Z]+").WithMessage(CreateUserQueryValidatorConstants.PASSWORD_CONTAINS_CAPITAL_STRING)
-                .Matches(@"[a-z]+").WithMessage(CreateUserQueryValidatorConstants.PASSWORD_CONTAINS_LOWER_STRING);
+                .NotEmpty().WithMessage(CreateUserCommandValidatorConstants.PASSWORD_EMPTY_STRING)
+                .MinimumLength(15).WithMessage(CreateUserCommandValidatorConstants.PASSWORD_SHORT_STRING)
+                .Matches(@"[A-Z]+").WithMessage(CreateUserCommandValidatorConstants.PASSWORD_CONTAINS_CAPITAL_STRING)
+                .Matches(@"[a-z]+").WithMessage(CreateUserCommandValidatorConstants.PASSWORD_CONTAINS_LOWER_STRING);
         }
 
         private async Task<bool> BeUniqueUsername(string username, CancellationToken token) => !(await _context.Users.AnyAsync(x => x.Name == username, token));
@@ -71,7 +65,7 @@ namespace User.Api.Features.Users
         private async Task<bool> BeUniqueEmail(string email, CancellationToken token) => !(await _context.Users.AnyAsync(x => x.Email == email, token));
     }
 
-    internal static class CreateUserQueryValidatorConstants
+    internal static class CreateUserCommandValidatorConstants
     {
         public static string USERNAME_REQUIRED_STRING = "A username is required";
         public static string USERNAME_INVALID_LENGTH_STRING = $"A username needs to be between {USERNAME_MINIMUM_LENGTH} and {USERNAME_MAXIMUM_LENGTH} characters.";
@@ -95,12 +89,12 @@ namespace User.Api.Features.Users
         public static string EMAIL_NOT_UNIQUE_STRING = "Your email needs to be unique.";
     }
 
-    public sealed class CreateUserQueryHandler(IHashingService hashingService, UserDatabaseContext context) : IRequestHandler<CreateUserQuery, ErrorOr<Guid>>
+    public sealed class CreateUserCommandHandler(IHashingService hashingService, UserDatabaseContext context) : IRequestHandler<CreateUserCommand, ErrorOr<Guid>>
     {
         private readonly UserDatabaseContext _context = context;
 
 
-        public async Task<ErrorOr<Guid>> Handle(CreateUserQuery request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<Guid>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             try
             {

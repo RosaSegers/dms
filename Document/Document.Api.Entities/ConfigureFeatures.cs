@@ -9,7 +9,7 @@ namespace Document.Api.Features
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            services.AddScoped<RabbitMqLogProducer>();
+            //services.AddScoped<RabbitMqLogProducer>();
 
             services.AddMediatR(options =>
             {

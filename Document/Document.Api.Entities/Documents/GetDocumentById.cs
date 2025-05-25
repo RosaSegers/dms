@@ -1,21 +1,18 @@
 ﻿using Document.Api.Common;
+using Document.Api.Common.Authorization.Requirements;
 using Document.Api.Common.Constants;
 using Document.Api.Common.Interfaces;
-using Document.Api.Domain.Events;
-using Document.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Document.Api.Features.Documents
 {
+    [Authorize]
+    [RoleAuthorize("User")]
     public class GetDocumentByIdController() : ApiControllerBase
     {
         [HttpGet("/api/documents/{Id}")]
@@ -45,7 +42,7 @@ namespace Document.Api.Features.Documents
     }
 
 
-    public sealed class GetDocumentByIdQueryHandler(IDocumentStorage storage, ICacheService cache) : IRequestHandler<GetDocumentByIdQuery, ErrorOr<Domain.Entities.Document>>
+    public sealed class GetDocumentByIdQueryHandler(IDocumentStorage storage, ICurrentUserService userService, ICacheService cache) : IRequestHandler<GetDocumentByIdQuery, ErrorOr<Domain.Entities.Document>>
     {
         private readonly IDocumentStorage _storage = storage;
         private readonly ICacheService _cache = cache;
@@ -53,9 +50,13 @@ namespace Document.Api.Features.Documents
         public async Task<ErrorOr<Domain.Entities.Document>> Handle(GetDocumentByIdQuery request, CancellationToken cancellationToken)
         {
             var cacheKey = CacheKeys.GetDocumentCacheKey(request.Id);
-            if (_cache.TryGetCache(cacheKey, out object cachedDocuments))
+            if (_cache.TryGetCache(cacheKey, out object cachedDocument))
             {
-                return (Domain.Entities.Document?)cachedDocuments;
+                var document = (Domain.Entities.Document?)cachedDocument!;
+                if(document == null || document.UserId != userService.UserId)
+                    return Error.NotFound("Document not found or you do not have permission to access this document.");
+
+                return (Domain.Entities.Document?)cachedDocument!;
             }
 
             var events = (await _storage.GetDocumentList()).Where(x => x.Id == request.Id);
@@ -65,6 +66,9 @@ namespace Document.Api.Features.Documents
                 doc.Apply(e);
 
             _cache.SetCache(cacheKey, doc);
+
+            if (doc == null || doc.UserId != userService.UserId)
+                return Error.NotFound("Document not found or you do not have permission to access this document.");
 
             return doc;
         }

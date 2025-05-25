@@ -1,8 +1,10 @@
 ﻿using AccessControl.Api.Common;
+using AccessControl.Api.Common.Authorization.Requirements;
 using AccessControl.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +12,8 @@ using static AccessControl.Api.Features.Roles.CreateRolesController;
 
 namespace AccessControl.Api.Features.Roles
 {
+    [Authorize]
+    [RoleAuthorize("Admin")]
     [ApiController]
     public class CreateRolesController() : ApiControllerBase
     {

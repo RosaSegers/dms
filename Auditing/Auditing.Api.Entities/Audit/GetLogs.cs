@@ -1,15 +1,19 @@
 ﻿using Auditing.Api.Common;
+using Auditing.Api.Common.Authorization.Requirements;
 using Auditing.Api.Domain.Entities;
 using Auditing.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Auditing.Api.Features.Logs
 {
+    [Authorize]
+    [RoleAuthorize("Admin")]
     public class GetLogsController() : ApiControllerBase
     {
         [HttpGet("/api/logs")]

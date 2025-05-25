@@ -3,12 +3,14 @@ using AccessControl.Api.Infrastructure.Persistance;
 using AutoMapper;
 using ErrorOr;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AccessControl.Api.Features.Permission
 {
+    [Authorize]
     [Route("api/permissions")]
     public class GetPermissionsController : ApiControllerBase
     {

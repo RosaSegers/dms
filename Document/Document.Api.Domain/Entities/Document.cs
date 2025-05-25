@@ -12,7 +12,7 @@ namespace Document.Api.Domain.Entities
         public string FileUrl { get; set; } = default!;
         public string ContentType { get; set; } = default!;
         public long FileSize { get; set; }
-        public Guid ChangedByUserId { get; set; }
+        public Guid UserId { get; set; }
         public DateTime UploadedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string[]? Tags { get; set; }
@@ -45,7 +45,7 @@ namespace Document.Api.Domain.Entities
             FileUrl = e.FileUrl;
             ContentType = e.ContentType;
             FileSize = e.FileSize;
-            ChangedByUserId = e.UploadedByUserId;
+            UserId = e.UploadedByUserId;
             UploadedAt = e.OccurredAt;
             Tags = e.Tags;
             Version = e.Version;
@@ -53,26 +53,26 @@ namespace Document.Api.Domain.Entities
 
         private void Apply(DocumentUpdatedEvent e)
         {
-            if (!string.IsNullOrEmpty(e.NewDocumentName))
-                Name = e.NewDocumentName;
+            if (!string.IsNullOrEmpty(e.UpdatedDocumentName))
+                Name = e.UpdatedDocumentName;
 
-            if (!string.IsNullOrEmpty(e.NewDocumentDescription))
-                Description = e.NewDocumentDescription;
+            if (!string.IsNullOrEmpty(e.UpdatedDocumentDescription))
+                Description = e.UpdatedDocumentDescription;
 
-            if (!string.IsNullOrEmpty(e.NewContentType))
-                ContentType = e.NewContentType;
+            if (!string.IsNullOrEmpty(e.UpdatedContentType))
+                ContentType = e.UpdatedContentType;
 
-            if (!string.IsNullOrEmpty(e.NewFileUrl))
-                FileUrl = e.NewFileUrl!;
+            if (!string.IsNullOrEmpty(e.UpdatedFileUrl))
+                FileUrl = e.UpdatedFileUrl!;
 
-            if (e.NewFileSize.HasValue)
-                FileSize = e.NewFileSize.Value;
+            if (e.UpdatedFileLength.HasValue)
+                FileSize = e.UpdatedFileLength.Value;
 
             if (e.UpdatedTags is { Length: > 0 })
                 Tags = e.UpdatedTags;
 
             UpdatedAt = e.OccurredAt;
-            ChangedByUserId = e.UpdatedByUserId;
+            UserId = e.UpdatedByUserId;
             Version = e.Version;
         }
 
@@ -81,7 +81,7 @@ namespace Document.Api.Domain.Entities
             FileUrl = "[Deleted]";
             FileSize = 0;
             UpdatedAt = e.OccurredAt;
-            ChangedByUserId = e.DeletedByUserId;
+            UserId = e.DeletedByUserId;
             Version = e.Version;
         }
 
@@ -93,7 +93,7 @@ namespace Document.Api.Domain.Entities
             FileUrl = default!;
             ContentType = default!;
             FileSize = 0;
-            ChangedByUserId = Guid.Empty;
+            UserId = Guid.Empty;
             UploadedAt = default;
             UpdatedAt = e.OccurredAt;
             Tags = null;
@@ -104,7 +104,7 @@ namespace Document.Api.Domain.Entities
                 Apply(pastEvent);
             }
 
-            ChangedByUserId = e.RolledBackByUserId;
+            UserId = e.RolledBackByUserId;
             Version = e.Version;
         }
     }

@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
-const BASE_URL = 'http://localhost:5285';
+const BASE_URL = 'http://localhost:5093';
 
 export const options = {
   vus: 100,
@@ -28,7 +28,7 @@ export default function () {
       File: http.file(fileContent, fileName, 'text/plain'),
     };
   
-    const res = http.post(`${BASE_URL}/apigateway/documents`, payload);
+    const res = http.post(`${BASE_URL}/api/documents`, payload);
   
     check(res, {
       'upload success': (r) => r.status === 201,
@@ -44,7 +44,7 @@ export default function () {
   sleep(1);
 
   group('List Documents', () => {
-    const res = http.get(`${BASE_URL}/apigateway/documents`);
+    const res = http.get(`${BASE_URL}/api/documents`);
 
     check(res, {
       'list success': (r) => r.status === 200,
@@ -56,7 +56,7 @@ export default function () {
   group('Delete Document', () => {
     if (!documentId) return;
 
-    const res = http.del(`${BASE_URL}/apigateway/documents/${documentId}`);
+    const res = http.del(`${BASE_URL}/api/documents/${documentId}`);
 
     check(res, {
       'delete success': (r) => r.status === 204,

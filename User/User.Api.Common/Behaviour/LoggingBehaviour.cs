@@ -2,13 +2,15 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using User.Api.Infrastructure.Services;
+using User.API.Common.Interfaces;
 
 namespace User.Api.Common.Behaviour
 {
-    public class LoggingBehaviour<TRequest, TResponse>(ILogger<TRequest> logger, RabbitMqLogProducer logProducer) : IPipelineBehavior<TRequest, TResponse>
+    public class LoggingBehaviour<TRequest, TResponse>(ILogger<TRequest> logger, RabbitMqLogProducer logProducer, ICurrentUserService userService) : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
         private readonly ILogger<TRequest> _logger = logger;
         private readonly RabbitMqLogProducer _logProducer = logProducer;
+        private readonly ICurrentUserService _userService = userService;
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
@@ -32,6 +34,7 @@ namespace User.Api.Common.Behaviour
                 // Create and send log to RabbitMQ
                 var log = new
                 {
+                    _userService.UserId,
                     Message = $"Request {requestNameWithGuid} completed in {stopwatch.Elapsed}",
                     RequestName = requestName,
                     RequestId = requestId,

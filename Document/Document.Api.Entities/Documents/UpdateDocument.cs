@@ -1,21 +1,19 @@
 ﻿using Document.Api.Common;
+using Document.Api.Common.Authorization.Requirements;
 using Document.Api.Common.Interfaces;
 using Document.Api.Domain.Events;
-using Document.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Document.Api.Features.Documents
 {
-    public class UpdateDocumentsController() : ApiControllerBase
+    [Authorize]
+    [RoleAuthorize("User")]
+    public class UpdateDocumentsController(ICurrentUserService userService) : ApiControllerBase
     {
         [HttpPut("/api/documents/{id:guid}")]
         public async Task<IResult> UploadDocument(
@@ -25,6 +23,10 @@ namespace Document.Api.Features.Documents
             [FromForm] float version,
             [FromForm] IFormFile file)
         {
+            var document = await Mediator.Send(new GetDocumentByIdQuery(id));
+            if (document.Value.UserId != userService.UserId)
+                return Results.BadRequest("You are not allowed to delete this document.");
+
             var query = new UpdateDocumentQuery(id, name, description, version, file);
             var result = await Mediator.Send(query);
 

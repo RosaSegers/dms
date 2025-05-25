@@ -1,6 +1,7 @@
 ﻿using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using User.Api.Common.Interfaces;
@@ -10,6 +11,7 @@ using User.API.Common;
 
 namespace User.Api.Features.Authentication
 {
+    [AllowAnonymous]
     public class LoginController() : ApiControllerBase
     {
         [HttpPost("/api/auth/login")]

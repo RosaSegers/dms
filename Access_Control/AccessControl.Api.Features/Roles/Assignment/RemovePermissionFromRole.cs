@@ -1,8 +1,10 @@
 ﻿using AccessControl.Api.Common;
+using AccessControl.Api.Common.Authorization.Requirements;
 using AccessControl.Api.Infrastructure.Persistance;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,8 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AccessControl.Api.Features.Roles.Assignment
 {
+    [Authorize]
+    [RoleAuthorize("Admin")]
     [Route("api/roles/{roleId}/permissions")]
     public class RemovePermissionsFromRoleController : ApiControllerBase
     {

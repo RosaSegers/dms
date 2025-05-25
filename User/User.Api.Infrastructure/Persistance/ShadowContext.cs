@@ -7,7 +7,7 @@ namespace User.Api.Infrastructure.Persistance
 {
     public abstract class ShadowContext(ICurrentUserService userService, DbContextOptions options) : DbContext(options)
     {
-        private readonly string? _user = userService.UserId;
+        private readonly Guid? _user = userService.UserId;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -18,21 +18,21 @@ namespace User.Api.Infrastructure.Persistance
 
         public override int SaveChanges()
         {
-            //UpdateTrackingDates();
+            UpdateTrackingDates();
             UpdateSoftDeleteProperties();
             if (_user != null)
                 UpdateUserData();
             return base.SaveChanges();
         }
 
-        public override Task<int> SaveChangesAsync(
+        public async override Task<int> SaveChangesAsync(
             CancellationToken cancellationToken = new CancellationToken())
         {
-            //UpdateTrackingDates();
+            UpdateTrackingDates();
             UpdateSoftDeleteProperties();
             if (_user != null)
                 UpdateUserData();
-            return base.SaveChangesAsync(cancellationToken);
+            return await base.SaveChangesAsync(cancellationToken);
         }
 
         #region AddShadowProperties

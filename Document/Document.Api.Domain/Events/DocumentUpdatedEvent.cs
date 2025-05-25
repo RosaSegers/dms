@@ -13,25 +13,25 @@ namespace Document.Api.Domain.Events
         public Guid Id { get; set; }
         public DateTime OccurredAt { get; set; }
         public float? Version { get; set; }
-        public string? NewDocumentName { get; set; }
-        public string? NewDocumentDescription { get; set; }
-        public string? NewFileName { get; set; }
-        public string? NewContentType { get; set; }
-        public long? NewFileSize { get; set; }
-        public string? NewFileUrl { get; set; }
-        public string[] UpdatedTags { get; set; } = Array.Empty<string>();
+        public string? UpdatedDocumentName { get; set; }
+        public string? UpdatedDocumentDescription { get; set; }
+        public string? UpdatedFileName { get; set; }
+        public string? UpdatedContentType { get; set; }
+        public long? UpdatedFileLength { get; set; }
+        public string? UpdatedFileUrl { get; set; }
+        public string[]? UpdatedTags { get; set; } = Array.Empty<string>();
         public Guid UpdatedByUserId { get; set; } = default!;
 
         public DocumentUpdatedEvent(Guid id, string name, string description, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
         {
             Id = id;
             OccurredAt = DateTime.UtcNow;
-            NewDocumentName = name;
-            NewDocumentDescription = description;
-            NewFileName = file.FileName;
-            NewContentType = file.ContentType;
-            NewFileSize = file.Length;
-            NewFileUrl = fileUrl;
+            UpdatedDocumentName = name;
+            UpdatedDocumentDescription = description;
+            UpdatedFileName = file.FileName;
+            UpdatedContentType = file.ContentType;
+            UpdatedFileLength = file.Length;
+            UpdatedFileUrl = fileUrl;
             UpdatedByUserId = userId;
             UpdatedTags = tags;
             Version = version;

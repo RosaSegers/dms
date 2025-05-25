@@ -33,8 +33,6 @@ services:
         condition: service_started
       accesscontrol-api:
         condition: service_started
-      organization-api:
-        condition: service_started
       document.api:
         condition: service_started
 
@@ -104,20 +102,6 @@ services:
     container_name: accesscontrol-api
     ports:
       - "5004:80"
-    environment:
-      RabbitMq__Host: "rabbitmq"
-      ASPNETCORE_ENVIRONMENT: "Development"
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-
-  organization-api:
-    build:
-      context: .
-      dockerfile: Organization/Organization.Api/Dockerfile
-    container_name: organization-api
-    ports:
-      - "5003:80"
     environment:
       RabbitMq__Host: "rabbitmq"
       ASPNETCORE_ENVIRONMENT: "Development"

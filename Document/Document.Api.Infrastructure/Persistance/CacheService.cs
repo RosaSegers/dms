@@ -16,7 +16,7 @@ namespace Document.Api.Infrastructure.Persistance
 
         public bool TryGetCache(string key, out object value)
         {
-            return _cache.TryGetValue(key, out value);
+            return _cache.TryGetValue(key, out value!); 
         }
 
         public void InvalidateCaches()
