@@ -17,24 +17,4 @@
     <PackageReference Include="Ocelot.Provider.Consul" Version="24.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="..\.dockerignore" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="..\.dockerignore" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="..\.dockerignore" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="..\.dockerignore" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="..\.dockerignore" />
-  </ItemGroup>
-
 </Project>

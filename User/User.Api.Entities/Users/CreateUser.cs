@@ -99,16 +99,19 @@ namespace User.Api.Features.Users
         {
             try
             {
-                var user = new Domain.Entities.User(request.username, request.email, hashingService.Hash(request.password));
-                Console.WriteLine(1);
-                await _context.Users.AddAsync(user, cancellationToken);
+                try
+                {
+                    var user = new Domain.Entities.User(request.username, request.email, hashingService.Hash(request.password));
+                    await _context.Users.AddAsync(user, cancellationToken);
 
-                Console.WriteLine(JsonSerializer.Serialize(user));
-                Console.WriteLine(2);
-                var x = _context.SaveChanges();
-                Console.WriteLine(3);
+                    var x = _context.SaveChanges();
 
-                return user.Id;
+                    return user.Id;
+                }
+                catch(Exception ex)
+                {
+                    return Error.Validation(ex.Message);
+                }
             }
             catch (Exception ex)
             {
