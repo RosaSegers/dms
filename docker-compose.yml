@@ -38,7 +38,7 @@ services:
 
   user-api:
     build:
-      context: ./User/User.API
+      context: ./User
       dockerfile: Dockerfile
     container_name: user-api
     ports:
@@ -48,6 +48,7 @@ services:
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__User: "guest"
       RabbitMQ__Pass: "guest"
+      JWT__Key: "SuperSecretDebugKeyForTesting12345"
       ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
       rabbitmq:
@@ -119,6 +120,7 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=DocumentDb;User=sa;Password=YourStrong!Password;"
       RabbitMq__Host: "rabbitmq"
+      JWT__Key: "SuperSecretDebugKeyForTesting12345"
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:80"
     depends_on:

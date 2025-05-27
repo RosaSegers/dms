@@ -21,6 +21,7 @@ namespace User.Api.Infrastructure.Services
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Email, user.Email),
+                new(ClaimTypes.Role, "User")
             };
 
             var descriptor = new SecurityTokenDescriptor

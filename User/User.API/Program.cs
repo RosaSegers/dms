@@ -33,8 +33,9 @@ public class Program
         app.UseHttpsRedirection();
         app.UseRouting();
 
-        app.UseCors("ApiGateway");  
+        app.UseCors("ApiGateway");
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();

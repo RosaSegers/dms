@@ -12,10 +12,10 @@ namespace User.Api.Test.Unit
         public async Task Should_Succeed_When_User_Has_Permission()
         {
             // Arrange
-            var requirement = new RoleRequirement("User.READ");
+            var requirement = new RoleRequirement("Admin");
             var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
-                new Claim("permission", "User.READ")
+                new Claim(ClaimTypes.Role, "Admin")
             }));
 
             var context = new AuthorizationHandlerContext(new[] { requirement }, user, null);

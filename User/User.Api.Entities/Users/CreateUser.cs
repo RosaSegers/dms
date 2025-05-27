@@ -1,4 +1,5 @@
-﻿using ErrorOr;
+﻿using System.Text.Json;
+using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +23,7 @@ namespace User.Api.Features.Users
 
             return result.Match(
                 id => Results.Ok(id),
-                error => Results.BadRequest(error.First().Description));
+                error => Results.BadRequest(error.First().Code));
         }
     }
 
@@ -99,14 +100,19 @@ namespace User.Api.Features.Users
             try
             {
                 var user = new Domain.Entities.User(request.username, request.email, hashingService.Hash(request.password));
+                Console.WriteLine(1);
                 await _context.Users.AddAsync(user, cancellationToken);
-                await _context.SaveChangesAsync(cancellationToken);
+
+                Console.WriteLine(JsonSerializer.Serialize(user));
+                Console.WriteLine(2);
+                var x = _context.SaveChanges();
+                Console.WriteLine(3);
 
                 return user.Id;
             }
             catch (Exception ex)
             {
-                return Error.Unexpected(ex.Message);
+                return Error.Unexpected(ex.StackTrace);
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Auditing.Api.Domain.Entities;
+﻿using Auditing.Api.Common.Enums;
+using Auditing.Api.Domain.Entities;
 using Auditing.Api.Infrastructure.Persistance;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,13 +32,30 @@ namespace Auditing.Api.Infrastructure.Services
 
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
-                    var log = JsonSerializer.Deserialize<Log>(message);
-                    Console.WriteLine($"{log?.Message}");
+                    var dto = JsonSerializer.Deserialize<Domain.DTO.Log>(message);
+
+                    if (dto == null)
+                        return;
+
+                    var log = new Log
+                    {
+                        UserId = dto.UserId,
+                        Message = dto.Message,
+                        RequestName = dto.RequestName,
+                        RequestId = dto.RequestId,
+                        Metadata = dto.Metadata,
+                        Severity = Enum.TryParse<LogSeverity>(dto.LogSeverity, out var severity)
+                            ? severity
+                            : LogSeverity.Information, // fallback if parsing fails
+                        Type = Enum.TryParse<LogType>(dto.LogType, out var type)
+                            ? type
+                            : LogType.System
+                    };
 
                     using var scope = _scopeFactory.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
 
-                    dbContext.Logs.Add(log!);
+                    //dbContext.Logs.Add(log!);
                     await dbContext.SaveChangesAsync();
 
                     await channel.BasicAckAsync(ea.DeliveryTag, false);

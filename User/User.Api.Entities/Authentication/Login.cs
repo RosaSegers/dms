@@ -11,7 +11,7 @@ using User.API.Common;
 
 namespace User.Api.Features.Authentication
 {
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public class LoginController() : ApiControllerBase
     {
         [HttpPost("/api/auth/login")]
@@ -21,7 +21,7 @@ namespace User.Api.Features.Authentication
 
             return result.Match(
                 id => Results.Ok(id),
-                error => Results.BadRequest(error.First().Description));
+                error => Results.BadRequest(error.First().Code));
         }
     }
 

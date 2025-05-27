@@ -12,14 +12,14 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["User/User.API/User.API.csproj", "User/User.API/"]
-COPY ["User/User.Api.Entities/User.Api.Features.csproj", "User/User.Api.Entities/"]
-COPY ["User/User.Api.Infrastructure/User.Api.Infrastructure.csproj", "User/User.Api.Infrastructure/"]
-COPY ["User/User.Api.Domain/User.Api.Domain.csproj", "User/User.Api.Domain/"]
-COPY ["User/User.Api.Common/User.Api.Common.csproj", "User/User.Api.Common/"]
-RUN dotnet restore "./User/User.API/User.API.csproj"
+COPY ["User.API/User.API.csproj", "User.API/"]
+COPY ["User.Api.Entities/User.Api.Features.csproj", "User.Api.Entities/"]
+COPY ["User.Api.Infrastructure/User.Api.Infrastructure.csproj", "User.Api.Infrastructure/"]
+COPY ["User.Api.Domain/User.Api.Domain.csproj", "User.Api.Domain/"]
+COPY ["User.Api.Common/User.Api.Common.csproj", "User.Api.Common/"]
+RUN dotnet restore "./User.API/User.API.csproj"
 COPY . .
-WORKDIR "/src/User/User.API"
+WORKDIR "/src/User.API"
 RUN dotnet build "./User.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage

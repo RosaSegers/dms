@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Document.Api.Features.Documents
 {
     [Authorize]
-    [RoleAuthorize("User")]
+    //[RoleAuthorize("User")]
     public class RolebackDocumentsController(ICurrentUserService userService) : ApiControllerBase
     {
         [HttpPatch("/api/documents/{id:guid}")]

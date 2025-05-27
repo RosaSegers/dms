@@ -38,8 +38,7 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
       - name: Run build with warnings as errors
-        run: dotnet build DocumentManagementSystem.sln -warnaserror
-        continue-on-error: true
+        run: dotnet build DocumentManagementSystem.sln -warnaserro
 
   format-check:
     name: Code Format Check

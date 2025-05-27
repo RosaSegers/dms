@@ -11,7 +11,7 @@ namespace Auditing.Api.Domain.Entities
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-        public Guid UserId { get; set; } = Guid.Empty;
+        public Guid? UserId { get; set; } = Guid.Empty;
         public string Message { get; set; } = string.Empty;
         public string RequestName { get; set; } = string.Empty;
         public string RequestId { get; set; } = string.Empty;

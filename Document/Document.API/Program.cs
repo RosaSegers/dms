@@ -25,7 +25,7 @@ internal class Program
 
         builder.Services.AddHttpClient<IVirusScanner, VirusScanner>();
 
-        builder.Services.AddApplication();
+        builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructure();
         //builder.Services.AddValidation();
 

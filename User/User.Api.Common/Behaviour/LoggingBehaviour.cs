@@ -34,11 +34,12 @@ namespace User.Api.Common.Behaviour
                 // Create and send log to RabbitMQ
                 var log = new
                 {
-                    _userService.UserId,
+                    UserId = _userService.UserId,
                     Message = $"Request {requestNameWithGuid} completed in {stopwatch.Elapsed}",
                     RequestName = requestName,
                     RequestId = requestId,
-                    Severity = "Information",
+                    LogSeverity = "Information",
+                    LogType = "System",
                     Metadata = $"ExecutionTime: {stopwatch.Elapsed}"
                 };
 

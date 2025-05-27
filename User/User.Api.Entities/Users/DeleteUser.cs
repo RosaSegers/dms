@@ -29,7 +29,7 @@ namespace User.Api.Features.Users
 
             return result.Match(
                 id => Results.Ok(id),
-                error => Results.BadRequest(error.First().Description));
+                error => Results.BadRequest(error.First().Code));
         }
     }
 

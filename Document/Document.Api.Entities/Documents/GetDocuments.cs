@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Document.Api.Features.Documents
 {
     [Authorize]
-    [RoleAuthorize("Admin")]
+    //[RoleAuthorize("Admin")]
     public class GetDocumentsController() : ApiControllerBase
     {
         [HttpGet("/api/documents")]

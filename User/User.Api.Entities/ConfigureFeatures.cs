@@ -13,14 +13,12 @@ using User.Api.Infrastructure.Services;
 
 namespace User.Api.Features
 {
-    internal static class Permissions
+    internal static class Roles
     {
         internal static List<string> Items = new()
         {
-            "User.CREATE",
-            "User.READ",
-            "User.UPDATE",
-            "User.DELETE",
+            "Admin",
+            "User"
         };
     }
 
@@ -34,7 +32,7 @@ namespace User.Api.Features
 
             services.AddAuthorization(options =>
             {
-                foreach (var permission in Permissions.Items)
+                foreach (var permission in Roles.Items)
                     options.AddPolicy(permission, policy =>
                         policy.Requirements.Add(new RoleRequirement(permission)));
             });
@@ -52,7 +50,7 @@ namespace User.Api.Features
                     };
                 });
 
-            //services.AddScoped<RabbitMqLogProducer>();
+            services.AddScoped<RabbitMqLogProducer>();
 
             services.AddMediatR(options =>
             {

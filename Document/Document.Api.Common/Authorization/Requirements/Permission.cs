@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Document.Api.Common.Authorization.Requirements
 {
@@ -12,6 +13,7 @@ namespace Document.Api.Common.Authorization.Requirements
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, RoleRequirement requirement)
         {
+            Console.WriteLine(JsonSerializer.Serialize(context.User));
             if (context.User.IsInRole(requirement.Role))
                 context.Succeed(requirement);
 

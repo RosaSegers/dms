@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Document.Api.Features.Documents
 {
     [Authorize]
-    [RoleAuthorize("User")]
+    //[RoleAuthorize("User")]
     public class UpdateDocumentsController(ICurrentUserService userService) : ApiControllerBase
     {
         [HttpPut("/api/documents/{id:guid}")]

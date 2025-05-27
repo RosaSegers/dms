@@ -11,27 +11,27 @@ namespace User.Api.Infrastructure.Persistance
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            AddTrackingDatesShadowProperties(modelBuilder);
-            AddSoftDeleteShadowProperties(modelBuilder);
-            AddUserDataProperties(modelBuilder);
+            //AddTrackingDatesShadowProperties(modelBuilder);
+            //AddSoftDeleteShadowProperties(modelBuilder);
+            //AddUserDataProperties(modelBuilder);
         }
 
         public override int SaveChanges()
         {
-            UpdateTrackingDates();
-            UpdateSoftDeleteProperties();
-            if (_user != null)
-                UpdateUserData();
+            //UpdateTrackingDates();
+            //UpdateSoftDeleteProperties();
+            //if (_user != null)
+            //    UpdateUserData();
             return base.SaveChanges();
         }
 
         public async override Task<int> SaveChangesAsync(
             CancellationToken cancellationToken = new CancellationToken())
         {
-            UpdateTrackingDates();
-            UpdateSoftDeleteProperties();
-            if (_user != null)
-                UpdateUserData();
+            //UpdateTrackingDates();
+            //UpdateSoftDeleteProperties();
+            //if (_user != null)
+            //    UpdateUserData();
             return await base.SaveChangesAsync(cancellationToken);
         }
 

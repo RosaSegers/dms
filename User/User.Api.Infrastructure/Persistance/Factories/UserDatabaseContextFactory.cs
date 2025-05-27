@@ -1,18 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using User.Api.Infrastructure.Persistance;
 using User.API.Common.Interfaces;
 
 namespace User.Api.Infrastructure.Persistance.Factories
 {
-    public class UserDatabaseContextFactory : IDesignTimeDbContextFactory<UserDatabaseContext>
+    public class UserDatabaseContextFactory() : IDesignTimeDbContextFactory<UserDatabaseContext>
     {
         public UserDatabaseContext CreateDbContext(string[] args)
         {
-            // Build config to read connection string, adjust path if needed
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory()) // might need adjustment depending on where you run this
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .Build();
 
