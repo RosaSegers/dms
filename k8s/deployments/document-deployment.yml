@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-api
+  labels:
+    app: document-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: document-api
+  template:
+    metadata:
+      labels:
+        app: document-api
+    spec:
+      containers:
+        - name: document-api
+          image: gyliana/document-api:8dec60bb5edcd5c79bda5b0025cbeca45e8c6920
+          ports:
+            - containerPort: 80
+          env:
+            - name: ConnectionStrings__DefaultConnection
+              value: "Server=sqlserver;Database=DocumentDb;User=sa;Password=YourStrong!Password;"
+            - name: RabbitMq__Host
+              value: "rabbitmq"
+            - name: JWT__Key
+              value: "SuperSecretDebugKeyForTesting12345"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Development"
+            - name: ASPNETCORE_URLS
+              value: "http://+:80"

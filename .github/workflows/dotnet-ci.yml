@@ -65,7 +65,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-            dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
       - run: |
           cd ApiGateway
           dotnet restore ApiGateway.csproj
@@ -80,8 +80,12 @@ jobs:
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
       - name: Build Docker image for Api Gateway
         run: docker build -t gyliana/api-gateway:${{ github.sha }} -f ApiGateway/Dockerfile .
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker image with SHA tag
         run: docker push gyliana/api-gateway:${{ github.sha }}
+      - name: Tag image as latest
+        run: docker tag gyliana/api-gateway:${{ github.sha }} gyliana/api-gateway:latest
+      - name: Push latest tag
+        run: docker push gyliana/api-gateway:latest
 
   # --- Document API ---
   build-document-api:
@@ -127,8 +131,12 @@ jobs:
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
       - name: Build Docker image for Document API
         run: docker build -t gyliana/document-api:${{ github.sha }} -f Document/Document.API/Dockerfile .
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker image with SHA tag
         run: docker push gyliana/document-api:${{ github.sha }}
+      - name: Tag image as latest
+        run: docker tag gyliana/document-api:${{ github.sha }} gyliana/document-api:latest
+      - name: Push latest tag
+        run: docker push gyliana/document-api:latest
 
   # --- User API ---
   build-user-api:
@@ -174,8 +182,12 @@ jobs:
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
       - name: Build Docker image for User API
         run: docker build -t gyliana/user-api:${{ github.sha }} -f User/User.API/Dockerfile .
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker image with SHA tag
         run: docker push gyliana/user-api:${{ github.sha }}
+      - name: Tag image as latest
+        run: docker tag gyliana/user-api:${{ github.sha }} gyliana/user-api:latest
+      - name: Push latest tag
+        run: docker push gyliana/user-api:latest
 
   # --- Access Control ---
   build-access-control:
@@ -221,8 +233,12 @@ jobs:
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
       - name: Build Docker image for Access Control API
         run: docker build -t gyliana/access-control-api:${{ github.sha }} -f Access_Control/AccessControl.Api/Dockerfile .
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker image with SHA tag
         run: docker push gyliana/access-control-api:${{ github.sha }}
+      - name: Tag image as latest
+        run: docker tag gyliana/access-control-api:${{ github.sha }} gyliana/access-control-api:latest
+      - name: Push latest tag
+        run: docker push gyliana/access-control-api:latest
 
   # --- Auditing ---
   build-auditing:
@@ -247,8 +263,12 @@ jobs:
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
       - name: Build Docker image for Auditing API
         run: docker build -t gyliana/auditing-api:${{ github.sha }} -f Auditing/Auditing.Api/Dockerfile .
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker image with SHA tag
         run: docker push gyliana/auditing-api:${{ github.sha }}
+      - name: Tag image as latest
+        run: docker tag gyliana/auditing-api:${{ github.sha }} gyliana/auditing-api:latest
+      - name: Push latest tag
+        run: docker push gyliana/auditing-api:latest
 
   # --- Snyk Security Scan ---
   snyk-scan:

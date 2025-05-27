@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-sqlserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-sqlserver
+  template:
+    metadata:
+      labels:
+        app: user-sqlserver
+    spec:
+      containers:
+        - name: sqlserver
+          image: mcr.microsoft.com/mssql/server:2022-latest
+          ports:
+            - containerPort: 1433
+          env:
+            - name: SA_PASSWORD
+              value: "YourStrong!Password"
+            - name: ACCEPT_EULA
+              value: "Y"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-sqlserver
+spec:
+  ports:
+    - port: 1433
+  selector:
+    app: user-sqlserver
