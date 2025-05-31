@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Auditing.Api.Features.Logs
 {
     [Authorize]
-    [RoleAuthorize("Admin")]
     public class GetLogsController() : ApiControllerBase
     {
         [HttpGet("/api/logs")]

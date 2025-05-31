@@ -16,6 +16,31 @@ permissions:
   contents: read
 
 jobs:
+  filter:
+    runs-on: ubuntu-latest
+    outputs:
+      api_gateway_changed: ${{ steps.filter.outputs.api_gateway }}
+      document_api_changed: ${{ steps.filter.outputs.document_api }}
+      user_api_changed: ${{ steps.filter.outputs.user_api }}
+      access_control_changed: ${{ steps.filter.outputs.access_control }}
+      auditing_changed: ${{ steps.filter.outputs.auditing }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            api_gateway:
+              - 'ApiGateway/**'
+            document_api:
+              - 'Document/**'
+            user_api:
+              - 'User/**'
+            access_control:
+              - 'Access_Control/**'
+            auditing:
+              - 'Auditing/**'
+
   setup:
     name: Setup Environment
     runs-on: ubuntu-latest
@@ -60,7 +85,8 @@ jobs:
   # --- Gateway ---
   build-api-gateway:
     runs-on: ubuntu-latest
-    needs: [setup, lint, format-check]
+    needs: [setup, lint, format-check, filter]
+    if: needs.filter.outputs.api_gateway_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -73,7 +99,8 @@ jobs:
 
   docker-build-gateway:
     runs-on: ubuntu-latest
-    needs: build-api-gateway
+    needs: [build-api-gateway, filter]
+    if: needs.filter.outputs.api_gateway_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Log in to Docker Hub
@@ -90,7 +117,8 @@ jobs:
   # --- Document API ---
   build-document-api:
     runs-on: ubuntu-latest
-    needs: [setup, lint, format-check]
+    needs: [setup, lint, format-check, filter]
+    if: needs.filter.outputs.document_api_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -103,7 +131,8 @@ jobs:
 
   test-document:
     runs-on: ubuntu-latest
-    needs: build-document-api
+    needs: [build-document-api, filter]
+    if: needs.filter.outputs.document_api_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Set up .NET
@@ -124,7 +153,8 @@ jobs:
 
   docker-build-document:
     runs-on: ubuntu-latest
-    needs: test-document
+    needs: [test-document, filter]
+    if: needs.filter.outputs.document_api_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Log in to Docker Hub
@@ -141,7 +171,8 @@ jobs:
   # --- User API ---
   build-user-api:
     runs-on: ubuntu-latest
-    needs: [setup, lint, format-check]
+    needs: [setup, lint, format-check, filter]
+    if: needs.filter.outputs.user_api_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -154,7 +185,8 @@ jobs:
 
   test-user:
     runs-on: ubuntu-latest
-    needs: build-user-api
+    needs: [build-user-api, filter]
+    if: needs.filter.outputs.user_api_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Set up .NET
@@ -175,7 +207,8 @@ jobs:
 
   docker-build-user:
     runs-on: ubuntu-latest
-    needs: test-user
+    needs: [test-user, filter]
+    if: needs.filter.outputs.user_api_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Log in to Docker Hub
@@ -192,7 +225,8 @@ jobs:
   # --- Access Control ---
   build-access-control:
     runs-on: ubuntu-latest
-    needs: [setup, lint, format-check]
+    needs: [setup, lint, format-check, filter]
+    if: needs.filter.outputs.access_control_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -205,7 +239,8 @@ jobs:
 
   test-access-control:
     runs-on: ubuntu-latest
-    needs: build-access-control
+    needs: [build-access-control, filter]
+    if: needs.filter.outputs.access_control_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Set up .NET
@@ -226,7 +261,8 @@ jobs:
 
   docker-build-access-control:
     runs-on: ubuntu-latest
-    needs: test-access-control
+    needs: [test-access-control, filter]
+    if: needs.filter.outputs.access_control_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Log in to Docker Hub
@@ -243,7 +279,8 @@ jobs:
   # --- Auditing ---
   build-auditing:
     runs-on: ubuntu-latest
-    needs: [setup, lint, format-check]
+    needs: [setup, lint, format-check, filter]
+    if: needs.filter.outputs.auditing_api_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -256,7 +293,8 @@ jobs:
 
   docker-build-auditing:
     runs-on: ubuntu-latest
-    needs: build-auditing
+    needs: [build-auditing, filter]
+    if: needs.filter.outputs.auditing_api_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Log in to Docker Hub
@@ -274,19 +312,25 @@ jobs:
   snyk-scan:
     runs-on: ubuntu-latest
     needs:
-      - test-document
-      - test-user
-      - test-access-control
-      - build-auditing
+    - test-document
+    - test-user
+    - test-access-control
+    - build-auditing
+    - filter
+    if: |
+      needs.filter.outputs.document_api_changed == 'true' ||
+      needs.filter.outputs.user_api_changed == 'true' ||
+      needs.filter.outputs.access_control_changed == 'true' ||
+      needs.filter.outputs.auditing_changed == 'true'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - run: npm install -g snyk
-      - run: dotnet restore DocumentManagementSystem.sln
-      - run: snyk test --all-projects --project-type=dotnet --detection-depth=5 --sarif-file-output=snyk.sarif
-        continue-on-error: true
-      - uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: snyk.sarif
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+    - run: npm install -g snyk
+    - run: dotnet restore DocumentManagementSystem.sln
+    - run: snyk test --all-projects --project-type=dotnet --detection-depth=5 --sarif-file-output=snyk.sarif
+      continue-on-error: true
+    - uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: snyk.sarif
