@@ -30,18 +30,7 @@ namespace Auditing.Api.Features
                         policy.Requirements.Add(new RoleRequirement(permission)));
             });
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options => {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? throw new Exception()))
-                    };
-                });
+            services.AddAuthentication();
 
             services.AddMediatR(options =>
             {
