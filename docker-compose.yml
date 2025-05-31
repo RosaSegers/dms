@@ -78,9 +78,9 @@ services:
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__User: "guest"
       RabbitMQ__Pass: "guest"
+      JWT__Key: "SuperSecretDebugKeyForTesting12345"
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:80"
-      JWT__Key: "SuperSecretDebugKeyForTesting12345"
     depends_on:
       rabbitmq:
         condition: service_healthy
