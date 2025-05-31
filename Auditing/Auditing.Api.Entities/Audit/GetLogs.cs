@@ -52,9 +52,7 @@ namespace Auditing.Api.Features.Logs
 
         public async Task<ErrorOr<List<Log>>> Handle(GetLogsWithPaginationQuery request, CancellationToken cancellationToken)
         {
-            var x = await _context.Logs.ToListAsync();
-
-            return x;
+            return await _context.Logs.ToListAsync();
         }
     }
 }

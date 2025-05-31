@@ -280,7 +280,7 @@ jobs:
   build-auditing:
     runs-on: ubuntu-latest
     needs: [setup, lint, format-check, filter]
-    if: needs.filter.outputs.auditing_api_changed == 'true'
+    if: needs.filter.outputs.auditing_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -294,7 +294,7 @@ jobs:
   docker-build-auditing:
     runs-on: ubuntu-latest
     needs: [build-auditing, filter]
-    if: needs.filter.outputs.auditing_api_changed == 'true'
+    if: needs.filter.outputs.auditing_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Log in to Docker Hub
