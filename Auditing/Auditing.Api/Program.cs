@@ -12,7 +12,7 @@ internal class Program
             options.AddPolicy(name: "ApiGateway",
                 policy =>
                 {
-                    policy.WithOrigins(builder.Configuration["Gateway"] ?? "")
+                    policy.WithOrigins("api-gateway")
                                         .AllowAnyHeader()
                                         .AllowAnyMethod();
                 });
