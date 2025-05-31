@@ -26,6 +26,7 @@ public class Program
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddValidation();
         builder.Services.AddMapping();
+        builder.Services.AddHealthChecks(); 
 
         builder.WebHost.UseUrls("http://0.0.0.0:80");
 
@@ -34,6 +35,7 @@ public class Program
         app.UseRouting();
 
         app.UseCors("ApiGateway");
+        app.MapHealthChecks("/health");
 
         app.UseAuthentication();
         app.UseAuthorization();

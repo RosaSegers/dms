@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: user-api
-          image: gyliana/user-api:8dec60bb5edcd5c79bda5b0025cbeca45e8c6920
+          image: gyliana/user-api:latest
           ports:
             - containerPort: 80
           resources:

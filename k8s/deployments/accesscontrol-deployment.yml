@@ -1,29 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  name: accesscontrol-api
   labels:
-    app: api-gateway
+    app: accesscontrol-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: api-gateway
+      app: accesscontrol-api
   template:
     metadata:
       labels:
-        app: api-gateway
+        app: accesscontrol-api
     spec:
       containers:
-        - name: api-gateway
-          image: gyliana/api-gateway:latest
+        - name: accesscontrol-api
+          image: gyliana/access-control-api:latest
           ports:
             - containerPort: 80
           env:
+            - name: RabbitMq__Host
+              value: "rabbitmq"
             - name: ASPNETCORE_ENVIRONMENT
               value: "Development"
-            - name: ASPNETCORE_URLS
-              value: "http://+:80"
           resources:
             requests:
               cpu: 100m

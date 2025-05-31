@@ -1,35 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: document-api
+  name: auditing-api
   labels:
-    app: document-api
+    app: auditing-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: document-api
+      app: auditing-api
   template:
     metadata:
       labels:
-        app: document-api
+        app: auditing-api
     spec:
       containers:
-        - name: document-api
-          image: gyliana/document-api:latest
+        - name: auditing-api
+          image: gyliana/auditing-api:latest
           ports:
             - containerPort: 80
           env:
             - name: ConnectionStrings__DefaultConnection
-              value: "Server=sqlserver;Database=DocumentDb;User=sa;Password=YourStrong!Password;"
-            - name: RabbitMq__Host
+              value: "Server=audit-sqlserver;Database=Logs;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
+            - name: RabbitMQ__Host
               value: "rabbitmq"
-            - name: JWT__Key
-              value: "SuperSecretDebugKeyForTesting12345"
+            - name: RabbitMQ__User
+              value: "guest"
+            - name: RabbitMQ__Pass
+              value: "guest"
             - name: ASPNETCORE_ENVIRONMENT
               value: "Development"
             - name: ASPNETCORE_URLS
               value: "http://+:80"
+
           resources:
             requests:
               cpu: 100m

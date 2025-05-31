@@ -12,7 +12,7 @@ internal class Program
             options.AddPolicy(name: "ApiGateway",
                 policy =>
                 {
-                    policy.WithOrigins("http://localhost:80")
+                    policy.WithOrigins(builder.Configuration["Gateway"] ?? "")
                                         .AllowAnyHeader()
                                         .AllowAnyMethod();
                 });
@@ -23,6 +23,7 @@ internal class Program
 
         builder.Services.AddApplication();
         builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddHealthChecks();
 
         builder.WebHost.UseUrls("http://localhost:80");
 
@@ -31,6 +32,7 @@ internal class Program
         app.UseRouting();
 
         app.UseCors("ApiGateway");  
+        app.MapHealthChecks("/health");
 
         app.UseAuthorization();
 

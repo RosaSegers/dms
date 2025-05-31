@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: accesscontrol-api
+  labels:
+    app: accesscontrol-api
+spec:
+  selector:
+    app: accesscontrol-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

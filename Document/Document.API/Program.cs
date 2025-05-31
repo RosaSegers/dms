@@ -28,6 +28,7 @@ internal class Program
         builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructure();
         //builder.Services.AddValidation();
+        builder.Services.AddHealthChecks();
 
 
 
@@ -36,6 +37,7 @@ internal class Program
         app.UseRouting();
 
         app.UseCors("ApiGateway");  
+        app.MapHealthChecks("/health");
 
         app.UseAuthorization();
 
