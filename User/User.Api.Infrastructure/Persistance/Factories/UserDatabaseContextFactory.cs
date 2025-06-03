@@ -11,7 +11,7 @@ namespace User.Api.Infrastructure.Persistance.Factories
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("/Secrets/user-secrets.json", optional: false)
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<UserDatabaseContext>();
