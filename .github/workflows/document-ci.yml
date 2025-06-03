@@ -64,7 +64,7 @@ jobs:
       - run: docker push gyliana/document-api:latest
 
   snyk:
-    uses: ./.github/workflows/snyk.yml
+    uses: ./.github/workflows/analysis/snyk.yml
     needs: test
     with:
       solution_path: DocumentManagementSystem.sln
