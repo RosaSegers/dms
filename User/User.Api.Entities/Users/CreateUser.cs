@@ -115,7 +115,7 @@ namespace User.Api.Features.Users
             }
             catch (Exception ex)
             {
-                return Error.Unexpected(ex.StackTrace);
+                return Error.Unexpected(ex?.StackTrace ?? "an unexpected error has occured");
             }
         }
     }
