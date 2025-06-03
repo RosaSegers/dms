@@ -1,22 +1,22 @@
 ﻿using System.Net.Http.Headers;
 using Document.Api.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
-using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 
 namespace Document.Api.Infrastructure.Services
 {
     public class VirusScanner : IVirusScanner
     {
         private readonly HttpClient _httpClient;
-        private readonly IConfiguration _config;
-        private const string VirusTotalApiKey = "22fa922586c549a2d77f12ee36651e23e43e41f31a7ff49807fc7e78f14a9484";
+        private readonly string _apiKey;
         private const string UploadUrl = "https://www.virustotal.com/api/v3/files";
+        private const string AnalysisUrlTemplate = "https://www.virustotal.com/api/v3/analyses/{0}";
 
         public VirusScanner(HttpClient httpClient, IConfiguration config)
         {
             _httpClient = httpClient;
-            _config = config;
+            _apiKey = config["VirusTotal"] ?? throw new Exception("VirusTotal API key not found in configuration.");
         }
 
         public async Task<bool> ScanFile(IFormFile file)
@@ -24,25 +24,74 @@ namespace Document.Api.Infrastructure.Services
             if (file == null || file.Length == 0)
                 return false;
 
+            // Step 1: Upload file to VirusTotal
             using var content = new MultipartFormDataContent();
             await using var fileStream = file.OpenReadStream();
             var fileContent = new StreamContent(fileStream);
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
             content.Add(fileContent, "file", file.FileName);
 
-            var request = new HttpRequestMessage(HttpMethod.Post, UploadUrl)
+            var uploadRequest = new HttpRequestMessage(HttpMethod.Post, UploadUrl)
             {
                 Content = content
             };
-            request.Headers.Add("x-apikey", VirusTotalApiKey);
+            uploadRequest.Headers.Add("x-apikey", _apiKey);
 
-
-            var response = await _httpClient.SendAsync(request);
-            Console.WriteLine(await response.Content.ReadAsStringAsync());
-            if (!response.IsSuccessStatusCode)
+            var uploadResponse = await _httpClient.SendAsync(uploadRequest);
+            if (!uploadResponse.IsSuccessStatusCode)
                 return false;
 
-            return true;
+            var uploadJson = await uploadResponse.Content.ReadAsStringAsync();
+            var uploadDoc = JsonDocument.Parse(uploadJson);
+            var analysisId = uploadDoc.RootElement
+                .GetProperty("data")
+                .GetProperty("id")
+                .GetString();
+
+            if (string.IsNullOrEmpty(analysisId))
+                return false;
+
+            // Step 2: Poll the analysis endpoint
+            string analysisUrl = string.Format(AnalysisUrlTemplate, analysisId);
+            int maxRetries = 5;
+            int delayBetweenRetriesMs = 2000;
+
+            for (int attempt = 0; attempt < maxRetries; attempt++)
+            {
+                await Task.Delay(delayBetweenRetriesMs);
+
+                var analysisRequest = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
+                analysisRequest.Headers.Add("x-apikey", _apiKey);
+
+                var analysisResponse = await _httpClient.SendAsync(analysisRequest);
+                if (!analysisResponse.IsSuccessStatusCode)
+                    continue;
+
+                var analysisJson = await analysisResponse.Content.ReadAsStringAsync();
+                var analysisDoc = JsonDocument.Parse(analysisJson);
+                var root = analysisDoc.RootElement;
+
+                string status = root
+                    .GetProperty("data")
+                    .GetProperty("attributes")
+                    .GetProperty("status")
+                    .GetString() ?? "not_completed";
+
+                if (status == "completed")
+                {
+                    var stats = root
+                        .GetProperty("data")
+                        .GetProperty("attributes")
+                        .GetProperty("stats");
+
+                    int malicious = stats.GetProperty("malicious").GetInt32();
+
+                    return malicious == 0;
+                }
+            }
+
+            // Scan not completed or malicious
+            return false;
         }
     }
 }

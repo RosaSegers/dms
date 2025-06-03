@@ -17,6 +17,7 @@ spec:
       containers:
         - name: user-api
           image: gyliana/user-api:latest
+          imagePullPolicy: Always
           volumeMounts:
             - name: secret-volume
               mountPath: "/Secrets"
