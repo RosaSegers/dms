@@ -15,11 +15,11 @@ namespace User.Api.Features
 {
     internal static class Roles
     {
-        internal static List<string> Items = new()
-        {
+        internal static List<string> Items =
+        [
             "Admin",
             "User"
-        };
+        ];
     }
 
     public static class DependencyInjection
