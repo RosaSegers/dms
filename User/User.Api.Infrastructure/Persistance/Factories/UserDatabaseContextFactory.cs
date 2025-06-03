@@ -1,34 +1,34 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
-using User.API.Common.Interfaces;
+﻿//using Microsoft.EntityFrameworkCore;
+//using Microsoft.EntityFrameworkCore.Design;
+//using Microsoft.Extensions.Configuration;
+//using User.API.Common.Interfaces;
 
-namespace User.Api.Infrastructure.Persistance.Factories
-{
-    public class UserDatabaseContextFactory() : IDesignTimeDbContextFactory<UserDatabaseContext>
-    {
-        public UserDatabaseContext CreateDbContext(string[] args)
-        {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("/Secrets/user-secrets.json", optional: false)
-                .Build();
+//namespace User.Api.Infrastructure.Persistance.Factories
+//{
+//    public class UserDatabaseContextFactory() : IDesignTimeDbContextFactory<UserDatabaseContext>
+//    {
+//        public UserDatabaseContext CreateDbContext(string[] args)
+//        {
+//            var configuration = new ConfigurationBuilder()
+//                .SetBasePath(Directory.GetCurrentDirectory())
+//                .AddJsonFile("/Secrets/user-secrets.json", optional: false)
+//                .Build();
 
-            var optionsBuilder = new DbContextOptionsBuilder<UserDatabaseContext>();
+//            var optionsBuilder = new DbContextOptionsBuilder<UserDatabaseContext>();
 
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+//            var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            optionsBuilder.UseSqlServer(connectionString);
+//            optionsBuilder.UseSqlServer(connectionString);
 
-            // Dummy service implementation to satisfy constructor
-            ICurrentUserService currentUserService = new DesignTimeCurrentUserService();
+//            // Dummy service implementation to satisfy constructor
+//            ICurrentUserService currentUserService = new DesignTimeCurrentUserService();
 
-            return new UserDatabaseContext(currentUserService, optionsBuilder.Options);
-        }
-    }
+//            return new UserDatabaseContext(currentUserService, optionsBuilder.Options);
+//        }
+//    }
 
-    public class DesignTimeCurrentUserService : ICurrentUserService
-    {
-        public Guid? UserId => Guid.NewGuid();
-    }
-}
+//    public class DesignTimeCurrentUserService : ICurrentUserService
+//    {
+//        public Guid? UserId => Guid.NewGuid();
+//    }
+//}
