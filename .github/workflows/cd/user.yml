@@ -1,0 +1,30 @@
+name: User API CD
+
+on:
+  push:
+    paths:
+      - 'User/**'
+      - '.github/workflows/user-api-cd.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Docker login
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Pull latest User API image
+        run: docker pull gyliana/user-api:latest
+
+      - name: Update Kubernetes deployment
+        run: |
+          kubectl set image deployment/user-api user-api=gyliana/user-api:latest
+          kubectl rollout status deployment/user-api

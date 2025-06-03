@@ -1,0 +1,72 @@
+name: User API CI/CD
+
+on:
+  push:
+    paths:
+      - 'User/**'
+      - '.github/workflows/user-api.yml'
+  pull_request:
+    paths:
+      - 'User/**'
+      - '.github/workflows/user-api.yml'
+
+jobs:
+  setup:
+    uses: ./.github/workflows/setup/setup-dotnet.yml
+    with:
+      dotnet_version: '8.0'
+
+  lint:
+    uses: ./.github/workflows/setup/lint.yml
+    needs: setup
+    with:
+      solution_path: DocumentManagementSystem.sln
+
+  format:
+    uses: ./.github/workflows/setup/format-check.yml
+    needs: setup
+    with:
+      solution_path: DocumentManagementSystem.sln
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, format]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          cd User/User.API
+          dotnet restore
+          dotnet build --configuration Release
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - run: dotnet restore User/User.Api.Test/User.Api.Test.csproj
+      - run: |
+          cd User/User.Api.Test
+          dotnet test --configuration Release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: user-api-test-results
+          path: User/User.Api.Test/TestResults
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      - run: docker build -t gyliana/user-api:${{ github.sha }} -f User/User.API/Dockerfile .
+      - run: docker push gyliana/user-api:${{ github.sha }}
+      - run: docker tag gyliana/user-api:${{ github.sha }} gyliana/user-api:latest
+      - run: docker push gyliana/user-api:latest
+
+  snyk:
+    uses: ./.github/workflows/analysis/snyk.yml
+    needs: test
+    with:
+      solution_path: DocumentManagementSystem.sln
+    secrets:
+      snyk_token: ${{ secrets.SNYK_TOKEN }}

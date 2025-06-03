@@ -1,0 +1,31 @@
+name: Document API CD
+
+on:
+  push:
+    paths:
+      - 'Document/**'
+      - '.github/workflows/document-api-cd.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Pull latest Docker image
+        run: docker pull gyliana/document-api:latest
+
+      - name: Update Kubernetes deployment image to latest
+        run: |
+          kubectl set image deployment/document-api document-api=gyliana/document-api:latest
+          kubectl rollout status deployment/document-api

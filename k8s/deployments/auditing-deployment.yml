@@ -17,22 +17,13 @@ spec:
       containers:
         - name: auditing-api
           image: gyliana/auditing-api:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: secret-volume
+              mountPath: "/Secrets"
+              readOnly: true
           ports:
             - containerPort: 80
-          env:
-            - name: ConnectionStrings__DefaultConnection
-              value: "Server=audit-sqlserver;Database=Logs;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
-            - name: RabbitMQ__Host
-              value: "rabbitmq"
-            - name: RabbitMQ__User
-              value: "guest"
-            - name: RabbitMQ__Pass
-              value: "guest"
-            - name: ASPNETCORE_ENVIRONMENT
-              value: "Development"
-            - name: ASPNETCORE_URLS
-              value: "http://+:80"
-
           resources:
             requests:
               cpu: 100m
@@ -40,3 +31,7 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: auditing-secrets

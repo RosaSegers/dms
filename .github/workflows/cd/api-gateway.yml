@@ -1,0 +1,30 @@
+name: API Gateway CD
+
+on:
+  push:
+    paths:
+      - 'ApiGateway/**'
+      - '.github/workflows/api-gateway-cd.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Docker login
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Pull latest API Gateway image
+        run: docker pull gyliana/api-gateway:latest
+
+      - name: Update Kubernetes deployment
+        run: |
+          kubectl set image deployment/api-gateway api-gateway=gyliana/api-gateway:latest
+          kubectl rollout status deployment/api-gateway

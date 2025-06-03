@@ -1,0 +1,22 @@
+name: Format Check
+
+on:
+  workflow_call:
+    inputs:
+      solution_path:
+        required: true
+        type: string
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+      - name: Install dotnet-format
+        run: dotnet tool install -g dotnet-format
+      - name: Check formatting
+        run: dotnet format --verify-no-changes ${{ inputs.solution_path }}
+        continue-on-error: true

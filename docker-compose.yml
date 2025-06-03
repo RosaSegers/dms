@@ -67,11 +67,7 @@ services:
     ports:
       - "5002:80"
     environment:
-      ConnectionStrings__DefaultConnection: "Server=audit-sqlserver;Database=Logs;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
-      RabbitMQ__Host: "rabbitmq"
-      RabbitMQ__User: "guest"
-      RabbitMQ__Pass: "guest"
-      JWT__Key: "SuperSecretDebugKeyForTesting12345"
+
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:80"
     depends_on:
