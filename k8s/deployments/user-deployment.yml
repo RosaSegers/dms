@@ -20,7 +20,7 @@ spec:
           volumeMounts:
             - name: secret-volume
               mountPath: "/Secrets"
-              readonly: true
+              readOnly: true
           ports:
             - containerPort: 80
           resources:
@@ -30,3 +30,7 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: user-secrets

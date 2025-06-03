@@ -9,6 +9,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Configuration.AddJsonFile("/Secrets/user-secrets.json", optional: false, reloadOnChange: true);
+        Console.WriteLine("Connection String: " + builder.Configuration.GetConnectionString("DefaultConnection"));
 
         builder.Services.AddCors(options =>
         {
