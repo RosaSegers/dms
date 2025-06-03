@@ -19,10 +19,8 @@ namespace User.Api.Infrastructure
             {
 #if TEST
                 options.UseInMemoryDatabase("UserDatabase");
-#elif DEBUG
-                options.UseSqlServer("server=ROSAS_LAPTOP\\SQLEXPRESS;database=Users;trusted_connection=true;TrustServerCertificate=True;");
 #else
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                options.UseSqlServer(configuration.GetRequiredSection("ConnectionStrings__DefaultConnection").Value);
 #endif
 
             });
