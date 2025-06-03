@@ -8,6 +8,8 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration.AddJsonFile("/Secrets/user-secrets.json", optional: false, reloadOnChange: true);
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy(name: "ApiGateway",

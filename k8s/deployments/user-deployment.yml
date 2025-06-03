@@ -17,6 +17,10 @@ spec:
       containers:
         - name: user-api
           image: gyliana/user-api:latest
+          volumeMounts:
+            - name: secret-volume
+              mountPath: "/Secrets"
+              readonly: true
           ports:
             - containerPort: 80
           resources:
@@ -26,16 +30,3 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
-          env:
-            - name: ConnectionStrings__DefaultConnection
-              value: "Server=user-sqlserver;Database=UserDb;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
-            - name: RabbitMQ__Host
-              value: "rabbitmq"
-            - name: RabbitMQ__User
-              value: "guest"
-            - name: RabbitMQ__Pass
-              value: "guest"
-            - name: JWT__Key
-              value: "SuperSecretDebugKeyForTesting12345"
-            - name: ASPNETCORE_ENVIRONMENT
-              value: "Development"

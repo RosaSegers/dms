@@ -402,3 +402,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 Document/Document.API/appsettings.json
+k8s/secrets/**
