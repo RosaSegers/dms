@@ -20,7 +20,7 @@ namespace User.Api.Infrastructure
 #if TEST
                 options.UseInMemoryDatabase("UserDatabase");
 #else
-                options.UseSqlServer(configuration.GetRequiredSection("ConnectionStrings__DefaultConnection").Value);
+                options.UseSqlServer(configuration.GetRequiredSection("ConnectionStrings:DefaultConnection").Value);
 #endif
 
             });
