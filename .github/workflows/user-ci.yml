@@ -12,18 +12,18 @@ on:
 
 jobs:
   setup:
-    uses: ./.github/workflows/setup/setup-dotnet.yml
+    uses: ./.github/workflows/setup-dotnet.yml
     with:
       dotnet_version: '8.0'
 
   lint:
-    uses: ./.github/workflows/setup/lint.yml
+    uses: ./.github/workflows/lint.yml
     needs: setup
     with:
       solution_path: DocumentManagementSystem.sln
 
   format:
-    uses: ./.github/workflows/setup/format-check.yml
+    uses: ./.github/workflows/format-check.yml
     needs: setup
     with:
       solution_path: DocumentManagementSystem.sln
@@ -64,7 +64,7 @@ jobs:
       - run: docker push gyliana/user-api:latest
 
   snyk:
-    uses: ./.github/workflows/analysis/snyk.yml
+    uses: ./.github/workflows/snyk.yml
     needs: test
     with:
       solution_path: DocumentManagementSystem.sln
