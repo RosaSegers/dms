@@ -19,15 +19,22 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Docker login
-        shell: bash
+      - name: Docker login (cmd)
+        shell: cmd
         run: |
-          if [ -z "${{ secrets.DOCKER_USERNAME }}" ] || [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
-            echo "One or both Docker secrets are missing!"
-            exit 1
-          fi
-
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          @echo off
+          if "%DOCKER_USERNAME%"=="" (
+            echo Docker username is missing!
+            exit /b 1
+          )
+          if "%DOCKER_PASSWORD%"=="" (
+            echo Docker password is missing!
+            exit /b 1
+          )
+          echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Pull latest User API image
         run: docker pull gyliana/user-api:latest
