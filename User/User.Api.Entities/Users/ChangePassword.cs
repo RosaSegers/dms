@@ -37,13 +37,13 @@ namespace User.Api.Features.Users
         }
     }
 
-    public record ChangePasswordCommand(string password, string? oldPassword = null) : IRequest<ErrorOr<Unit>>;
+    public record ChangePasswordCommand(string Password, string? OldPassword = null) : IRequest<ErrorOr<Unit>>;
 
     internal sealed class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCommand>
     {
         public ChangePasswordCommandValidator()
         {
-            RuleFor(user => user.password)
+            RuleFor(user => user.Password)
                 .NotEmpty().WithMessage(ChangePasswordCommandValidatorConstants.PASSWORD_EMPTY_STRING)
                 .MinimumLength(15).WithMessage(ChangePasswordCommandValidatorConstants.PASSWORD_SHORT_STRING)
                 .Matches(@"[A-Z]+").WithMessage(ChangePasswordCommandValidatorConstants.PASSWORD_CONTAINS_CAPITAL_STRING)
@@ -75,19 +75,19 @@ namespace User.Api.Features.Users
                 if (user == null)
                     return Error.NotFound("User not found");
 
-                if (!string.IsNullOrEmpty(request.oldPassword))
+                if (!string.IsNullOrEmpty(request.OldPassword))
                 {
-                    if(user.Password != hashingService.Hash(request.oldPassword))
+                    if(user.Password != hashingService.Hash(request.OldPassword))
                         return Error.Validation("oldPassword", "The passwords do not match.");
 
-                    user.Password = hashingService.Hash(request.password);
+                    user.Password = hashingService.Hash(request.Password);
 
                     await _context.SaveChangesAsync(cancellationToken);
 
                     return Unit.Value;
                 }
 
-                user.Password = hashingService.Hash(request.password);
+                user.Password = hashingService.Hash(request.Password);
 
                 await _context.SaveChangesAsync(cancellationToken);
 
