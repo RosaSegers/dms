@@ -66,37 +66,49 @@ namespace User.Api.Features.Users
 
         public async Task<ErrorOr<Unit>> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
         {
-            try
+            const int maxRetries = 3;
+            int retryCount = 0;
+
+            if (userService.UserId == null)
+                return Error.Validation("id", "id is required");
+
+            while (true)
             {
-                if (userService.UserId == null)
-                    return Error.Validation("id", "id is required");
-                var user = await _context.Users.SingleAsync(x => x.Id == userService.UserId, cancellationToken);
-
-                if (user == null)
-                    return Error.NotFound("User not found");
-
-                if (!string.IsNullOrEmpty(request.OldPassword))
+                try
                 {
-                    if(user.Password != hashingService.Hash(request.OldPassword))
-                        return Error.Validation("oldPassword", "The passwords do not match.");
+                    var user = await _context.Users
+                        .SingleOrDefaultAsync(x => x.Id == userService.UserId, cancellationToken);
+
+                    if (user is null)
+                        return Error.NotFound("User not found");
+
+                    if (!string.IsNullOrEmpty(request.OldPassword))
+                    {
+                        var hashedOld = hashingService.Hash(request.OldPassword);
+                        if (user.Password != hashedOld)
+                            return Error.Validation("oldPassword", "The passwords do not match.");
+                    }
 
                     user.Password = hashingService.Hash(request.Password);
 
                     await _context.SaveChangesAsync(cancellationToken);
-
                     return Unit.Value;
                 }
+                catch (DbUpdateConcurrencyException)
+                {
+                    retryCount++;
 
-                user.Password = hashingService.Hash(request.Password);
+                    if (retryCount >= maxRetries)
+                        return Error.Conflict("Password change failed due to concurrent updates. Please try again.");
 
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return Unit.Value;
-            }
-            catch (Exception ex)
-            {
-                return Error.Unexpected(ex.Message);
+                    await Task.Delay(TimeSpan.FromMilliseconds(100 * retryCount), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    return Error.Unexpected(ex.Message);
+                }
             }
         }
+
     }
 }

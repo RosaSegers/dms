@@ -16,12 +16,12 @@ namespace User.Api.Common.Behaviour
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             if (validator is null)
-                return await next();
+                return await next(cancellationToken);
 
             var validationRequest = await validator.ValidateAsync(request, cancellationToken);
 
             if (validationRequest.IsValid)
-                return await next();
+                return await next(cancellationToken);
 
             var errors = validationRequest.Errors
                 .ConvertAll(error => Error.Validation(

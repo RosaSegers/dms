@@ -99,24 +99,26 @@ namespace User.Api.Features.Users
         {
             try
             {
-                try
-                {
-                    var user = new Domain.Entities.User(request.Username, request.Email, hashingService.Hash(request.Password));
-                    await _context.Users.AddAsync(user, cancellationToken);
+                var user = new Domain.Entities.User(
+                    request.Username,
+                    request.Email,
+                    hashingService.Hash(request.Password)
+                );
 
-                    var x = _context.SaveChanges();
+                await _context.Users.AddAsync(user, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
 
-                    return user.Id;
-                }
-                catch(Exception ex)
-                {
-                    return Error.Validation(ex.Message);
-                }
+                return user.Id;
+            }
+            catch (DbUpdateException)
+            {
+                return Error.Validation("Database", "A user with this email or username already exists.");
             }
             catch (Exception ex)
             {
-                return Error.Unexpected(ex?.StackTrace ?? "an unexpected error has occured");
+                return Error.Unexpected(ex.Message);
             }
         }
+
     }
 }

@@ -30,7 +30,7 @@ namespace User.Api.Features.Users
             [FromForm] string? email
             )
         {
-            var result = await Mediator.Send(new UpdateUserCommand(username, email));
+            var result = await Mediator.Send(new UpdateUserCommand(DateTime.UtcNow, username, email));
 
             return result.Match(
                 id => Results.Ok(id),
@@ -38,7 +38,7 @@ namespace User.Api.Features.Users
         }
     }
 
-    public record UpdateUserCommand(string? username = null, string? email = null) : IRequest<ErrorOr<Unit>>;
+    public record UpdateUserCommand(DateTime UpdateTime, string? Username = null, string? Email = null) : IRequest<ErrorOr<Unit>>;
 
     internal sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
     {
@@ -48,18 +48,18 @@ namespace User.Api.Features.Users
         {
             _context = context;
 
-            RuleFor(user => user.username)
+            RuleFor(user => user.Username)
                 .MustAsync(BeUniqueUsername!).WithMessage(UpdateUserCommandValidatorConstants.USERNAME_NOT_UNIQUE_STRING);
 
-            RuleFor(user => user.email)
+            RuleFor(user => user.Email)
                 .MustAsync(BeUniqueEmail!).WithMessage(UpdateUserCommandValidatorConstants.EMAIL_NOT_UNIQUE_STRING);
 
-            RuleFor(user => user.username)
+            RuleFor(user => user.Username)
                 .NotEmpty().WithMessage(UpdateUserCommandValidatorConstants.USERNAME_REQUIRED_STRING)
                 .Length(UpdateUserCommandValidatorConstants.USERNAME_MINIMUM_LENGTH, UpdateUserCommandValidatorConstants.USERNAME_MAXIMUM_LENGTH)
                 .WithMessage(UpdateUserCommandValidatorConstants.USERNAME_INVALID_LENGTH_STRING);
 
-            RuleFor(user => user.email)
+            RuleFor(user => user.Email)
                 .EmailAddress(FluentValidation.Validators.EmailValidationMode.AspNetCoreCompatible)
                 .WithMessage(UpdateUserCommandValidatorConstants.EMAIL_INVALID_STRING)
                 .Length(UpdateUserCommandValidatorConstants.EMAIL_MINIMUM_LENGTH, UpdateUserCommandValidatorConstants.EMAIL_MAXIMUM_LENGTH)
@@ -102,31 +102,46 @@ namespace User.Api.Features.Users
 
         public async Task<ErrorOr<Unit>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
-            try
+            const int maxRetries = 3;
+            int retryCount = 0;
+
+            while (true)
             {
-                if (userService.UserId == null || userService.UserId == Guid.Empty)
-                    return Error.Validation("id", "id is required");
-                if (string.IsNullOrEmpty(request.username) && string.IsNullOrEmpty(request.email))
-                    return Error.Validation("Either or both the email and username are required.");
+                try
+                {
+                    var user = await _context.Users
+                        .SingleOrDefaultAsync(x => x.Id == userService.UserId, cancellationToken);
 
-                var user = await _context.Users.SingleAsync(x => x.Id == userService.UserId, cancellationToken);
+                    if (user is null)
+                        return Error.NotFound("User not found");
 
-                if (user == null)
-                    return Error.NotFound("User not found");
+                    if (string.IsNullOrEmpty(request.Username) && string.IsNullOrEmpty(request.Email))
+                        return Error.Validation("Either a username or email must be provided.");
 
-                if (!string.IsNullOrEmpty(request.username))
-                    user.Name = request.username;
+                    // Apply updates
+                    if (!string.IsNullOrEmpty(request.Username))
+                        user.Name = request.Username;
 
-                if (!string.IsNullOrEmpty(request.email))
-                    user.Email = request.email;
+                    if (!string.IsNullOrEmpty(request.Email))
+                        user.Email = request.Email;
 
-                await _context.SaveChangesAsync(cancellationToken);
+                    await _context.SaveChangesAsync(cancellationToken);
 
-                return Unit.Value;
-            }
-            catch (Exception ex)
-            {
-                return Error.Unexpected(ex.Message);
+                    return Unit.Value;
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    retryCount++;
+
+                    if (retryCount >= maxRetries)
+                        return Error.Conflict("The user was updated by another process. Please retry.");
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    return Error.Unexpected(ex.Message);
+                }
             }
         }
     }

@@ -28,9 +28,9 @@ namespace User.Api.Infrastructure
             using (var scope = services.BuildServiceProvider())
             {
                 var dataContext = scope.GetRequiredService<UserDatabaseContext>();
-//#if !TEST
-//                dataContext.Database.Migrate();
-//#endif
+#if !TEST
+                dataContext.Database.Migrate();
+#endif
                 var hashingService = scope.GetRequiredService<IHashingService>();
                 UserDatabaseContextSeed.SeedSampleData(dataContext, hashingService);
             }
