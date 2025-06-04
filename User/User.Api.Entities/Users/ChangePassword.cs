@@ -53,7 +53,7 @@ namespace User.Api.Features.Users
 
     internal static class ChangePasswordCommandValidatorConstants
     {
-        public static string PASSWORD_EMPTY_STRING = "A password is required";
+        public static string PASSWORD_EMPTY_STRING = "A password is required.";
         public static string PASSWORD_SHORT_STRING = "Your password length must be at least 12.";
         public static string PASSWORD_CONTAINS_CAPITAL_STRING = "Your password must contain at least one uppercase letter.";
         public static string PASSWORD_CONTAINS_LOWER_STRING = "Your password must contain at least one lowercase letter.";
