@@ -27,7 +27,7 @@ namespace User.Api.Features.Users
         }
     }
 
-    public record CreateUserCommand(string username, string email, string password) : IRequest<ErrorOr<Guid>>;
+    public record CreateUserCommand(string Username, string Email, string Password) : IRequest<ErrorOr<Guid>>;
 
     internal sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
     {
@@ -37,24 +37,24 @@ namespace User.Api.Features.Users
         {
             _context = context;
 
-            RuleFor(user => user.username)
+            RuleFor(user => user.Username)
                 .MustAsync(BeUniqueUsername).WithMessage(CreateUserCommandValidatorConstants.USERNAME_NOT_UNIQUE_STRING);
 
-            RuleFor(user => user.email)
+            RuleFor(user => user.Email)
                 .MustAsync(BeUniqueEmail).WithMessage(CreateUserCommandValidatorConstants.EMAIL_NOT_UNIQUE_STRING);
 
-            RuleFor(user => user.username)
+            RuleFor(user => user.Username)
                 .NotEmpty().WithMessage(CreateUserCommandValidatorConstants.USERNAME_REQUIRED_STRING)
                 .Length(CreateUserCommandValidatorConstants.USERNAME_MINIMUM_LENGTH, CreateUserCommandValidatorConstants.USERNAME_MAXIMUM_LENGTH)
                 .WithMessage(CreateUserCommandValidatorConstants.USERNAME_INVALID_LENGTH_STRING);
 
-            RuleFor(user => user.email)
+            RuleFor(user => user.Email)
                 .EmailAddress(FluentValidation.Validators.EmailValidationMode.AspNetCoreCompatible)
                 .WithMessage(CreateUserCommandValidatorConstants.EMAIL_INVALID_STRING)
                 .Length(CreateUserCommandValidatorConstants.EMAIL_MINIMUM_LENGTH, CreateUserCommandValidatorConstants.EMAIL_MAXIMUM_LENGTH)
                 .WithMessage(CreateUserCommandValidatorConstants.EMAIL_INVALID_LENGTH_STRING);
 
-            RuleFor(user => user.password)
+            RuleFor(user => user.Password)
                 .NotEmpty().WithMessage(CreateUserCommandValidatorConstants.PASSWORD_EMPTY_STRING)
                 .MinimumLength(15).WithMessage(CreateUserCommandValidatorConstants.PASSWORD_SHORT_STRING)
                 .Matches(@"[A-Z]+").WithMessage(CreateUserCommandValidatorConstants.PASSWORD_CONTAINS_CAPITAL_STRING)
@@ -101,7 +101,7 @@ namespace User.Api.Features.Users
             {
                 try
                 {
-                    var user = new Domain.Entities.User(request.username, request.email, hashingService.Hash(request.password));
+                    var user = new Domain.Entities.User(request.Username, request.Email, hashingService.Hash(request.Password));
                     await _context.Users.AddAsync(user, cancellationToken);
 
                     var x = _context.SaveChanges();

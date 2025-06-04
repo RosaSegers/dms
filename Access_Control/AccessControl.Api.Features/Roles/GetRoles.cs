@@ -58,7 +58,7 @@ namespace AccessControl.Api.Features.Roles
                 .OrderBy(r => r.Name)
                 .PaginatedListAsync(request.PageNumber, request.PageSize);
 
-            var dtos = _mapper.Map<List<Domain.Dtos.Role>>(entities.Items) ?? new();
+            var dtos = _mapper.Map<List<Domain.Dtos.Role>>(entities.Items) ?? [];
 
             var result = new PaginatedList<Domain.Dtos.Role>(dtos, entities.TotalCount, request.PageNumber, request.PageSize);
 

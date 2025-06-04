@@ -33,7 +33,7 @@ namespace User.Api.Test.Unit
             // Arrange
             var query = new CreateUserCommand("testuser", "testuser@example.com", "TestPassword123");
             var userId = Guid.NewGuid();
-            var user = new Domain.Entities.User(query.username, query.email, "hashedPassword123")
+            var user = new Domain.Entities.User(query.Username, query.Email, "hashedPassword123")
             {
                 Id = userId
             };
