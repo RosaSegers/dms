@@ -45,12 +45,6 @@ namespace Document.Api.Infrastructure.Persistance
                 // Parse to JObject for sending to Cosmos
                 var parsed = JObject.Parse(json);
 
-                if (!parsed.FullTextContains("id") || parsed["id"] == null || string.IsNullOrWhiteSpace(parsed["id"]?.ToString()))
-                {
-                    Console.WriteLine("Error: Serialized document JSON is missing a valid 'id' property.");
-                    return false;
-                }
-
                 var partitionKeyValue = document.id.ToString();
                 Console.WriteLine($"Partition key (id) being used: '{partitionKeyValue}'");
 
