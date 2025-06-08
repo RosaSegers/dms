@@ -1,6 +1,7 @@
 ﻿using Document.Api.Common.Interfaces;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace Document.Api.Infrastructure.Persistance
 {
@@ -15,6 +16,7 @@ namespace Document.Api.Infrastructure.Persistance
 
             var databaseName = configuration["CosmosDb:DatabaseName"];
             var containerName = configuration["CosmosDb:ContainerName"];
+            Console.WriteLine($"Initializing Cosmos DB container with Database: {databaseName}, Container: {containerName}");
             _container = cosmosClient.GetContainer(databaseName, containerName);
         }
 
@@ -22,27 +24,40 @@ namespace Document.Api.Infrastructure.Persistance
         {
             try
             {
+                Console.WriteLine($"Adding document with ID: {document.Id}");
                 await _container.CreateItemAsync(document, new PartitionKey(document.Id.ToString()));
                 _cache.InvalidateCaches();
+                Console.WriteLine($"Successfully added document with ID: {document.Id}");
                 return true;
             }
             catch (CosmosException ex)
             {
-                // Log error appropriately
+                Console.WriteLine($"Error adding document with ID: {document.Id}. Exception: {ex.Message}");
                 return false;
             }
         }
 
         public async Task<List<IDocumentEvent>> GetDocumentList()
         {
-            var query = new QueryDefinition("SELECT * FROM c");
-            var iterator = _container.GetItemQueryIterator<IDocumentEvent>(query);
             var results = new List<IDocumentEvent>();
 
-            while (iterator.HasMoreResults)
+            try
             {
-                var response = await iterator.ReadNextAsync();
-                results.AddRange(response);
+                Console.WriteLine("Fetching all documents from container.");
+                var query = new QueryDefinition("SELECT * FROM c");
+                var iterator = _container.GetItemQueryIterator<IDocumentEvent>(query);
+
+                while (iterator.HasMoreResults)
+                {
+                    var response = await iterator.ReadNextAsync();
+                    results.AddRange(response);
+                }
+
+                Console.WriteLine($"Fetched {results.Count} documents.");
+            }
+            catch (CosmosException ex)
+            {
+                Console.WriteLine($"Error fetching document list. Exception: {ex.Message}");
             }
 
             return results;
@@ -50,16 +65,27 @@ namespace Document.Api.Infrastructure.Persistance
 
         public async Task<List<IDocumentEvent>> GetDocumentById(Guid id)
         {
-            var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
-                .WithParameter("@id", id.ToString());
-
-            var iterator = _container.GetItemQueryIterator<IDocumentEvent>(query);
             var results = new List<IDocumentEvent>();
 
-            while (iterator.HasMoreResults)
+            try
             {
-                var response = await iterator.ReadNextAsync();
-                results.AddRange(response);
+                Console.WriteLine($"Fetching document(s) with ID: {id}");
+                var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
+                    .WithParameter("@id", id.ToString());
+
+                var iterator = _container.GetItemQueryIterator<IDocumentEvent>(query);
+
+                while (iterator.HasMoreResults)
+                {
+                    var response = await iterator.ReadNextAsync();
+                    results.AddRange(response);
+                }
+
+                Console.WriteLine($"Found {results.Count} document(s) with ID: {id}");
+            }
+            catch (CosmosException ex)
+            {
+                Console.WriteLine($"Error fetching document(s) with ID: {id}. Exception: {ex.Message}");
             }
 
             return results;
