@@ -32,7 +32,7 @@ namespace Document.Api.Infrastructure.Persistance
                 Console.WriteLine($"Payload being sent to Cosmos:\n{debugJson}");
 
                 // Ensure partition key matches the container config (e.g. "UploadedByUserId")
-                var partitionKey = new PartitionKey(document.UploadedByUserId.ToString());
+                var partitionKey = new PartitionKey(document.id.ToString());
 
                 // Insert the strongly typed object directly
                 await _container.CreateItemAsync(document, partitionKey);
