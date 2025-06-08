@@ -8,11 +8,8 @@ using System.Threading.Tasks;
 
 namespace Document.Api.Domain.Events
 {
-    public class DocumentUpdatedEvent : IDocumentEvent
+    public class DocumentUpdatedEvent : DocumentEventBase
     {
-        public Guid id { get; set; }
-        public DateTime OccurredAt { get; set; }
-        public float? Version { get; set; }
         public string? UpdatedDocumentName { get; set; }
         public string? UpdatedDocumentDescription { get; set; }
         public string? UpdatedFileName { get; set; }
@@ -21,7 +18,6 @@ namespace Document.Api.Domain.Events
         public string? UpdatedFileUrl { get; set; }
         public string[]? UpdatedTags { get; set; } = Array.Empty<string>();
         public Guid UpdatedByUserId { get; set; } = default!;
-        public string EventType => nameof(DocumentUpdatedEvent);
 
 
         public DocumentUpdatedEvent(Guid id, string name, string description, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)

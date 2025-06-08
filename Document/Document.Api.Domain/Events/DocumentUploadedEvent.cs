@@ -3,20 +3,16 @@ using Document.Api.Common.Interfaces;
 
 namespace Document.Api.Domain.Events
 {
-    public class DocumentUploadedEvent : IDocumentEvent
+    public class DocumentUploadedEvent : DocumentEventBase
     {
-        public Guid id { get; set; }
-        public float? Version { get; set; }
         public string DocumentName { get; set; }
         public string DocumentDescription { get; set; }
         public string FileName { get; set; }
         public string FileUrl { get; set; }
         public string ContentType { get; set; }
         public long FileSize { get; set; }
-        public Guid UploadedByUserId { get; set; }
-        public DateTime OccurredAt { get; set; }
+        public Guid UploadedByUserId { get; set; }  
         public string[]? Tags { get; set; }
-        public string EventType => nameof(DocumentUploadedEvent);
 
 
         public DocumentUploadedEvent(string documentName, string documentDescription, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
