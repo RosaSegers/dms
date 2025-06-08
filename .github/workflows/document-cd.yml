@@ -42,4 +42,4 @@ jobs:
       - name: Update Kubernetes deployment
         run: |
           kubectl set image deployment/document-api document-api=gyliana/document-api:latest
-          kubectl rollout status deployment/document-api
+          kubectl rollout restart deployment/document-api

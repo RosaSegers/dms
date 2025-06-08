@@ -1,38 +1,68 @@
 ﻿using Document.Api.Common.Interfaces;
-using Document.Api.Domain.Events;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 
 namespace Document.Api.Infrastructure.Persistance
 {
-    public class DocumentStorage(ICacheService cache) : IDocumentStorage
+    public class DocumentStorage : IDocumentStorage
     {
-        private List<IDocumentEvent> documentList = new List<IDocumentEvent>();
-        private readonly ICacheService _cache = cache;
+        private readonly Container _container;
+        private readonly ICacheService _cache;
+
+        public DocumentStorage(ICacheService cache, IConfiguration configuration, CosmosClient cosmosClient)
+        {
+            _cache = cache;
+
+            var databaseName = configuration["CosmosDb:DatabaseName"];
+            var containerName = configuration["CosmosDb:ContainerName"];
+            _container = cosmosClient.GetContainer(databaseName, containerName);
+        }
 
         public async Task<bool> AddDocument(IDocumentEvent document)
         {
-            documentList.Add(document);
-            _cache.InvalidateCaches();
-
-            await Task.Delay(TimeSpan.FromMilliseconds(5));
-
-            return true;
+            try
+            {
+                await _container.CreateItemAsync(document, new PartitionKey(document.Id.ToString()));
+                _cache.InvalidateCaches();
+                return true;
+            }
+            catch (CosmosException ex)
+            {
+                // Log error appropriately
+                return false;
+            }
         }
 
         public async Task<List<IDocumentEvent>> GetDocumentList()
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(5));
+            var query = new QueryDefinition("SELECT * FROM c");
+            var iterator = _container.GetItemQueryIterator<IDocumentEvent>(query);
+            var results = new List<IDocumentEvent>();
 
-            return documentList;
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+
+            return results;
         }
 
         public async Task<List<IDocumentEvent>> GetDocumentById(Guid id)
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(5));
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
+                .WithParameter("@id", id.ToString());
 
-            return documentList.Where(x => x.Id == id).ToList();
+            var iterator = _container.GetItemQueryIterator<IDocumentEvent>(query);
+            var results = new List<IDocumentEvent>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+
+            return results;
         }
     }
 }

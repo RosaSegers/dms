@@ -29,7 +29,6 @@ internal class Program
 
         builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructure();
-        //builder.Services.AddValidation();
         builder.Services.AddHealthChecks();
 
 
@@ -45,6 +44,6 @@ internal class Program
 
         app.MapControllers();
 
-        app.Run();
+        app.Run("0.0.0.0:80");
     }
 }

@@ -42,4 +42,4 @@ jobs:
       - name: Update Kubernetes deployment
         run: |
           kubectl set image deployment/user-api user-api=gyliana/user-api:latest
-          kubectl rollout status deployment/user-api
+          kubectl rollout restart deployment/user-api
