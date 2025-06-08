@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Document.Api.Common.Interfaces;
+using Newtonsoft.Json;
 
 namespace Document.Api.Domain.Events
 {
@@ -13,7 +14,8 @@ namespace Document.Api.Domain.Events
         public long FileSize { get; set; }
         public Guid UploadedByUserId { get; set; }  
         public string[]? Tags { get; set; }
-        public string EventType => nameof(DocumentUploadedEvent);
+        [JsonProperty]
+        public new string EventType => nameof(DocumentUploadedEvent);
 
 
 

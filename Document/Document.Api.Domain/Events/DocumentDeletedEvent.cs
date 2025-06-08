@@ -1,11 +1,13 @@
 ﻿using Document.Api.Common.Interfaces;
+using Newtonsoft.Json;
 
 namespace Document.Api.Domain.Events
 {
     public class DocumentDeletedEvent : DocumentEventBase
     {
         public Guid DeletedByUserId { get; set; }
-        public string EventType => nameof(DocumentDeletedEvent);
+        [JsonProperty]
+        public new string EventType => nameof(DocumentDeletedEvent);
 
 
         public DocumentDeletedEvent(Guid id, Guid deletedByUserId)

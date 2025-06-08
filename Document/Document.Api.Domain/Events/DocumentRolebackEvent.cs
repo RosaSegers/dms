@@ -1,4 +1,5 @@
 ﻿using Document.Api.Common.Interfaces;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace Document.Api.Domain.Events
         }
         public Guid RolledBackByUserId { get; set; }
         public List<IDocumentEvent> EventsToReapply { get; set; } = new List<IDocumentEvent>();
-        public string EventType => nameof(DocumentRolebackEvent);
+        [JsonProperty]
+        public new string EventType => nameof(DocumentRolebackEvent);
     }
 }

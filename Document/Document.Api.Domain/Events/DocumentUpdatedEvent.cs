@@ -1,5 +1,6 @@
 ﻿using Document.Api.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,8 @@ namespace Document.Api.Domain.Events
         public string? UpdatedFileUrl { get; set; }
         public string[]? UpdatedTags { get; set; } = Array.Empty<string>();
         public Guid UpdatedByUserId { get; set; } = default!;
-        public string EventType => nameof(DocumentUpdatedEvent);
+        [JsonProperty]
+        public new string EventType => nameof(DocumentUpdatedEvent);
 
 
 
