@@ -42,15 +42,12 @@ namespace Document.Api.Infrastructure.Persistance
 
                 Console.WriteLine($"Payload being sent to Cosmos:\n{json}");
 
-                // Parse to JObject for sending to Cosmos
-                var parsed = JObject.Parse(json);
-
                 var partitionKeyValue = document.id.ToString();
                 Console.WriteLine($"Partition key (id) being used: '{partitionKeyValue}'");
 
                 var partitionKey = new PartitionKey(partitionKeyValue);
 
-                var response = await _container.CreateItemAsync(parsed, partitionKey);
+                var response = await _container.CreateItemAsync(document, partitionKey);
 
                 Console.WriteLine($"Successfully added document with ID: {document.id}");
                 Console.WriteLine($"Request Charge: {response.RequestCharge}");
