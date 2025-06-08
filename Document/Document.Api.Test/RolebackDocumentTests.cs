@@ -66,5 +66,7 @@ namespace Document.Api.Test
         public Guid id { get; set; }
         public float? Version { get; set; }
         public DateTime OccurredAt { get; set; }
+
+        public string EventType => throw new NotImplementedException();
     }
 }

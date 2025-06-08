@@ -16,8 +16,15 @@ namespace Document.Api.Infrastructure
                 var config = s.GetRequiredService<IConfiguration>();
                 var endpoint = config["CosmosDb:Endpoint"];
                 var key = config["CosmosDb:Key"];
-                return new CosmosClient(endpoint, key);
+
+                var options = new CosmosClientOptions
+                {
+                    Serializer = new PolymorphicCosmosSerializer()
+                };
+
+                return new CosmosClient(endpoint, key, options);
             });
+
 
 
             services.AddMemoryCache();

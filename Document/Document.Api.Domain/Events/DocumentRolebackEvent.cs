@@ -16,6 +16,7 @@ namespace Document.Api.Domain.Events
             RolledBackByUserId = rolledBackByUserId;
             EventsToReapply = eventsToReapply;
             OccurredAt = DateTime.UtcNow;
+
         }
 
         public Guid id { get; set; }
@@ -23,5 +24,6 @@ namespace Document.Api.Domain.Events
         public float? Version { get; set; }
         public Guid RolledBackByUserId { get; set; }
         public List<IDocumentEvent> EventsToReapply { get; set; } = new List<IDocumentEvent>();
+        public string EventType => nameof(DocumentRolebackEvent);
     }
 }

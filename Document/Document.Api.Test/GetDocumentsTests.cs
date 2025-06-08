@@ -100,6 +100,8 @@ namespace Document.Api.Test
 
             public float? Version => throw new NotImplementedException();
 
+            public string EventType => throw new NotImplementedException();
+
             public TestDocumentEvent(Guid id, DateTime occurredAt)
             {
                 this.id = id;
