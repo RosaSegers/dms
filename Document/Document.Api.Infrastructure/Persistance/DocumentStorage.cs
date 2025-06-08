@@ -32,6 +32,8 @@ namespace Document.Api.Infrastructure.Persistance
                 var json = JsonConvert.SerializeObject(document);
                 var doc = JsonConvert.DeserializeObject<JObject>(json);
 
+                Console.WriteLine($"Payload being sent to Cosmos:\n{doc}");
+                Console.WriteLine($"Serialized JSON contains id: {doc["id"]?.ToString()}");
                 await _container.CreateItemAsync(doc, new PartitionKey(document.id.ToString()));
                 _cache.InvalidateCaches();
                 Console.WriteLine($"Successfully added document with ID: {document.id}");
