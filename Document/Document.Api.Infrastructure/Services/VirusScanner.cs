@@ -22,24 +22,27 @@ namespace Document.Api.Infrastructure.Services
         public async Task<bool> ScanFile(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return false;
+                throw new ArgumentException("Invalid file");
 
-            // Step 1: Upload file to VirusTotal
+            // Step 1: Upload file
             using var content = new MultipartFormDataContent();
-            await using var fileStream = file.OpenReadStream();
-            var fileContent = new StreamContent(fileStream);
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-            content.Add(fileContent, "file", file.FileName);
+            await using var stream = file.OpenReadStream();
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Add(streamContent, "file", file.FileName);
 
             var uploadRequest = new HttpRequestMessage(HttpMethod.Post, UploadUrl)
             {
                 Content = content
             };
-            uploadRequest.Headers.Add("X-Apikey", _apiKey);
+            uploadRequest.Headers.Add("x-apikey", _apiKey);
 
             var uploadResponse = await _httpClient.SendAsync(uploadRequest);
             if (!uploadResponse.IsSuccessStatusCode)
+            {
+                // Optional: log uploadResponse.StatusCode
                 return false;
+            }
 
             var uploadJson = await uploadResponse.Content.ReadAsStringAsync();
             var uploadDoc = JsonDocument.Parse(uploadJson);
@@ -48,20 +51,20 @@ namespace Document.Api.Infrastructure.Services
                 .GetProperty("id")
                 .GetString();
 
-            if (string.IsNullOrEmpty(analysisId))
+            if (string.IsNullOrWhiteSpace(analysisId))
                 return false;
 
-            // Step 2: Poll the analysis endpoint
+            // Step 2: Poll for result
             string analysisUrl = string.Format(AnalysisUrlTemplate, analysisId);
-            int maxRetries = 5;
-            int delayBetweenRetriesMs = 2000;
+            int retries = 10;
+            int delay = 3000;
 
-            for (int attempt = 0; attempt < maxRetries; attempt++)
+            for (int i = 0; i < retries; i++)
             {
-                await Task.Delay(delayBetweenRetriesMs);
+                await Task.Delay(delay);
 
                 var analysisRequest = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
-                analysisRequest.Headers.Add("X-Apikey", _apiKey);
+                analysisRequest.Headers.Add("x-apikey", _apiKey);
 
                 var analysisResponse = await _httpClient.SendAsync(analysisRequest);
                 if (!analysisResponse.IsSuccessStatusCode)
@@ -71,26 +74,23 @@ namespace Document.Api.Infrastructure.Services
                 var analysisDoc = JsonDocument.Parse(analysisJson);
                 var root = analysisDoc.RootElement;
 
-                string status = root
-                    .GetProperty("data")
-                    .GetProperty("attributes")
-                    .GetProperty("status")
-                    .GetString() ?? "not_completed";
+                string status = root.GetProperty("data").GetProperty("attributes").GetProperty("status").GetString();
+                if (status != "completed")
+                    continue;
 
-                if (status == "completed")
-                {
-                    var stats = root
-                        .GetProperty("data")
-                        .GetProperty("attributes")
-                        .GetProperty("stats");
+                var stats = root.GetProperty("data").GetProperty("attributes").GetProperty("stats");
+                int malicious = stats.GetProperty("malicious").GetInt32();
+                int suspicious = stats.GetProperty("suspicious").GetInt32();
+                int undetected = stats.GetProperty("undetected").GetInt32();
 
-                    int malicious = stats.GetProperty("malicious").GetInt32();
+                // Optional logging
+                Console.WriteLine($"Scan Result: Malicious={malicious}, Suspicious={suspicious}, Undetected={undetected}");
 
-                    return malicious == 0;
-                }
+                // File is safe only if zero malicious/suspicious flags
+                return malicious == 0 && suspicious == 0;
             }
 
-            // Scan not completed or malicious
+            // Timeout or error during polling
             return false;
         }
     }
