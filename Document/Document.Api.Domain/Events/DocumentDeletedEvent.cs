@@ -7,7 +7,7 @@ namespace Document.Api.Domain.Events
     {
         public Guid DeletedByUserId { get; set; }
         [JsonProperty]
-        public new string EventType => nameof(DocumentDeletedEvent);
+        public override string EventType => nameof(DocumentDeletedEvent);
 
 
         public DocumentDeletedEvent(Guid id, Guid deletedByUserId)

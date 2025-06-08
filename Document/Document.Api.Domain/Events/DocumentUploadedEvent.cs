@@ -15,7 +15,7 @@ namespace Document.Api.Domain.Events
         public Guid UploadedByUserId { get; set; }  
         public string[]? Tags { get; set; }
         [JsonProperty]
-        public new string EventType => nameof(DocumentUploadedEvent);
+        public override string EventType => nameof(DocumentUploadedEvent);
 
 
 

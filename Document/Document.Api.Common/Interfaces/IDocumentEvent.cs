@@ -9,7 +9,6 @@ namespace Document.Api.Common.Interfaces
     public interface IDocumentEvent
     {
         Guid id { get; }
-        string EventType { get; }
         DateTime OccurredAt { get; }
         float? Version { get; }
     }

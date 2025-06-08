@@ -22,6 +22,6 @@ namespace Document.Api.Domain.Events
         public Guid RolledBackByUserId { get; set; }
         public List<IDocumentEvent> EventsToReapply { get; set; } = new List<IDocumentEvent>();
         [JsonProperty]
-        public new string EventType => nameof(DocumentRolebackEvent);
+        public override string EventType => nameof(DocumentRolebackEvent);
     }
 }
