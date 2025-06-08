@@ -1,4 +1,4 @@
-name: Document API CI/CD
+name: Document API CI
 
 on:
   push:

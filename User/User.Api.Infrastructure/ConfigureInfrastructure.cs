@@ -1,41 +1,68 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Document.Api.Common.Interfaces;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using User.Api.Common.Interfaces;
-using User.Api.Infrastructure.Persistance;
-using User.Api.Infrastructure.Services;
-using User.API.Common.Interfaces;
 
-namespace User.Api.Infrastructure
+namespace Document.Api.Infrastructure.Persistence
 {
-    public static class DependencyInjection
+    public class DocumentStorage : IDocumentStorage
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        private readonly Container _container;
+        private readonly ICacheService _cache;
+
+        public DocumentStorage(ICacheService cache, IConfiguration configuration, CosmosClient cosmosClient)
         {
-            services.AddScoped<ICurrentUserService, CurrentUserService>();
-            services.AddScoped<IHashingService, HashingService>();
+            _cache = cache;
 
-            services.AddDbContext<UserDatabaseContext>(options =>
+            var databaseName = configuration["CosmosDb:DatabaseName"];
+            var containerName = configuration["CosmosDb:ContainerName"];
+            _container = cosmosClient.GetContainer(databaseName, containerName);
+        }
+
+        public async Task<bool> AddDocument(IDocumentEvent document)
+        {
+            try
             {
-#if TEST
-                options.UseInMemoryDatabase("UserDatabase");
-#else
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
-#endif
-
-            });
-
-            using (var scope = services.BuildServiceProvider())
+                await _container.CreateItemAsync(document, new PartitionKey(document.Id.ToString()));
+                _cache.InvalidateCaches();
+                return true;
+            }
+            catch (CosmosException ex)
             {
-                var dataContext = scope.GetRequiredService<UserDatabaseContext>();
-#if !TEST
-                dataContext.Database.Migrate();
-#endif
-                var hashingService = scope.GetRequiredService<IHashingService>();
-                UserDatabaseContextSeed.SeedSampleData(dataContext, hashingService);
+                // Log error appropriately
+                return false;
+            }
+        }
+
+        public async Task<List<IDocumentEvent>> GetDocumentList()
+        {
+            var query = new QueryDefinition("SELECT * FROM c");
+            var iterator = _container.GetItemQueryIterator<IDocumentEvent>(query);
+            var results = new List<IDocumentEvent>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
             }
 
-            return services;
+            return results;
+        }
+
+        public async Task<List<IDocumentEvent>> GetDocumentById(Guid id)
+        {
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
+                .WithParameter("@id", id.ToString());
+
+            var iterator = _container.GetItemQueryIterator<IDocumentEvent>(query);
+            var results = new List<IDocumentEvent>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+
+            return results;
         }
     }
 }
