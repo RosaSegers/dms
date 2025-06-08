@@ -44,6 +44,6 @@ internal class Program
 
         app.MapControllers();
 
-        app.Run("0.0.0.0:80");
+        app.Run("http://0.0.0.0:80");
     }
 }
