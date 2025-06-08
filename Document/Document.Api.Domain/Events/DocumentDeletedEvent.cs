@@ -5,6 +5,7 @@ namespace Document.Api.Domain.Events
     public class DocumentDeletedEvent : DocumentEventBase
     {
         public Guid DeletedByUserId { get; set; }
+        public string EventType => nameof(DocumentDeletedEvent);
 
 
         public DocumentDeletedEvent(Guid id, Guid deletedByUserId)

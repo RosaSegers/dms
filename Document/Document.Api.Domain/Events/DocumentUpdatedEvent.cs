@@ -18,6 +18,8 @@ namespace Document.Api.Domain.Events
         public string? UpdatedFileUrl { get; set; }
         public string[]? UpdatedTags { get; set; } = Array.Empty<string>();
         public Guid UpdatedByUserId { get; set; } = default!;
+        public string EventType => nameof(DocumentUpdatedEvent);
+
 
 
         public DocumentUpdatedEvent(Guid id, string name, string description, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)

@@ -13,6 +13,8 @@ namespace Document.Api.Domain.Events
         public long FileSize { get; set; }
         public Guid UploadedByUserId { get; set; }  
         public string[]? Tags { get; set; }
+        public string EventType => nameof(DocumentUploadedEvent);
+
 
 
         public DocumentUploadedEvent(string documentName, string documentDescription, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
