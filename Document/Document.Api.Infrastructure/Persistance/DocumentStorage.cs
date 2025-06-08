@@ -1,9 +1,7 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using Document.Api.Common.Interfaces;
+﻿using Document.Api.Common.Interfaces;
 using Document.Api.Domain.Events;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Document.Api.Infrastructure.Persistance
@@ -29,39 +27,28 @@ namespace Document.Api.Infrastructure.Persistance
             {
                 Console.WriteLine($"Adding document with ID: {document.id}");
 
-                // Serialize document ignoring nulls
-                var json = JsonConvert.SerializeObject(document, new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore
-                });
+                // Log the document payload for debugging
+                var debugJson = System.Text.Json.JsonSerializer.Serialize(document);
+                Console.WriteLine($"Payload being sent to Cosmos:\n{debugJson}");
 
-                // Parse JSON and validate it's an object
-                var token = JToken.Parse(json);
-                if (token.Type != JTokenType.Object)
-                {
-                    Console.WriteLine($"Invalid document payload: expected JSON object but got {token.Type}");
-                    return false;
-                }
-                var doc = (JObject)token;
+                // Ensure partition key matches the container config (e.g. "UploadedByUserId")
+                var partitionKey = new PartitionKey(document.UploadedByUserId.ToString());
 
-                Console.WriteLine($"Payload being sent to Cosmos:\n{doc}");
-                Console.WriteLine($"Serialized JSON contains id: {doc["id"]?.ToString()}");
+                // Insert the strongly typed object directly
+                await _container.CreateItemAsync(document, partitionKey);
 
-                // Insert item to Cosmos DB with partition key as id string
-                await _container.CreateItemAsync(doc, new PartitionKey(document.id.ToString()));
                 _cache.InvalidateCaches();
-
                 Console.WriteLine($"Successfully added document with ID: {document.id}");
                 return true;
             }
             catch (CosmosException ex)
             {
-                Console.WriteLine($"Error adding document with ID: {document.id}. Exception: {ex.Message}");
+                Console.WriteLine($"Cosmos DB error adding document with ID: {document.id}. Exception: {ex.Message}");
                 return false;
             }
-            catch (JsonException jex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"JSON error adding document with ID: {document.id}. Exception: {jex.Message}");
+                Console.WriteLine($"Unexpected error adding document with ID: {document.id}. Exception: {ex.Message}");
                 return false;
             }
         }
@@ -90,13 +77,9 @@ namespace Document.Api.Infrastructure.Persistance
 
                 Console.WriteLine($"Fetched {results.Count} documents.");
             }
-            catch (CosmosException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching document list. Exception: {ex.Message}");
-            }
-            catch (JsonException jex)
-            {
-                Console.WriteLine($"JSON error fetching document list. Exception: {jex.Message}");
             }
 
             return results;
@@ -109,6 +92,7 @@ namespace Document.Api.Infrastructure.Persistance
             try
             {
                 Console.WriteLine($"Fetching document(s) with ID: {id}");
+
                 var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
                     .WithParameter("@id", id.ToString());
 
@@ -128,13 +112,9 @@ namespace Document.Api.Infrastructure.Persistance
 
                 Console.WriteLine($"Found {results.Count} document(s) with ID: {id}");
             }
-            catch (CosmosException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching document(s) with ID: {id}. Exception: {ex.Message}");
-            }
-            catch (JsonException jex)
-            {
-                Console.WriteLine($"JSON error fetching document(s) with ID: {id}. Exception: {jex.Message}");
             }
 
             return results;
@@ -159,5 +139,5 @@ namespace Document.Api.Infrastructure.Persistance
                 _ => null
             };
         }
-    };
+    }
 }
