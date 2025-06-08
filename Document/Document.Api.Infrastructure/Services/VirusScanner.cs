@@ -24,55 +24,64 @@ namespace Document.Api.Infrastructure.Services
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Invalid file");
 
-            // Step 1: Upload file
+            string? analysisId = await UploadFileToVirusTotal(file);
+            if (string.IsNullOrWhiteSpace(analysisId))
+                return false;
+
+            return await CheckAnalysisResult(analysisId);
+        }
+
+        private async Task<string?> UploadFileToVirusTotal(IFormFile file)
+        {
             using var content = new MultipartFormDataContent();
             await using var stream = file.OpenReadStream();
             var streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
             content.Add(streamContent, "file", file.FileName);
 
-            var uploadRequest = new HttpRequestMessage(HttpMethod.Post, UploadUrl)
+            var request = new HttpRequestMessage(HttpMethod.Post, UploadUrl)
             {
                 Content = content
             };
-            uploadRequest.Headers.Add("x-apikey", _apiKey);
+            request.Headers.Add("x-apikey", _apiKey);
 
-            var uploadResponse = await _httpClient.SendAsync(uploadRequest);
-            if (!uploadResponse.IsSuccessStatusCode)
+            var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
             {
-                // Optional: log uploadResponse.StatusCode
-                return false;
+                Console.WriteLine($"[VirusScanner] Upload failed with status: {response.StatusCode}");
+                return null;
             }
 
-            var uploadJson = await uploadResponse.Content.ReadAsStringAsync();
-            var uploadDoc = JsonDocument.Parse(uploadJson);
-            var analysisId = uploadDoc.RootElement
-                .GetProperty("data")
-                .GetProperty("id")
-                .GetString();
+            using var jsonDoc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            return jsonDoc.RootElement
+                          .GetProperty("data")
+                          .GetProperty("id")
+                          .GetString();
+        }
 
-            if (string.IsNullOrWhiteSpace(analysisId))
-                return false;
-
-            // Step 2: Poll for result
+        private async Task<bool> CheckAnalysisResult(string analysisId)
+        {
             string analysisUrl = string.Format(AnalysisUrlTemplate, analysisId);
-            int retries = 10;
+            int retries = 15;
             int delay = 3000;
 
             for (int i = 0; i < retries; i++)
             {
                 await Task.Delay(delay);
 
-                var analysisRequest = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
-                analysisRequest.Headers.Add("x-apikey", _apiKey);
+                var request = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
+                request.Headers.Add("x-apikey", _apiKey);
 
-                var analysisResponse = await _httpClient.SendAsync(analysisRequest);
-                if (!analysisResponse.IsSuccessStatusCode)
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"[VirusScanner] Failed to fetch analysis: {response.StatusCode}");
                     continue;
+                }
 
-                var analysisJson = await analysisResponse.Content.ReadAsStringAsync();
-                var analysisDoc = JsonDocument.Parse(analysisJson);
-                var root = analysisDoc.RootElement;
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
 
                 string status = root.GetProperty("data").GetProperty("attributes").GetProperty("status").GetString();
                 if (status != "completed")
@@ -81,16 +90,13 @@ namespace Document.Api.Infrastructure.Services
                 var stats = root.GetProperty("data").GetProperty("attributes").GetProperty("stats");
                 int malicious = stats.GetProperty("malicious").GetInt32();
                 int suspicious = stats.GetProperty("suspicious").GetInt32();
-                int undetected = stats.GetProperty("undetected").GetInt32();
 
-                // Optional logging
-                Console.WriteLine($"Scan Result: Malicious={malicious}, Suspicious={suspicious}, Undetected={undetected}");
+                Console.WriteLine($"[VirusScanner] Scan complete: Malicious={malicious}, Suspicious={suspicious}");
 
-                // File is safe only if zero malicious/suspicious flags
                 return malicious == 0 && suspicious == 0;
             }
 
-            // Timeout or error during polling
+            Console.WriteLine("[VirusScanner] Analysis timed out or incomplete after retries.");
             return false;
         }
     }
