@@ -35,7 +35,7 @@ namespace Document.Api.Infrastructure.Services
             {
                 Content = content
             };
-            uploadRequest.Headers.Add("x-apikey", _apiKey);
+            uploadRequest.Headers.Add("X-Apikey", _apiKey);
 
             var uploadResponse = await _httpClient.SendAsync(uploadRequest);
             if (!uploadResponse.IsSuccessStatusCode)
