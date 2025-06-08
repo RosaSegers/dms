@@ -61,7 +61,7 @@ namespace Document.Api.Infrastructure.Services
                 await Task.Delay(delayBetweenRetriesMs);
 
                 var analysisRequest = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
-                analysisRequest.Headers.Add("x-apikey", _apiKey);
+                analysisRequest.Headers.Add("X-Apikey", _apiKey);
 
                 var analysisResponse = await _httpClient.SendAsync(analysisRequest);
                 if (!analysisResponse.IsSuccessStatusCode)
