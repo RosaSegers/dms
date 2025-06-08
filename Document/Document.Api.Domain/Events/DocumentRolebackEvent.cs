@@ -11,14 +11,14 @@ namespace Document.Api.Domain.Events
     {
         public DocumentRolebackEvent(Guid id, float? version, Guid rolledBackByUserId, List<IDocumentEvent> eventsToReapply)
         {
-            Id = id;
+            this.id = id;
             Version = version;
             RolledBackByUserId = rolledBackByUserId;
             EventsToReapply = eventsToReapply;
             OccurredAt = DateTime.UtcNow;
         }
 
-        public Guid Id { get; set; }
+        public Guid id { get; set; }
         public DateTime OccurredAt { get; set; }
         public float? Version { get; set; }
         public Guid RolledBackByUserId { get; set; }

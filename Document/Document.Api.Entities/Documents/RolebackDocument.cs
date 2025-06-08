@@ -68,7 +68,7 @@ namespace Document.Api.Features.Documents
             var e = new DocumentRolebackEvent(request.Id, request.Version, _userService.UserId, roleback);
 
             if (await _storage.AddDocument(e))
-                return e.Id;
+                return e.id;
             return Error.Failure("something went wrong trying so save the file.");
         }
     }

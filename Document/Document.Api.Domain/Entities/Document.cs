@@ -39,7 +39,7 @@ namespace Document.Api.Domain.Entities
 
         private void Apply(DocumentUploadedEvent e)
         {
-            Id = e.Id;
+            Id = e.id;
             Name = e.DocumentName;
             Description = e.DocumentDescription;
             FileUrl = e.FileUrl;

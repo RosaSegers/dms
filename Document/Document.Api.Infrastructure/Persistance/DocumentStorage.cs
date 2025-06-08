@@ -24,15 +24,15 @@ namespace Document.Api.Infrastructure.Persistance
         {
             try
             {
-                Console.WriteLine($"Adding document with ID: {document.Id}");
-                await _container.CreateItemAsync(document, new PartitionKey(document.Id.ToString()));
+                Console.WriteLine($"Adding document with ID: {document.id}");
+                await _container.CreateItemAsync(document, new PartitionKey(document.id.ToString()));
                 _cache.InvalidateCaches();
-                Console.WriteLine($"Successfully added document with ID: {document.Id}");
+                Console.WriteLine($"Successfully added document with ID: {document.id}");
                 return true;
             }
             catch (CosmosException ex)
             {
-                Console.WriteLine($"Error adding document with ID: {document.Id}. Exception: {ex.Message}");
+                Console.WriteLine($"Error adding document with ID: {document.id}. Exception: {ex.Message}");
                 return false;
             }
         }

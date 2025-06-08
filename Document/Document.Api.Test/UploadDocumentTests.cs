@@ -90,7 +90,7 @@ namespace Document.Api.Test
 
             // Assert
             Assert.NotNull(capturedEvent);
-            Assert.NotEqual(Guid.Empty, capturedEvent.Id);
+            Assert.NotEqual(Guid.Empty, capturedEvent.id);
             Assert.Equal(1, capturedEvent.Version);
         }
     }

@@ -5,7 +5,7 @@ namespace Document.Api.Domain.Events
 {
     public class DocumentUploadedEvent : IDocumentEvent
     {
-        public Guid Id { get; set; }
+        public Guid id { get; set; }
         public float? Version { get; set; }
         public string DocumentName { get; set; }
         public string DocumentDescription { get; set; }
@@ -19,7 +19,7 @@ namespace Document.Api.Domain.Events
 
         public DocumentUploadedEvent(string documentName, string documentDescription, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
         {
-            Id = Guid.NewGuid();
+            id = Guid.NewGuid();
             DocumentName = documentName;
             DocumentDescription = documentDescription;
             FileName = file.FileName;

@@ -95,14 +95,14 @@ namespace Document.Api.Test
 
         private class TestDocumentEvent : IDocumentEvent
         {
-            public Guid Id { get; }
+            public Guid id { get; }
             public DateTime OccurredAt { get; }
 
             public float? Version => throw new NotImplementedException();
 
             public TestDocumentEvent(Guid id, DateTime occurredAt)
             {
-                Id = id;
+                this.id = id;
                 OccurredAt = occurredAt;
             }
         }

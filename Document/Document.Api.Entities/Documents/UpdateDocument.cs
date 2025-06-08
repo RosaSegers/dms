@@ -77,7 +77,7 @@ namespace Document.Api.Features.Documents
             var e = new DocumentUpdatedEvent(request.Id, request.Name, request.Description, request.Version, request.File, "", _userService.UserId);
 
             if (await _storage.AddDocument(e))
-                return e.Id;
+                return e.id;
             return Error.Failure("something went wrong trying so save the file.");
         }
     }

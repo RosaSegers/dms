@@ -81,8 +81,8 @@ namespace Document.Api.Test
 
             // Assert
             Assert.NotNull(capturedEvent);
-            Assert.Equal(documentId, capturedEvent.Id);
-            Assert.NotEqual(Guid.Empty, capturedEvent.Id);
+            Assert.Equal(documentId, capturedEvent.id);
+            Assert.NotEqual(Guid.Empty, capturedEvent.id);
         }
     }
 }

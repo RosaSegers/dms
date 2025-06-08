@@ -8,7 +8,7 @@ namespace Document.Api.Common.Interfaces
 {
     public interface IDocumentEvent
     {
-        Guid Id { get; }
+        Guid id { get; }
         DateTime OccurredAt { get; }
         float? Version { get; }
     }
