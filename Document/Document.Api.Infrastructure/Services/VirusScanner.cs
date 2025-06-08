@@ -62,26 +62,23 @@ namespace Document.Api.Infrastructure.Services
         private async Task<bool> CheckAnalysisResult(string analysisId)
         {
             string analysisUrl = string.Format(AnalysisUrlTemplate, analysisId);
-            int retries = 15;
-            int delay = 3000;
 
-            for (int i = 0; i < retries; i++)
+            int delay = 3000; // Wait 3 seconds between checks
+
+            while (true)
             {
                 await Task.Delay(delay);
 
-                var request = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
-                request.Headers.Add("x-apikey", _apiKey);
+                var analysisRequest = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
+                analysisRequest.Headers.Add("x-apikey", _apiKey);
 
-                var response = await _httpClient.SendAsync(request);
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"[VirusScanner] Failed to fetch analysis: {response.StatusCode}");
-                    continue;
-                }
+                var analysisResponse = await _httpClient.SendAsync(analysisRequest);
+                if (!analysisResponse.IsSuccessStatusCode)
+                    continue; // Optionally log or handle errors
 
-                var json = await response.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-                var root = doc.RootElement;
+                var analysisJson = await analysisResponse.Content.ReadAsStringAsync();
+                var analysisDoc = JsonDocument.Parse(analysisJson);
+                var root = analysisDoc.RootElement;
 
                 string status = root.GetProperty("data").GetProperty("attributes").GetProperty("status").GetString();
                 if (status != "completed")
@@ -91,10 +88,11 @@ namespace Document.Api.Infrastructure.Services
                 int malicious = stats.GetProperty("malicious").GetInt32();
                 int suspicious = stats.GetProperty("suspicious").GetInt32();
 
-                Console.WriteLine($"[VirusScanner] Scan complete: Malicious={malicious}, Suspicious={suspicious}");
+                Console.WriteLine($"Scan Result: Malicious={malicious}, Suspicious={suspicious}");
 
                 return malicious == 0 && suspicious == 0;
             }
+
 
             Console.WriteLine("[VirusScanner] Analysis timed out or incomplete after retries.");
             return false;
