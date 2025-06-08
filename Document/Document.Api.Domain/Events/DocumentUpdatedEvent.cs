@@ -20,7 +20,7 @@ namespace Document.Api.Domain.Events
         public string[]? UpdatedTags { get; set; } = Array.Empty<string>();
         public Guid UpdatedByUserId { get; set; } = default!;
         [JsonProperty]
-        public new string EventType => nameof(DocumentUpdatedEvent);
+        public override string EventType => nameof(DocumentUpdatedEvent);
 
 
 

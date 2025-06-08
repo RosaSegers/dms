@@ -2,6 +2,7 @@
 using Document.Api.Domain.Events;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Document.Api.Infrastructure.Persistance
@@ -27,15 +28,18 @@ namespace Document.Api.Infrastructure.Persistance
             {
                 Console.WriteLine($"Adding document with ID: {document.id}");
 
-                // Log the document payload for debugging
-                var debugJson = System.Text.Json.JsonSerializer.Serialize(document);
-                Console.WriteLine($"Payload being sent to Cosmos:\n{debugJson}");
+                // Serialize the concrete type explicitly
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(document, document.GetType(), new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore
+                });
 
-                // Ensure partition key matches the container config (e.g. "UploadedByUserId")
+                Console.WriteLine($"Payload being sent to Cosmos:\n{json}");
+
+                var parsed = JObject.Parse(json);
                 var partitionKey = new PartitionKey(document.id.ToString());
 
-                // Insert the strongly typed object directly
-                await _container.CreateItemAsync(document, partitionKey);
+                await _container.CreateItemAsync(parsed, partitionKey);
 
                 _cache.InvalidateCaches();
                 Console.WriteLine($"Successfully added document with ID: {document.id}");
@@ -52,6 +56,7 @@ namespace Document.Api.Infrastructure.Persistance
                 return false;
             }
         }
+
 
         public async Task<List<IDocumentEvent>> GetDocumentList()
         {
