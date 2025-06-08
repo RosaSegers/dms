@@ -117,10 +117,10 @@ namespace Document.Api.Infrastructure.Persistance
 
             return eventType switch
             {
-                "Delete" => json.ToObject<DocumentDeletedEvent>(),
-                "Rollback" => json.ToObject<DocumentRolebackEvent>(),
-                "Upload" => json.ToObject<DocumentUploadedEvent>(),
-                "Update" => json.ToObject<DocumentUpdatedEvent>(),
+                nameof(DocumentDeletedEvent) => json.ToObject<DocumentDeletedEvent>(),
+                nameof(DocumentRolebackEvent) => json.ToObject<DocumentRolebackEvent>(),
+                nameof(DocumentUploadedEvent) => json.ToObject<DocumentUploadedEvent>(),
+                nameof(DocumentUpdatedEvent) => json.ToObject<DocumentUpdatedEvent>(),
                 _ => null
             };
         }
