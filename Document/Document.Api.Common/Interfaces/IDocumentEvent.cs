@@ -14,6 +14,6 @@ namespace Document.Api.Common.Interfaces
         Guid DocumentId { get; }
         string EventType { get; }
         DateTime OccurredAt { get; }
-        float? Version { get; }
+        int? Version { get; }
     }
 }

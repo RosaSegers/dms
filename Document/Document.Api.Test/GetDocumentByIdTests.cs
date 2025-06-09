@@ -152,7 +152,7 @@ namespace Document.Api.Test
             public Guid DocumentId { get; }
             public DateTime OccurredAt { get; }
 
-            public float? Version => throw new NotImplementedException();
+            public int? Version => throw new NotImplementedException();
 
             public string EventType => throw new NotImplementedException();
 

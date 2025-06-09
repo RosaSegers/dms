@@ -64,11 +64,12 @@ namespace Document.Api.Test
     internal class DocumentVersion : IDocumentEvent
     {
         public Guid DocumentId { get; set; }
-        public float? Version { get; set; }
+        public int? Version { get; set; }
         public DateTime OccurredAt { get; set; }
 
         public string EventType => throw new NotImplementedException();
 
         public string Id => throw new NotImplementedException();
+
     }
 }
