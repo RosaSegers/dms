@@ -34,20 +34,11 @@ namespace Document.Api.Infrastructure.Persistance
                     Console.WriteLine("Warning: Document ID is Guid.Empty. This might cause issues with partition key or uniqueness.");
                 }
 
-                // Serialize the concrete type explicitly, ignoring nulls to reduce noise
-                var json = Newtonsoft.Json.JsonConvert.SerializeObject(document, document.GetType(), new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore
-                });
-
-                Console.WriteLine($"Payload being sent to Cosmos:\n{json}");
-
                 var partitionKeyValue = document.DocumentId.ToString();
-                Console.WriteLine($"Partition key (id) being used: '{partitionKeyValue}'");
-
                 var partitionKey = new PartitionKey(partitionKeyValue);
 
-                var response = await _container.CreateItemAsync(document, partitionKey);
+                // IMPORTANT: Cast to object to preserve runtime type
+                var response = await _container.CreateItemAsync<object>(document, partitionKey);
 
                 Console.WriteLine($"Successfully added document with ID: {document.DocumentId}");
                 Console.WriteLine($"Request Charge: {response.RequestCharge}");
@@ -77,6 +68,7 @@ namespace Document.Api.Infrastructure.Persistance
                 return false;
             }
         }
+
 
 
 
