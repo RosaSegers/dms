@@ -26,7 +26,7 @@ namespace Document.Api.Features.Documents
         }
     }
 
-    public record UploadDocumentQuery(string Name, string Description, float Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
+    public record UploadDocumentQuery(string Name, string Description, int Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
 
     internal sealed class UploadDocumentQueryValidator : AbstractValidator<UploadDocumentQuery>
     {

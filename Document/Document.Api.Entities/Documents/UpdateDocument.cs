@@ -20,7 +20,7 @@ namespace Document.Api.Features.Documents
             [FromRoute] Guid id,
             [FromForm] string name,
             [FromForm] string description,
-            [FromForm] float version,
+            [FromForm] int version,
             [FromForm] IFormFile file)
         {
             var document = await Mediator.Send(new GetDocumentByIdQuery(id));
@@ -36,7 +36,7 @@ namespace Document.Api.Features.Documents
         }
     }
 
-    public record UpdateDocumentQuery(Guid Id, string Name, string Description, float Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
+    public record UpdateDocumentQuery(Guid Id, string Name, string Description, int Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
 
     internal sealed class UpdateDocumentQueryValidator : AbstractValidator<UpdateDocumentQuery>
     {

@@ -18,7 +18,7 @@ namespace Document.Api.Features.Documents
         [HttpPatch("/api/documents/{id:guid}")]
         public async Task<IResult> UploadDocument(
             [FromRoute] Guid id,
-            [FromForm] float version)
+            [FromForm] int version)
         {
             var document = await Mediator.Send(new GetDocumentByIdQuery(id));
             if (document.Value.UserId != userService.UserId)
@@ -33,7 +33,7 @@ namespace Document.Api.Features.Documents
         }
     }
 
-    public record RolebackDocumentQuery(Guid Id, float Version) : IRequest<ErrorOr<Guid>>;
+    public record RolebackDocumentQuery(Guid Id, int Version) : IRequest<ErrorOr<Guid>>;
 
     internal sealed class RolebackDocumentQueryValidator : AbstractValidator<UpdateDocumentQuery>
     {
