@@ -12,7 +12,7 @@ namespace Document.Api.Domain.Events
 
         public DocumentDeletedEvent(Guid id, Guid deletedByUserId)
         {
-            this.id = id;
+            this.DocumentId = id;
             OccurredAt = DateTime.UtcNow;
             DeletedByUserId = deletedByUserId;
         }

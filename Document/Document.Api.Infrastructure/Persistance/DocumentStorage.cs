@@ -27,9 +27,9 @@ namespace Document.Api.Infrastructure.Persistance
         {
             try
             {
-                Console.WriteLine($"Adding document with ID: '{document.id}'");
+                Console.WriteLine($"Adding document with ID: '{document.DocumentId}'");
 
-                if (document.id == Guid.Empty)
+                if (document.DocumentId == Guid.Empty)
                 {
                     Console.WriteLine("Warning: Document ID is Guid.Empty. This might cause issues with partition key or uniqueness.");
                 }
@@ -42,14 +42,14 @@ namespace Document.Api.Infrastructure.Persistance
 
                 Console.WriteLine($"Payload being sent to Cosmos:\n{json}");
 
-                var partitionKeyValue = document.id.ToString();
+                var partitionKeyValue = document.DocumentId.ToString();
                 Console.WriteLine($"Partition key (id) being used: '{partitionKeyValue}'");
 
                 var partitionKey = new PartitionKey(partitionKeyValue);
 
                 var response = await _container.CreateItemAsync(document, partitionKey);
 
-                Console.WriteLine($"Successfully added document with ID: {document.id}");
+                Console.WriteLine($"Successfully added document with ID: {document.DocumentId}");
                 Console.WriteLine($"Request Charge: {response.RequestCharge}");
                 Console.WriteLine($"Activity Id: {response.ActivityId}");
                 Console.WriteLine($"Status Code: {response.StatusCode}");
@@ -59,7 +59,7 @@ namespace Document.Api.Infrastructure.Persistance
             }
             catch (CosmosException ex)
             {
-                Console.WriteLine($"Cosmos DB error adding document with ID: {document.id}");
+                Console.WriteLine($"Cosmos DB error adding document with ID: {document.DocumentId}");
                 Console.WriteLine($"StatusCode: {ex.StatusCode}");
                 Console.WriteLine($"SubStatusCode: {ex.SubStatusCode}");
                 Console.WriteLine($"ActivityId: {ex.ActivityId}");
@@ -71,7 +71,7 @@ namespace Document.Api.Infrastructure.Persistance
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected error adding document with ID: {document.id}");
+                Console.WriteLine($"Unexpected error adding document with ID: {document.DocumentId}");
                 Console.WriteLine($"Message: {ex.Message}");
                 Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 return false;

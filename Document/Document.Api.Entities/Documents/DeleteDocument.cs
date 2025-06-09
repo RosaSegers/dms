@@ -54,7 +54,7 @@ namespace Document.Api.Features.Documents
             var e = new DocumentDeletedEvent(request.Id, _userService.UserId);
 
             if (await _storage.AddDocument(e))
-                return e.id;
+                return e.DocumentId;
             return Error.Failure("something went wrong trying so save the file.");
         }
     }

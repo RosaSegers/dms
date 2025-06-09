@@ -55,7 +55,7 @@ namespace Document.Api.Test
             Assert.False(result.IsError);
             Assert.IsType<Guid>(result.Value);
             _storageMock.Verify(s => s.AddDocument(It.Is<DocumentRolebackEvent>(e =>
-                e.id != Guid.Empty &&
+                e.DocumentId != Guid.Empty &&
                 e.Version == 3
             )), Times.Once);
         }
@@ -63,10 +63,12 @@ namespace Document.Api.Test
 
     internal class DocumentVersion : IDocumentEvent
     {
-        public Guid id { get; set; }
+        public Guid DocumentId { get; set; }
         public float? Version { get; set; }
         public DateTime OccurredAt { get; set; }
 
         public string EventType => throw new NotImplementedException();
+
+        public string Id => throw new NotImplementedException();
     }
 }

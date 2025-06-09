@@ -26,7 +26,7 @@ namespace Document.Api.Domain.Events
 
         public DocumentUpdatedEvent(Guid id, string name, string description, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
         {
-            this.id = id;
+            this.DocumentId = id;
             OccurredAt = DateTime.UtcNow;
             UpdatedDocumentName = name;
             UpdatedDocumentDescription = description;

@@ -63,7 +63,7 @@ namespace Document.Api.Features.Documents
             }
 
             var documents = new List<Domain.Entities.Document>();
-            var events = (await _storage.GetDocumentList()).GroupBy(e => e.id).ToList();
+            var events = (await _storage.GetDocumentList()).GroupBy(e => e.DocumentId).ToList();
 
             foreach (var group in events) 
             {

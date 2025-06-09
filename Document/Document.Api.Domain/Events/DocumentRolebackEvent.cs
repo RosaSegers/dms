@@ -12,7 +12,7 @@ namespace Document.Api.Domain.Events
     {
         public DocumentRolebackEvent(Guid id, float? version, Guid rolledBackByUserId, List<IDocumentEvent> eventsToReapply)
         {
-            this.id = id;
+            this.DocumentId = id;
             Version = version;
             RolledBackByUserId = rolledBackByUserId;
             EventsToReapply = eventsToReapply;

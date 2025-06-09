@@ -21,7 +21,7 @@ namespace Document.Api.Domain.Events
 
         public DocumentUploadedEvent(string documentName, string documentDescription, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
         {
-            id = Guid.NewGuid();
+            DocumentId = Guid.NewGuid();
             DocumentName = documentName;
             DocumentDescription = documentDescription;
             FileName = file.FileName;
