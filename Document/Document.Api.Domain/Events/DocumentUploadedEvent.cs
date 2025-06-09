@@ -13,7 +13,7 @@ namespace Document.Api.Domain.Events
         public string ContentType { get; set; }
         public long FileSize { get; set; }
         public Guid UploadedByUserId { get; set; }  
-        public string[]? Tags { get; set; }
+        public string[]? Tags { get; set; } = Array.Empty<string>();
         [JsonProperty]
         public override string EventType => nameof(DocumentUploadedEvent);
 
