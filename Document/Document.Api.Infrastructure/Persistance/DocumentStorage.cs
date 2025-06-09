@@ -37,7 +37,8 @@ namespace Document.Api.Infrastructure.Persistance
                 var partitionKeyValue = document.DocumentId.ToString();
                 var partitionKey = new PartitionKey(partitionKeyValue);
 
-                // IMPORTANT: Cast to object to preserve runtime type
+                string json = JsonConvert.SerializeObject(document); // check if it throws
+                Console.WriteLine($"Serialized document: {json}");
                 var response = await _container.CreateItemAsync<object>(document, partitionKey);
 
                 Console.WriteLine($"Successfully added document with ID: {document.DocumentId}");
