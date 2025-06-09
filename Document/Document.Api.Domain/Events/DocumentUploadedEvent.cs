@@ -30,7 +30,10 @@ namespace Document.Api.Domain.Events
             FileSize = file.Length;
             UploadedByUserId = userId;
             OccurredAt = DateTime.UtcNow;
-            Tags = tags;
+            if(tags is not null)
+                Tags = tags;
+            else
+                Tags = Array.Empty<string>();
             Version = version;
         }
 

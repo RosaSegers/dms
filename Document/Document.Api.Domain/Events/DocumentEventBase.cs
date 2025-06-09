@@ -10,7 +10,10 @@ namespace Document.Api.Domain.Events
         public Guid DocumentId { get; set; } = Guid.NewGuid();
         public virtual string EventType { get; set; } = string.Empty;
         public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
+        [JsonIgnore]
         public int? Version { get; set; } = null;
+        [JsonProperty("Version")]
+        private string? VersionString => Version?.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
     }
 
 }
