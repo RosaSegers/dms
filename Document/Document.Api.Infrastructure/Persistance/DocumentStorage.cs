@@ -2,6 +2,7 @@
 using Document.Api.Domain.Events;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -36,9 +37,6 @@ namespace Document.Api.Infrastructure.Persistance
 
                 var partitionKeyValue = document.DocumentId.ToString();
                 var partitionKey = new PartitionKey(partitionKeyValue);
-
-                string json = JsonConvert.SerializeObject(document); // check if it throws
-                Console.WriteLine($"Serialized document: {json}");
                 var response = await _container.CreateItemAsync<object>(document, partitionKey);
 
                 Console.WriteLine($"Successfully added document with ID: {document.DocumentId}");
@@ -81,7 +79,9 @@ namespace Document.Api.Infrastructure.Persistance
             {
                 Console.WriteLine("Fetching all documents from container.");
                 var query = new QueryDefinition("SELECT * FROM c");
+                Console.WriteLine($"Cosmos DB Query: {query}");
                 var iterator = _container.GetItemQueryIterator<JObject>(query);
+                Console.WriteLine($"Cosmos DB Iterator: {iterator}");
 
                 while (iterator.HasMoreResults)
                 {
