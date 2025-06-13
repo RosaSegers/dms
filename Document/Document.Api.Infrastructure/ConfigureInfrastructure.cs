@@ -8,6 +8,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Document.Api.Infrastructure.Services.Interface;
+using Document.Api.Infrastructure.Persistance.Interface;
 
 namespace Document.Api.Infrastructure
 {
@@ -17,6 +18,7 @@ namespace Document.Api.Infrastructure
         {
             services.AddSingleton<IDocumentScanQueue, InMemoryDocumentScanQueue>();
             services.AddSingleton<IDocumentStatusService, InMemoryDocumentStatusService>();
+            services.AddSingleton<IBlobStorageService, BlobStorageService>();
 
             services.AddHostedService<VirusScanBackgroundService>();
 

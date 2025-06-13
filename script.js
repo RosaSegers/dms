@@ -9,12 +9,13 @@ let loginTrend = new Trend('login_duration');
 let profileTrend = new Trend('profile_duration');
 let uploadTrend = new Trend('upload_duration');
 
-// Read file as binary Uint8Array directly (no base64 decode)
-const fileBytes = open('./LoadTest.docx', 'b');
+// Constants
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const fileBytes = open('./Code Snippets.docx', 'b');
 
 export let options = {
   vus: 50,
-  duration: '5m',
+  duration: '20m',
   thresholds: {
     login_duration: ['p(95)<1000'],
     upload_duration: ['p(95)<2000'],
@@ -24,7 +25,7 @@ export let options = {
 };
 
 export default function () {
-  // LOGIN multipart/form-data
+  // --- LOGIN ---
   const loginForm = new FormData();
   loginForm.append('Email', 'rosa.segers.2001@gmail.com');
   loginForm.append('Password', 'PasswordPassword');
@@ -40,7 +41,6 @@ export default function () {
   });
 
   loginTrend.add(loginRes.timings.duration);
-
   if (loginRes.status !== 200) {
     console.error('Login failed, stopping iteration.');
     return;
@@ -49,7 +49,7 @@ export default function () {
   const token = loginRes.json('accessToken');
   sleep(Math.random() * 2 + 1);
 
-  // VIEW PROFILE (simulate some post-login usage)
+  // --- PROFILE ---
   const profileRes = http.get('https://dmsgateway.local/gateway/users/me', {
     headers: { Authorization: `Bearer ${token}` },
     tags: { endpoint: '/users/me' },
@@ -62,7 +62,19 @@ export default function () {
   profileTrend.add(profileRes.timings.duration);
   sleep(Math.random() * 2 + 1);
 
-  // UPLOAD DOCUMENT multipart/form-data
+  // --- FILE SIZE CHECK ---
+if (fileBytes.length === 0) {
+  console.error('File is empty. Skipping upload.');
+  return;
+}
+
+if (fileBytes.length > MAX_FILE_SIZE_BYTES) {
+  console.warn(`Skipping upload. File size (${fileBytes.length}) exceeds max of ${MAX_FILE_SIZE_BYTES} bytes.`);
+  return;
+}
+
+
+  // --- UPLOAD DOCUMENT ---
   const uploadForm = new FormData();
   uploadForm.append('Name', 'Architectural Decisions');
   uploadForm.append('Description', 'This document contains important architectural decisions.');
@@ -80,9 +92,6 @@ export default function () {
     },
     tags: { endpoint: '/document' },
   });
-
-  // Add logging here for debugging upload issues
-
 
   check(uploadRes, {
     'upload status 202': (r) => r.status === 202,

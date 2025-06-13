@@ -1,6 +1,7 @@
 ﻿using Document.Api.Common.Interfaces;
 using Document.Api.Domain.Events;
 using Document.Api.Infrastructure.Background.Interfaces;
+using Document.Api.Infrastructure.Persistance.Interface;
 using Document.Api.Infrastructure.Services.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -43,10 +44,20 @@ namespace Document.Api.Infrastructure.Services.Background
 
                         if (clean)
                         {
+                            var blobService = scope.ServiceProvider.GetRequiredService<IBlobStorageService>();
+
+                            // Reset stream position before uploading
+                            item.FileStream.Position = 0;
+
+                            var blobName = $"{item.Document.DocumentId}/{item.FileName}";
+                            await blobService.UploadAsync(item.FileStream, blobName, item.ContentType);
+
                             await storage.AddDocument(item.Document);
-                            await statusService.SetStatusAsync(item.Document.DocumentId, "uploaded");
-                            Console.WriteLine($"[VirusScanBackgroundService] Document {item.Document.DocumentId} is clean and stored.");
+                            await statusService.SetStatusAsync(item.Document.DocumentId, "clean");
+
+                            Console.WriteLine($"[VirusScanBackgroundService] Document {item.Document.DocumentId} is clean, uploaded to blob, and stored.");
                         }
+
                         else
                         {
                             await statusService.SetStatusAsync(item.Document.DocumentId, "malicious");
