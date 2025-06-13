@@ -9,6 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Document.Api.Features.Documents
 {
@@ -42,10 +43,9 @@ namespace Document.Api.Features.Documents
             using var memoryStream = new MemoryStream();
             request.File.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
-
             var item = new DocumentScanQueueItem(
                 evt,
-                memoryStream,
+                new MemoryStream(memoryStream.ToArray()),
                 request.File.FileName,
                 request.File.ContentType
             );

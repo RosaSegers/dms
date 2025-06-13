@@ -10,5 +10,5 @@ namespace Document.Api.Infrastructure.Background.Interfaces
         bool TryPeek(out DocumentScanQueueItem item);
     }
 
-    public record class DocumentScanQueueItem(DocumentUploadedEvent Document, Stream FileStream, string FileName, string ContentType);
+    public record class DocumentScanQueueItem(DocumentUploadedEvent Document, MemoryStream FileStream, string FileName, string ContentType);
 }
