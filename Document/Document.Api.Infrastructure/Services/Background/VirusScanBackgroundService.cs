@@ -49,7 +49,7 @@ namespace Document.Api.Infrastructure.Services.Background
                             // Reset stream position before uploading
                             item.FileStream.Position = 0;
 
-                            var blobName = $"{item.Document.DocumentId}/{item.FileName}";
+                            var blobName = $"{item.Document.Id}/{item.FileName}";
                             await blobService.UploadAsync(item.FileStream, blobName, item.ContentType);
 
                             await storage.AddDocument(item.Document);
@@ -57,7 +57,6 @@ namespace Document.Api.Infrastructure.Services.Background
 
                             Console.WriteLine($"[VirusScanBackgroundService] Document {item.Document.DocumentId} is clean, uploaded to blob, and stored.");
                         }
-
                         else
                         {
                             await statusService.SetStatusAsync(item.Document.DocumentId, "malicious");

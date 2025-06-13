@@ -9,5 +9,6 @@ namespace Document.Api.Infrastructure.Persistance.Interface
     public interface IBlobStorageService
     {
         Task UploadAsync(Stream fileStream, string blobName, string contentType);
+        Task<Stream> DownloadAsync(string blobName);
     }
 }

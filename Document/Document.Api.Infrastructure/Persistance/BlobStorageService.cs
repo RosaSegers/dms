@@ -26,8 +26,24 @@ namespace Document.Api.Infrastructure.Persistance
         public async Task UploadAsync(Stream fileStream, string blobName, string contentType)
         {
             var blobClient = _containerClient.GetBlobClient(blobName);
-            await blobClient.UploadAsync(fileStream, new BlobHttpHeaders { ContentType = contentType });
+            await blobClient.UploadAsync(
+                fileStream,
+                new BlobHttpHeaders { ContentType = contentType }
+            );
         }
+
+        public async Task<Stream> DownloadAsync(string blobName)
+        {
+            var blobClient = _containerClient.GetBlobClient(blobName);
+
+            if (!await blobClient.ExistsAsync())
+                throw new FileNotFoundException($"Blob '{blobName}' not found.");
+
+            var response = await blobClient.DownloadAsync();
+
+            return response.Value.Content;
+        }
+
     }
 
 }
