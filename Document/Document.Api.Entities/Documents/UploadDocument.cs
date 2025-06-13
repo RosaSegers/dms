@@ -40,24 +40,29 @@ namespace Document.Api.Features.Documents
                 request.File, "", userService.UserId
             );
 
-            Console.WriteLine(request.File);
-
-            using var memoryStream = new MemoryStream();
+            await using var memoryStream = new MemoryStream();
             await request.File.CopyToAsync(memoryStream, cancellationToken);
+
+            // Ensure stream is fully copied and reset
             memoryStream.Position = 0;
-            var item = new DocumentScanQueueItem(
+
+            // Clone the byte array *after* fully copying
+            var copyBuffer = memoryStream.ToArray();
+
+            Console.WriteLine($"[UploadDocumentCommandHandler] Copied stream length: {copyBuffer.Length}");
+
+            var streamCopy = new MemoryStream(copyBuffer);
+
+            queue.Enqueue(new DocumentScanQueueItem(
                 evt,
-                new MemoryStream(memoryStream.ToArray()),
+                streamCopy,
                 request.File.FileName,
                 request.File.ContentType
-            );
+            ));
 
-            queue.Enqueue(item);
-
-
-            // You could also persist the "pending" status here in DB
-            return await Task.FromResult<ErrorOr<Guid>>(evt.DocumentId);
+            return evt.DocumentId;
         }
     }
+
 
 }
