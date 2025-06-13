@@ -3,6 +3,7 @@ using Document.Api.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
+using System.Security.Cryptography;
 
 namespace Document.Api.Infrastructure.Services
 {
@@ -24,9 +25,15 @@ namespace Document.Api.Infrastructure.Services
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Invalid file");
 
-            string? analysisId = await UploadFileToVirusTotal(file);
+            var fileHash = await ComputeSHA256Async(file);
+            string? analysisId = await GetAnalysisIdByHash(fileHash);
+
             if (string.IsNullOrWhiteSpace(analysisId))
-                return false;
+            {
+                analysisId = await UploadFileToVirusTotal(file);
+                if (string.IsNullOrWhiteSpace(analysisId))
+                    return false;
+            }
 
             return await CheckAnalysisResult(analysisId);
         }
@@ -59,10 +66,32 @@ namespace Document.Api.Infrastructure.Services
                           .GetString();
         }
 
+        private async Task<string?> GetAnalysisIdByHash(string hash)
+        {
+            var requestUrl = $"https://www.virustotal.com/api/v3/files/{hash}";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            request.Headers.Add("x-apikey", _apiKey);
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null; // File not found, safe to upload
+                }
+
+                Console.WriteLine($"[VirusScanner] Hash check failed: {response.StatusCode}");
+                return null;
+            }
+
+            using var jsonDoc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            return jsonDoc.RootElement.GetProperty("data").GetProperty("id").GetString();
+        }
+
         private async Task<bool> CheckAnalysisResult(string analysisId)
         {
             string analysisUrl = string.Format(AnalysisUrlTemplate, analysisId);
-
             int delay = 3000; // Wait 3 seconds between checks
 
             while (true)
@@ -74,7 +103,7 @@ namespace Document.Api.Infrastructure.Services
 
                 var analysisResponse = await _httpClient.SendAsync(analysisRequest);
                 if (!analysisResponse.IsSuccessStatusCode)
-                    continue; // Optionally log or handle errors
+                    continue;
 
                 var analysisJson = await analysisResponse.Content.ReadAsStringAsync();
                 var analysisDoc = JsonDocument.Parse(analysisJson);
@@ -92,10 +121,14 @@ namespace Document.Api.Infrastructure.Services
 
                 return malicious == 0 && suspicious == 0;
             }
+        }
 
-
-            Console.WriteLine("[VirusScanner] Analysis timed out or incomplete after retries.");
-            return false;
+        private static async Task<string> ComputeSHA256Async(IFormFile file)
+        {
+            using var sha256 = SHA256.Create();
+            await using var stream = file.OpenReadStream();
+            var hashBytes = await sha256.ComputeHashAsync(stream);
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
         }
     }
 }

@@ -2,6 +2,7 @@
 using Document.Api.Common.Authorization.Requirements;
 using Document.Api.Common.Interfaces;
 using Document.Api.Domain.Events;
+using Document.Api.Infrastructure.Background.Interfaces;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -16,53 +17,33 @@ namespace Document.Api.Features.Documents
     public class UploadDocumentsController() : ApiControllerBase
     {
         [HttpPost("/api/documents")]
-        public async Task<IResult> UploadDocument([FromForm] UploadDocumentQuery query)
+        public async Task<IResult> UploadDocument([FromForm] UploadDocumentCommand command)
         {
-            var result = await Mediator.Send(query);
+            var result = await Mediator.Send(command);
 
             return result.Match(
-                id => Results.Created("/api/documents", id),
+                id => Results.Accepted($"/api/documents/{id}/status", new { DocumentId = id }),
                 error => Results.BadRequest(error.First().Description));
         }
     }
 
-    public record UploadDocumentQuery(string Name, string Description, int Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
+    public record UploadDocumentCommand(string Name, string Description, int Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
 
-    internal sealed class UploadDocumentQueryValidator : AbstractValidator<UploadDocumentQuery>
+    public sealed class UploadDocumentCommandHandler(IDocumentScanQueue queue, ICurrentUserService userService)
+        : IRequestHandler<UploadDocumentCommand, ErrorOr<Guid>>
     {
-        private readonly IVirusScanner _scanner;
-        private readonly IDocumentStorage _storage;
-
-        public UploadDocumentQueryValidator(IVirusScanner scanner, IDocumentStorage storage)
+        public Task<ErrorOr<Guid>> Handle(UploadDocumentCommand request, CancellationToken cancellationToken)
         {
-            _scanner = scanner;
-            _storage = storage;
+            var evt = new DocumentUploadedEvent(
+                request.Name, request.Description, request.Version,
+                request.File, "", userService.UserId
+            );
 
-            RuleFor(x => x.File)
-                .MustAsync(NotBeVirus).WithMessage(UploadDocumentQueryValidatorConstants.MALICIOUS_FILE);
-        }
+            queue.Enqueue(new DocumentScanQueueItem(evt, request.File));
 
-        private async Task<bool> NotBeVirus(IFormFile file, CancellationToken token) => (await _scanner.ScanFile(file));
-    }
-
-    internal static class UploadDocumentQueryValidatorConstants
-    {
-        internal static string MALICIOUS_FILE = "Please don't upload malicious files";
-    }
-
-
-    public sealed class UploadDocumentQueryHandler(IDocumentStorage storage, ICurrentUserService userService) : IRequestHandler<UploadDocumentQuery, ErrorOr<Guid>>
-    {
-        private readonly IDocumentStorage _storage = storage;
-        private readonly ICurrentUserService _userService = userService;
-
-        public async Task<ErrorOr<Guid>> Handle(UploadDocumentQuery request, CancellationToken cancellationToken)
-        {
-            var e = new DocumentUploadedEvent(request.Name, request.Description, request.Version, request.File, "", _userService.UserId);
-
-            if(await _storage.AddDocument(e))
-                return e.DocumentId;
-            return Error.Failure("something went wrong trying so save the file.");
+            // You could also persist the "pending" status here in DB
+            return Task.FromResult<ErrorOr<Guid>>(evt.DocumentId);
         }
     }
+
 }

@@ -1,9 +1,13 @@
 ﻿using Document.Api.Common.Interfaces;
+using Document.Api.Infrastructure.Background.Interfaces;
+using Document.Api.Infrastructure.Background;
 using Document.Api.Infrastructure.Persistance;
 using Document.Api.Infrastructure.Services;
+using Document.Api.Infrastructure.Services.Background;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Document.Api.Infrastructure.Services.Interface;
 
 namespace Document.Api.Infrastructure
 {
@@ -11,21 +15,10 @@ namespace Document.Api.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-            services.AddSingleton(s =>
-            {
-                var config = s.GetRequiredService<IConfiguration>();
-                var endpoint = config["CosmosDb:Endpoint"];
-                var key = config["CosmosDb:Key"];
+            services.AddSingleton<IDocumentScanQueue, InMemoryDocumentScanQueue>();
+            services.AddSingleton<IDocumentStatusService, InMemoryDocumentStatusService>();
 
-                var options = new CosmosClientOptions
-                {
-                    Serializer = new PolymorphicCosmosSerializer()
-                };
-
-                return new CosmosClient(endpoint, key, options);
-            });
-
-
+            services.AddHostedService<VirusScanBackgroundService>();
 
             services.AddMemoryCache();
             services.AddSingleton<ICacheService, CacheService>();
