@@ -137,14 +137,11 @@ namespace Document.Api.Infrastructure.Services
                 var attributes = root.GetProperty("data").GetProperty("attributes");
 
                 JsonElement statsElement;
-                if (!attributes.TryGetProperty("last_analysis_stats", out statsElement))
+                if (!attributes.TryGetProperty("last_analysis_stats", out statsElement) &&
+                    !attributes.TryGetProperty("stats", out statsElement))
                 {
-                    // fallback to 'stats' if 'last_analysis_stats' not found
-                    if (!attributes.TryGetProperty("stats", out statsElement))
-                    {
-                        Console.WriteLine("[VirusScanner] Neither 'last_analysis_stats' nor 'stats' found.");
-                        return false; // or handle accordingly
-                    }
+                    Console.WriteLine("[VirusScanner] No stats available in response.");
+                    return false; // or handle as appropriate
                 }
 
                 int malicious = statsElement.GetProperty("malicious").GetInt32();

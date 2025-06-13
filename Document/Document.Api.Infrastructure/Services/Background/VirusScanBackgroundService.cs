@@ -37,7 +37,7 @@ namespace Document.Api.Infrastructure.Services.Background
                         var statusService = scope.ServiceProvider.GetRequiredService<IDocumentStatusService>();
 
                         await statusService.SetStatusAsync(item.Document.DocumentId, "scanning");
-                        Console.WriteLine($"[VirusScanBackgroundService] Scanning started for document {item.Document.DocumentId}");
+                        Console.WriteLine($"[VirusScanBackgroundService] Scanning started for document {item. Document.DocumentId}");
 
                         var clean = await scanner.ScanFile(item.FileStream, item.FileName, item.ContentType);
 
