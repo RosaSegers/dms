@@ -13,7 +13,7 @@ namespace Document.Api.Infrastructure.Services
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private const string UploadUrl = "https://www.virustotal.com/api/v3/files";
-        private const string AnalysisUrlTemplate = "https://www.virustotal.com/api/v3/analyses/{0}";
+        private const string AnalysisUrlTemplate = "https://www.virustotal.com/api/v3/files/{0}";
 
         public VirusScanner(HttpClient httpClient, IConfiguration config)
         {
