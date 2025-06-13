@@ -119,39 +119,92 @@ namespace Document.Api.Infrastructure.Services
             {
                 await Task.Delay(delay);
 
-                var analysisRequest = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
-                analysisRequest.Headers.Add("x-apikey", _apiKey);
-
-                var analysisResponse = await _httpClient.SendAsync(analysisRequest);
-                if (!analysisResponse.IsSuccessStatusCode)
-                    continue;
-
-                var analysisJson = await analysisResponse.Content.ReadAsStringAsync();
-                var analysisDoc = JsonDocument.Parse(analysisJson);
-                var root = analysisDoc.RootElement;
-
-                string status = root.GetProperty("data").GetProperty("attributes").GetProperty("status").GetString();
-                if (status != "completed")
-                    continue;
-
-                var attributes = root.GetProperty("data").GetProperty("attributes");
-
-                JsonElement statsElement;
-                if (!attributes.TryGetProperty("last_analysis_stats", out statsElement) &&
-                    !attributes.TryGetProperty("stats", out statsElement))
+                try
                 {
-                    Console.WriteLine("[VirusScanner] No stats available in response.");
-                    return false; // or handle as appropriate
+                    var analysisRequest = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
+                    analysisRequest.Headers.Add("x-apikey", _apiKey);
+
+                    var analysisResponse = await _httpClient.SendAsync(analysisRequest);
+                    if (!analysisResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"[VirusScanner] Analysis request failed: {analysisResponse.StatusCode}");
+                        continue; // retry after delay
+                    }
+
+                    var analysisJson = await analysisResponse.Content.ReadAsStringAsync();
+
+                    using var analysisDoc = JsonDocument.Parse(analysisJson);
+                    var root = analysisDoc.RootElement;
+
+                    if (!root.TryGetProperty("data", out JsonElement dataElement) ||
+                        !dataElement.TryGetProperty("attributes", out JsonElement attributes))
+                    {
+                        Console.WriteLine("[VirusScanner] Missing 'data' or 'attributes' in analysis response.");
+                        return false; // or decide to retry
+                    }
+
+                    // Check analysis status safely
+                    string status = "unknown";
+                    if (attributes.TryGetProperty("status", out JsonElement statusElement))
+                    {
+                        status = statusElement.GetString() ?? "unknown";
+                    }
+
+                    if (status != "completed")
+                    {
+                        Console.WriteLine($"[VirusScanner] Analysis status: {status}, waiting for completion...");
+                        continue; // wait and retry
+                    }
+
+                    // Try last_analysis_stats first, fallback to stats
+                    JsonElement statsElement;
+                    if (!attributes.TryGetProperty("last_analysis_stats", out statsElement) &&
+                        !attributes.TryGetProperty("stats", out statsElement))
+                    {
+                        Console.WriteLine("[VirusScanner] No 'last_analysis_stats' or 'stats' found.");
+                        return false;
+                    }
+
+                    int malicious = 0;
+                    int suspicious = 0;
+
+                    if (statsElement.TryGetProperty("malicious", out JsonElement maliciousElement) &&
+                        maliciousElement.TryGetInt32(out int malVal))
+                    {
+                        malicious = malVal;
+                    }
+                    else
+                    {
+                        Console.WriteLine("[VirusScanner] 'malicious' count missing or invalid, assuming 0.");
+                    }
+
+                    if (statsElement.TryGetProperty("suspicious", out JsonElement suspiciousElement) &&
+                        suspiciousElement.TryGetInt32(out int suspVal))
+                    {
+                        suspicious = suspVal;
+                    }
+                    else
+                    {
+                        Console.WriteLine("[VirusScanner] 'suspicious' count missing or invalid, assuming 0.");
+                    }
+
+                    Console.WriteLine($"Scan Result: Malicious={malicious}, Suspicious={suspicious}");
+
+                    return malicious == 0 && suspicious == 0;
                 }
-
-                int malicious = statsElement.GetProperty("malicious").GetInt32();
-                int suspicious = statsElement.GetProperty("suspicious").GetInt32();
-
-                Console.WriteLine($"Scan Result: Malicious={malicious}, Suspicious={suspicious}");
-
-                return malicious == 0 && suspicious == 0;
+                catch (JsonException jex)
+                {
+                    Console.WriteLine($"[VirusScanner] JSON parsing error: {jex.Message}");
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[VirusScanner] Unexpected error: {ex.Message}");
+                    return false;
+                }
             }
         }
+
 
         private static async Task<string> ComputeSHA256Async(Stream file)
         {
