@@ -23,7 +23,7 @@ namespace User.Api.Features.Users
     public class ChangePasswordController() : ApiControllerBase
     {
 
-        [HttpPut("/api/users/password")]
+        [HttpPut("/api/users/me/password")]
         public async Task<IResult> GetUsers(
             [FromForm] string password,
             [FromForm] string? oldPassword

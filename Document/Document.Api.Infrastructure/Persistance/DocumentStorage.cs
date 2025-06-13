@@ -11,61 +11,24 @@ namespace Document.Api.Infrastructure.Persistance
 {
     public class DocumentStorage : IDocumentStorage
     {
-        private readonly Container _container;
+        private List<IDocumentEvent> _documents = [];
         private readonly ICacheService _cache;
 
-        public DocumentStorage(ICacheService cache, IConfiguration configuration, CosmosClient cosmosClient)
+        public DocumentStorage(ICacheService cache, IConfiguration configuration)
         {
             _cache = cache;
-
-            var databaseName = configuration["CosmosDb:DatabaseName"];
-            var containerName = configuration["CosmosDb:ContainerName"];
-            Console.WriteLine($"Initializing Cosmos DB container with Database: {databaseName}, Container: {containerName}");
-            _container = cosmosClient.GetContainer(databaseName, containerName);
         }
 
         public async Task<bool> AddDocument(IDocumentEvent document)
         {
-            try
+            await Task.Delay(100); // Simulate async operation
+            if (document == null)
             {
-                Console.WriteLine($"Adding document with ID: '{document.DocumentId}'");
-
-                if (document.DocumentId == Guid.Empty)
-                {
-                    Console.WriteLine("Warning: Document ID is Guid.Empty. This might cause issues with partition key or uniqueness.");
-                }
-
-                var partitionKeyValue = document.DocumentId.ToString();
-                var partitionKey = new PartitionKey(partitionKeyValue);
-                var response = await _container.CreateItemAsync<object>(document, partitionKey);
-
-                Console.WriteLine($"Successfully added document with ID: {document.DocumentId}");
-                Console.WriteLine($"Request Charge: {response.RequestCharge}");
-                Console.WriteLine($"Activity Id: {response.ActivityId}");
-                Console.WriteLine($"Status Code: {response.StatusCode}");
-
-                _cache.InvalidateCaches();
-                return true;
-            }
-            catch (CosmosException ex)
-            {
-                Console.WriteLine($"Cosmos DB error adding document with ID: {document.DocumentId}");
-                Console.WriteLine($"StatusCode: {ex.StatusCode}");
-                Console.WriteLine($"SubStatusCode: {ex.SubStatusCode}");
-                Console.WriteLine($"ActivityId: {ex.ActivityId}");
-                Console.WriteLine($"Message: {ex.Message}");
-                Console.WriteLine($"RequestCharge: {ex.RequestCharge}");
-                Console.WriteLine($"RetryAfter: {ex.RetryAfter}");
-                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                Console.WriteLine("Document is null, cannot add to storage.");
                 return false;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Unexpected error adding document with ID: {document.DocumentId}");
-                Console.WriteLine($"Message: {ex.Message}");
-                Console.WriteLine($"StackTrace: {ex.StackTrace}");
-                return false;
-            }
+            _documents.Add(document);
+            return true;
         }
 
 
@@ -73,91 +36,14 @@ namespace Document.Api.Infrastructure.Persistance
 
         public async Task<List<IDocumentEvent>> GetDocumentList()
         {
-            var results = new List<IDocumentEvent>();
-
-            try
-            {
-                Console.WriteLine("Fetching all documents from container.");
-                var query = new QueryDefinition("SELECT * FROM c");
-                Console.WriteLine($"Cosmos DB Query: {query}");
-                var iterator = _container.GetItemQueryIterator<JObject>(query);
-                Console.WriteLine($"Cosmos DB Iterator: {iterator}");
-
-                while (iterator.HasMoreResults)
-                {
-                    var response = await iterator.ReadNextAsync();
-
-                    foreach (var item in response)
-                    {
-                        var documentEvent = DeserializeDocumentEvent(item);
-                        if (documentEvent != null)
-                            results.Add(documentEvent);
-                    }
-                }
-
-                Console.WriteLine($"Fetched {results.Count} documents.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching document list. Exception: {ex.Message}");
-            }
-
-            return results;
+            await Task.Delay(100); // Simulate async operation
+            return _documents;
         }
 
         public async Task<List<IDocumentEvent>> GetDocumentById(Guid id)
         {
-            var results = new List<IDocumentEvent>();
-
-            try
-            {
-                Console.WriteLine($"Fetching document(s) with ID: {id}");
-
-                var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id")
-                    .WithParameter("@id", id.ToString());
-
-                var iterator = _container.GetItemQueryIterator<JObject>(query);
-
-                while (iterator.HasMoreResults)
-                {
-                    var response = await iterator.ReadNextAsync();
-
-                    foreach (var item in response)
-                    {
-                        var documentEvent = DeserializeDocumentEvent(item);
-                        if (documentEvent != null)
-                            results.Add(documentEvent);
-                    }
-                }
-
-                Console.WriteLine($"Found {results.Count} document(s) with ID: {id}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching document(s) with ID: {id}. Exception: {ex.Message}");
-            }
-
-            return results;
-        }
-
-        private IDocumentEvent? DeserializeDocumentEvent(JObject json)
-        {
-            var eventType = json["EventType"]?.Value<string>();
-
-            if (string.IsNullOrEmpty(eventType))
-            {
-                Console.WriteLine("Document missing 'EventType' field, skipping deserialization.");
-                return null;
-            }
-
-            return eventType switch
-            {
-                nameof(DocumentDeletedEvent) => json.ToObject<DocumentDeletedEvent>(),
-                nameof(DocumentRolebackEvent) => json.ToObject<DocumentRolebackEvent>(),
-                nameof(DocumentUploadedEvent) => json.ToObject<DocumentUploadedEvent>(),
-                nameof(DocumentUpdatedEvent) => json.ToObject<DocumentUpdatedEvent>(),
-                _ => null
-            };
+            await Task.Delay(100); // Simulate async operation
+            return _documents.Where(doc => doc.DocumentId == id).ToList();
         }
     }
 }
