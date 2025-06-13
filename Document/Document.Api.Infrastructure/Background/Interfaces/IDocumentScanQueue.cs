@@ -7,12 +7,8 @@ namespace Document.Api.Infrastructure.Background.Interfaces
     {
         void Enqueue(DocumentScanQueueItem item);
         bool TryDequeue(out DocumentScanQueueItem item);
-        bool TryPeek(out DocumentScanQueueItem item); // <- added
+        bool TryPeek(out DocumentScanQueueItem item);
     }
 
-    public record class DocumentScanQueueItem(DocumentUploadedEvent Document, IFormFile File)
-    {
-        public DocumentUploadedEvent Document { get; init; } = Document;
-        public IFormFile File { get; init; } = File;
-    }
+    public record class DocumentScanQueueItem(DocumentUploadedEvent Document, Stream FileStream, string FileName, string ContentType);
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 
 namespace Document.Api.Infrastructure.Services
 {
@@ -25,12 +26,14 @@ namespace Document.Api.Infrastructure.Services
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Invalid file");
 
-            var fileHash = await ComputeSHA256Async(file);
+            await using var stream = file.OpenReadStream();
+
+            var fileHash = await ComputeSHA256Async(stream);
             string? analysisId = await GetAnalysisIdByHash(fileHash);
 
             if (string.IsNullOrWhiteSpace(analysisId))
             {
-                analysisId = await UploadFileToVirusTotal(file);
+                analysisId = await UploadFileToVirusTotal(stream, file.FileName, file.ContentType);
                 if (string.IsNullOrWhiteSpace(analysisId))
                     return false;
             }
@@ -38,13 +41,31 @@ namespace Document.Api.Infrastructure.Services
             return await CheckAnalysisResult(analysisId);
         }
 
-        private async Task<string?> UploadFileToVirusTotal(IFormFile file)
+        public async Task<bool> ScanFile(Stream fileStream, string fileName, string contentType)
+        {
+            if (fileStream == null || fileStream.Length == 0)
+                throw new ArgumentException("Invalid stream");
+
+            var fileHash = await ComputeSHA256Async(fileStream);
+            string? analysisId = await GetAnalysisIdByHash(fileHash);
+
+            if (string.IsNullOrWhiteSpace(analysisId))
+            {
+                analysisId = await UploadFileToVirusTotal(fileStream, fileName, contentType);
+                if (string.IsNullOrWhiteSpace(analysisId))
+                    return false;
+            }
+
+            return await CheckAnalysisResult(analysisId);
+        }
+
+
+        private async Task<string?> UploadFileToVirusTotal(Stream file, string fileName, string contentType)
         {
             using var content = new MultipartFormDataContent();
-            await using var stream = file.OpenReadStream();
-            var streamContent = new StreamContent(stream);
-            streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-            content.Add(streamContent, "file", file.FileName);
+            var streamContent = new StreamContent(file);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            content.Add(streamContent, "file", fileName);
 
             var request = new HttpRequestMessage(HttpMethod.Post, UploadUrl)
             {
@@ -123,11 +144,10 @@ namespace Document.Api.Infrastructure.Services
             }
         }
 
-        private static async Task<string> ComputeSHA256Async(IFormFile file)
+        private static async Task<string> ComputeSHA256Async(Stream file)
         {
             using var sha256 = SHA256.Create();
-            await using var stream = file.OpenReadStream();
-            var hashBytes = await sha256.ComputeHashAsync(stream);
+            var hashBytes = await sha256.ComputeHashAsync(file);
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
         }
     }

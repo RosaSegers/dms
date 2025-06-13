@@ -39,7 +39,7 @@ namespace Document.Api.Infrastructure.Services.Background
                         await statusService.SetStatusAsync(item.Document.DocumentId, "scanning");
                         Console.WriteLine($"[VirusScanBackgroundService] Scanning started for document {item.Document.DocumentId}");
 
-                        var clean = await scanner.ScanFile(item.File);
+                        var clean = await scanner.ScanFile(item.FileStream, item.FileName, item.ContentType);
 
                         if (clean)
                         {

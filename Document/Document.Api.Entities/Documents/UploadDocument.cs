@@ -39,7 +39,19 @@ namespace Document.Api.Features.Documents
                 request.File, "", userService.UserId
             );
 
-            queue.Enqueue(new DocumentScanQueueItem(evt, request.File));
+            using var memoryStream = new MemoryStream();
+            request.File.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            var item = new DocumentScanQueueItem(
+                evt,
+                memoryStream,
+                request.File.FileName,
+                request.File.ContentType
+            );
+
+            queue.Enqueue(item);
+
 
             // You could also persist the "pending" status here in DB
             return Task.FromResult<ErrorOr<Guid>>(evt.DocumentId);
