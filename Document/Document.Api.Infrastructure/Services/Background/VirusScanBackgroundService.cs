@@ -2,7 +2,6 @@
 using Document.Api.Domain.Events;
 using Document.Api.Infrastructure.Background.Interfaces;
 using Document.Api.Infrastructure.Services.Interface;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -21,42 +20,54 @@ namespace Document.Api.Infrastructure.Services.Background
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            Console.WriteLine("[VirusScanBackgroundService] Started background service.");
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (_queue.TryDequeue(out var item))
+                try
                 {
-                    using var scope = _services.CreateScope();
-
-                    var scanner = scope.ServiceProvider.GetRequiredService<IVirusScanner>();
-                    var storage = scope.ServiceProvider.GetRequiredService<IDocumentStorage>();
-                    var statusService = scope.ServiceProvider.GetRequiredService<IDocumentStatusService>();
-
-                    await statusService.SetStatusAsync(item.Document.DocumentId, "scanning");
-
-                    try
+                    if (_queue.TryDequeue(out var item))
                     {
+                        Console.WriteLine($"[VirusScanBackgroundService] Dequeued document {item.Document.DocumentId}");
+
+                        using var scope = _services.CreateScope();
+
+                        var scanner = scope.ServiceProvider.GetRequiredService<IVirusScanner>();
+                        var storage = scope.ServiceProvider.GetRequiredService<IDocumentStorage>();
+                        var statusService = scope.ServiceProvider.GetRequiredService<IDocumentStatusService>();
+
+                        await statusService.SetStatusAsync(item.Document.DocumentId, "scanning");
+                        Console.WriteLine($"[VirusScanBackgroundService] Scanning started for document {item.Document.DocumentId}");
+
                         var clean = await scanner.ScanFile(item.File);
 
                         if (clean)
                         {
                             await storage.AddDocument(item.Document);
                             await statusService.SetStatusAsync(item.Document.DocumentId, "clean");
+                            Console.WriteLine($"[VirusScanBackgroundService] Document {item.Document.DocumentId} is clean and stored.");
                         }
                         else
                         {
                             await statusService.SetStatusAsync(item.Document.DocumentId, "malicious");
-                            // Optionally: log or store in a rejection list
+                            Console.WriteLine($"[VirusScanBackgroundService] Document {item.Document.DocumentId} is malicious.");
                         }
                     }
-                    catch (Exception ex)
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[VirusScanBackgroundService] Error processing document: {ex.Message}");
+                    if (_queue.TryPeek(out var erroredItem)) // optional visibility into which item failed
                     {
-                        await statusService.SetStatusAsync(item.Document.DocumentId, "error");
-                        // Optionally log: Console.WriteLine($"Scan failed: {ex.Message}");
+                        var statusService = _services.CreateScope().ServiceProvider.GetRequiredService<IDocumentStatusService>();
+                        await statusService.SetStatusAsync(erroredItem.Document.DocumentId, "error");
                     }
                 }
 
                 await Task.Delay(1000, stoppingToken);
             }
+
+            Console.WriteLine("[VirusScanBackgroundService] Background service stopping.");
         }
     }
 }
