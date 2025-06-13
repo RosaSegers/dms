@@ -144,17 +144,19 @@ namespace Document.Api.Infrastructure.Services
                     }
 
                     // Check analysis status safely
-                    string status = "unknown";
+                    string? status = null;
                     if (attributes.TryGetProperty("status", out JsonElement statusElement))
                     {
-                        status = statusElement.GetString() ?? "unknown";
+                        status = statusElement.GetString();
                     }
 
-                    if (status != "completed")
+                    if (status != null && status != "completed")
                     {
                         Console.WriteLine($"[VirusScanner] Analysis status: {status}, waiting for completion...");
                         continue; // wait and retry
                     }
+                    // if status is null, assume completed and proceed
+
 
                     // Try last_analysis_stats first, fallback to stats
                     JsonElement statsElement;
