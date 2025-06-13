@@ -33,7 +33,7 @@ namespace Document.Api.Features.Documents
     public sealed class UploadDocumentCommandHandler(IDocumentScanQueue queue, ICurrentUserService userService)
         : IRequestHandler<UploadDocumentCommand, ErrorOr<Guid>>
     {
-        public Task<ErrorOr<Guid>> Handle(UploadDocumentCommand request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<Guid>> Handle(UploadDocumentCommand request, CancellationToken cancellationToken)
         {
             var evt = new DocumentUploadedEvent(
                 request.Name, request.Description, request.Version,
@@ -43,7 +43,7 @@ namespace Document.Api.Features.Documents
             Console.WriteLine(request.File);
 
             using var memoryStream = new MemoryStream();
-            request.File.CopyToAsync(memoryStream);
+            await request.File.CopyToAsync(memoryStream, cancellationToken);
             memoryStream.Position = 0;
             var item = new DocumentScanQueueItem(
                 evt,
@@ -56,7 +56,7 @@ namespace Document.Api.Features.Documents
 
 
             // You could also persist the "pending" status here in DB
-            return Task.FromResult<ErrorOr<Guid>>(evt.DocumentId);
+            return await Task.FromResult<ErrorOr<Guid>>(evt.DocumentId);
         }
     }
 
