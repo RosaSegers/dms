@@ -134,9 +134,21 @@ namespace Document.Api.Infrastructure.Services
                 if (status != "completed")
                     continue;
 
-                var stats = root.GetProperty("data").GetProperty("attributes").GetProperty("stats");
-                int malicious = stats.GetProperty("malicious").GetInt32();
-                int suspicious = stats.GetProperty("suspicious").GetInt32();
+                var attributes = root.GetProperty("data").GetProperty("attributes");
+
+                JsonElement statsElement;
+                if (!attributes.TryGetProperty("last_analysis_stats", out statsElement))
+                {
+                    // fallback to 'stats' if 'last_analysis_stats' not found
+                    if (!attributes.TryGetProperty("stats", out statsElement))
+                    {
+                        Console.WriteLine("[VirusScanner] Neither 'last_analysis_stats' nor 'stats' found.");
+                        return false; // or handle accordingly
+                    }
+                }
+
+                int malicious = statsElement.GetProperty("malicious").GetInt32();
+                int suspicious = statsElement.GetProperty("suspicious").GetInt32();
 
                 Console.WriteLine($"Scan Result: Malicious={malicious}, Suspicious={suspicious}");
 
