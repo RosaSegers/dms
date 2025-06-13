@@ -40,6 +40,8 @@ namespace Document.Api.Features.Documents
                 request.File, "", userService.UserId
             );
 
+            Console.WriteLine(request.File);
+
             using var memoryStream = new MemoryStream();
             request.File.CopyToAsync(memoryStream);
             memoryStream.Position = 0;

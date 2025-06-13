@@ -44,7 +44,7 @@ namespace Document.Api.Infrastructure.Services.Background
                         if (clean)
                         {
                             await storage.AddDocument(item.Document);
-                            await statusService.SetStatusAsync(item.Document.DocumentId, "clean");
+                            await statusService.SetStatusAsync(item.Document.DocumentId, "uploaded");
                             Console.WriteLine($"[VirusScanBackgroundService] Document {item.Document.DocumentId} is clean and stored.");
                         }
                         else
