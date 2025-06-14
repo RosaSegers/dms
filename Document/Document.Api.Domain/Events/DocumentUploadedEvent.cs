@@ -37,5 +37,11 @@ namespace Document.Api.Domain.Events
             Version = version;
         }
 
+        public DocumentUploadedEvent(Guid documentId, DateTime date)
+        {
+            this.DocumentId = documentId;
+            this.OccurredAt = date;
+        }
+
     }
 }

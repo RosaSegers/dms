@@ -8,7 +8,7 @@ namespace Document.Api.Domain.Entities
         public Guid Id { get; set; }
         public string Name { get; set; } = default!;
         public string Description { get; set; } = default!;
-        public float? Version { get; set; }
+        public int? Version { get; set; }
         public string FileUrl { get; set; } = default!;
         public string ContentType { get; set; } = default!;
         public long FileSize { get; set; }
@@ -23,16 +23,16 @@ namespace Document.Api.Domain.Entities
             switch (e)
             {
                 case DocumentUploadedEvent evt:
-                    Apply(evt);
+                    Apply((dynamic)evt);
                     break;
                 case DocumentUpdatedEvent evt:
-                    Apply(evt);
+                    Apply((dynamic)evt);
                     break;
                 case DocumentDeletedEvent evt:
-                    Apply(evt);
+                    Apply((dynamic)evt);
                     break;
                 case DocumentRolebackEvent evt:
-                    Apply(evt);
+                    Apply((dynamic)evt);
                     break;
             }
         }

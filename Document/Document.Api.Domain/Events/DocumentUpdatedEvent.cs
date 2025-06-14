@@ -38,5 +38,11 @@ namespace Document.Api.Domain.Events
             UpdatedTags = tags;
             Version = version;
         }
-    }
+
+        public DocumentUpdatedEvent(Guid documentId, DateTime date)
+        {
+            this.DocumentId = documentId;
+            this.OccurredAt = date;
+        }
+}
 }
