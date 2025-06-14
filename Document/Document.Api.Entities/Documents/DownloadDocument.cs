@@ -17,21 +17,27 @@ namespace Document.Api.Features.Documents
     public class DownloadDocumentController() : ApiControllerBase
     {
         [HttpGet("/api/documents/{Id}/download")]
-        public async Task<IResult> DownloadDocument([FromRoute] Guid id, [FromForm] int? Version = null)
+        public async Task<IResult> DownloadDocument([FromRoute] Guid id, [FromQuery] int? version = null)
         {
             var document = await Mediator.Send(new GetDocumentByIdQuery(id));
 
+            var resolvedVersion = version ?? document.Value.Version
+                ?? throw new ArgumentNullException("Document version could not be found.");
+
             var result = await Mediator.Send(new DownloadDocumentQuery(
-                id, 
-                document.Value.FileName, 
-                Version
-                    ?? document.Value.Version
-                    ?? throw new ArgumentNullException("Document version could not be found.")));
+                id,
+                document.Value.FileName,
+                resolvedVersion
+            ));
 
             return result.Match(
-                fileResult => Results.Ok(File(fileResult.FileStream, document.Value.ContentType ?? "application/octet-stream", document.Value.Name)),
+                fileResult => Results.File(
+                    fileResult.FileStream,
+                    contentType: document.Value.ContentType ?? "application/octet-stream",
+                    fileDownloadName: document.Value.Name),
                 error => Results.BadRequest(error.First().Description));
         }
+
     }
 
     public record DownloadDocumentQuery(Guid Id, string DocumentName, int Version) : IRequest<ErrorOr<DownloadDocumentResult>>;
