@@ -9,7 +9,7 @@ namespace Document.Api.Domain.Entities
         public string Name { get; set; } = default!;
         public string Description { get; set; } = default!;
         public int? Version { get; set; }
-        public string FileUrl { get; set; } = default!;
+        public string FileName { get; set; } = default!;
         public string ContentType { get; set; } = default!;
         public long FileSize { get; set; }
         public Guid UserId { get; set; }
@@ -42,7 +42,7 @@ namespace Document.Api.Domain.Entities
             Id = e.DocumentId;
             Name = e.DocumentName;
             Description = e.DocumentDescription;
-            FileUrl = e.FileUrl;
+            FileName = e.FileName;
             ContentType = e.ContentType;
             FileSize = e.FileSize;
             UserId = e.UploadedByUserId;
@@ -62,8 +62,8 @@ namespace Document.Api.Domain.Entities
             if (!string.IsNullOrEmpty(e.UpdatedContentType))
                 ContentType = e.UpdatedContentType;
 
-            if (!string.IsNullOrEmpty(e.UpdatedFileUrl))
-                FileUrl = e.UpdatedFileUrl!;
+            if (!string.IsNullOrEmpty(e.UpdatedFileName))
+                FileName = e.UpdatedFileName!;
 
             if (e.UpdatedFileLength.HasValue)
                 FileSize = e.UpdatedFileLength.Value;
@@ -78,7 +78,7 @@ namespace Document.Api.Domain.Entities
 
         private void Apply(DocumentDeletedEvent e)
         {
-            FileUrl = "[Deleted]";
+            FileName = "[Deleted]";
             FileSize = 0;
             UpdatedAt = e.OccurredAt;
             UserId = e.DeletedByUserId;
@@ -90,7 +90,7 @@ namespace Document.Api.Domain.Entities
             Id = default;
             Name = default!;
             Description = default!;
-            FileUrl = default!;
+            FileName = default!;
             ContentType = default!;
             FileSize = 0;
             UserId = Guid.Empty;

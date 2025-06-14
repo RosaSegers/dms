@@ -2,6 +2,7 @@
 using Document.Api.Common.Authorization.Requirements;
 using Document.Api.Common.Interfaces;
 using Document.Api.Domain.Events;
+using Document.Api.Infrastructure.Background.Interfaces;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -13,7 +14,7 @@ namespace Document.Api.Features.Documents
 {
     [Authorize]
     //[RoleAuthorize("User")]
-    public class UpdateDocumentsController(ICurrentUserService userService) : ApiControllerBase
+    public class UpdateDocumentsController(ICurrentUserService userService, IDocumentScanQueue queue) : ApiControllerBase
     {
         [HttpPut("/api/documents/{id:guid}")]
         public async Task<IResult> UploadDocument(
@@ -25,60 +26,72 @@ namespace Document.Api.Features.Documents
         {
             var document = await Mediator.Send(new GetDocumentByIdQuery(id));
             if (document.Value.UserId != userService.UserId)
-                return Results.BadRequest("You are not allowed to delete this document.");
+                return Results.BadRequest("You are not allowed to edit this document.");
 
-            var query = new UpdateDocumentQuery(id, name, description, version, file);
-            var result = await Mediator.Send(query);
+            var command = new UpdateDocumentCommand(id, name, description, version, file);
+            var result = await Mediator.Send(command);
 
             return result.Match(
-                id => Results.NoContent(),
+                _ => Results.NoContent(),
                 error => Results.BadRequest(error.First().Description));
         }
     }
 
-    public record UpdateDocumentQuery(Guid Id, string Name, string Description, int Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
 
-    internal sealed class UpdateDocumentQueryValidator : AbstractValidator<UpdateDocumentQuery>
+    public record UpdateDocumentCommand(Guid Id, string Name, string Description, int Version, IFormFile File) : IRequest<ErrorOr<Guid>>;
+
+    internal sealed class UpdateDocumentCommandValidator : AbstractValidator<UpdateDocumentCommand>
     {
-        private readonly IVirusScanner _scanner;
         private readonly IDocumentStorage _storage;
 
-        public UpdateDocumentQueryValidator(IVirusScanner scanner, IDocumentStorage storage)
+        public UpdateDocumentCommandValidator(IDocumentStorage storage)
         {
-            _scanner = scanner;
             _storage = storage;
 
             RuleFor(x => x.Id)
-                .MustAsync(NotBeDeleted).WithMessage(UpdateDocumentQueryValidatorConstants.FILE_DELETED);
-
-            RuleFor(x => x.File)
-                .MustAsync(NotBeVirus).WithMessage(UpdateDocumentQueryValidatorConstants.MALICIOUS_FILE);
+                .MustAsync(NotBeDeleted).WithMessage(UpdateDocumentCommandValidatorConstants.FILE_DELETED);
         }
-
-        private async Task<bool> NotBeVirus(IFormFile file, CancellationToken token) => (await _scanner.ScanFile(file));
         private async Task<bool> NotBeDeleted(Guid id, CancellationToken token)
             => !(await _storage.GetDocumentById(id)).Any(x => x.GetType() == typeof(DocumentDeletedEvent));
     } 
 
-    internal static class UpdateDocumentQueryValidatorConstants
+    internal static class UpdateDocumentCommandValidatorConstants
     {
         internal static string FILE_DELETED = "Sorry, the file has previously been deleted so it can't be edited";
-        internal static string MALICIOUS_FILE = "Please don't upload malicious files";
     }
 
-
-    public sealed class UpdateDocumentQueryHandler(IDocumentStorage storage, ICurrentUserService userService) : IRequestHandler<UpdateDocumentQuery, ErrorOr<Guid>>
+    public sealed class UpdateDocumentCommandHandler(IDocumentScanQueue queue, ICurrentUserService userService)
+        : IRequestHandler<UpdateDocumentCommand, ErrorOr<Guid>>
     {
-        private readonly IDocumentStorage _storage = storage;
-        private readonly ICurrentUserService _userService = userService;
-
-        public async Task<ErrorOr<Guid>> Handle(UpdateDocumentQuery request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<Guid>> Handle(UpdateDocumentCommand request, CancellationToken cancellationToken)
         {
-            var e = new DocumentUpdatedEvent(request.Id, request.Name, request.Description, request.Version, request.File, "", _userService.UserId);
+            var evt = new DocumentUpdatedEvent(
+                request.Id,
+                request.Name,
+                request.Description,
+                request.Version,
+                request.File,
+                "",
+                userService.UserId
+            );
 
-            if (await _storage.AddDocument(e))
-                return e.DocumentId;
-            return Error.Failure("something went wrong trying so save the file.");
+            // Copy stream into memory to allow multiple uses
+            await using var memoryStream = new MemoryStream();
+            await request.File.CopyToAsync(memoryStream, cancellationToken);
+            memoryStream.Position = 0;
+
+            var copyBuffer = memoryStream.ToArray(); // ensure full read
+            var streamCopy = new MemoryStream(copyBuffer); // clone for scanning/uploading
+
+            queue.Enqueue(new DocumentScanQueueItem(
+                evt,
+                streamCopy,
+                request.File.FileName,
+                request.File.ContentType
+            ));
+
+            return evt.DocumentId;
         }
     }
+
 }

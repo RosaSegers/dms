@@ -16,7 +16,6 @@ namespace Document.Api.Domain.Events
         public string? UpdatedFileName { get; set; }
         public string? UpdatedContentType { get; set; }
         public long? UpdatedFileLength { get; set; }
-        public string? UpdatedFileUrl { get; set; }
         public string[]? UpdatedTags { get; set; } = Array.Empty<string>();
         public Guid UpdatedByUserId { get; set; } = default!;
         [JsonProperty]
@@ -33,7 +32,6 @@ namespace Document.Api.Domain.Events
             UpdatedFileName = file.FileName;
             UpdatedContentType = file.ContentType;
             UpdatedFileLength = file.Length;
-            UpdatedFileUrl = fileUrl;
             UpdatedByUserId = userId;
             UpdatedTags = tags;
             Version = version;

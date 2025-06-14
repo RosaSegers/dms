@@ -35,7 +35,7 @@ namespace Document.Api.Features.Documents
 
     public record RolebackDocumentQuery(Guid Id, int Version) : IRequest<ErrorOr<Guid>>;
 
-    internal sealed class RolebackDocumentQueryValidator : AbstractValidator<UpdateDocumentQuery>
+    internal sealed class RolebackDocumentQueryValidator : AbstractValidator<RolebackDocumentQuery>
     {
         private readonly IDocumentStorage _storage;
 

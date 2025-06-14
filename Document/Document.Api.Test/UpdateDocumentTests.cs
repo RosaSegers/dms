@@ -9,22 +9,23 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Document.Api.Infrastructure.Background.Interfaces;
 
 namespace Document.Api.Test
 {
-    public class UpdateDocumentQueryHandlerTest
+    public class UpdateDocumentCommandHandlerTest
     {
-        private readonly Mock<IDocumentStorage> _storageMock;
+        private readonly Mock<IDocumentScanQueue> _queueMock;
         private readonly Mock<ICurrentUserService> _userServiceMock;
-        private readonly UpdateDocumentQueryHandler _handler;
+        private readonly UpdateDocumentCommandHandler _handler;
 
-        public UpdateDocumentQueryHandlerTest()
+        public UpdateDocumentCommandHandlerTest()
         {
-            _storageMock = new();
+            _queueMock = new();
             _userServiceMock = new();
             _userServiceMock.Setup(u => u.UserId).Returns(Guid.Parse("5ae4677f-0d15-4572-ae18-597c1399f185"));
 
-            _handler = new UpdateDocumentQueryHandler(_storageMock.Object, _userServiceMock.Object);
+            _handler = new UpdateDocumentCommandHandler(_queueMock.Object, _userServiceMock.Object);
         }
 
         private static IFormFile CreateFakeFile(string fileName = "uploaded_file.pdf", string content = "Fake file content")
@@ -38,71 +39,58 @@ namespace Document.Api.Test
         }
 
         [Fact]
-        public async Task Handle_ShouldReturnGuid_WhenAddDocumentSucceeds()
+        public async Task Handle_ShouldReturnGuid_AndEnqueueItem()
         {
             // Arrange
             var documentId = Guid.NewGuid();
             var mockFile = CreateFakeFile();
 
-            var query = new UpdateDocumentQuery(documentId, "Updated Name", "Updated Description", 1, mockFile);
+            var command = new UpdateDocumentCommand(documentId, "Updated Name", "Updated Description", 1, mockFile);
+            DocumentScanQueueItem? queuedItem = null;
 
-            _storageMock
-                .Setup(s => s.AddDocument(It.IsAny<DocumentUpdatedEvent>()))
-                .ReturnsAsync(true);
+            _queueMock
+                .Setup(q => q.Enqueue(It.IsAny<DocumentScanQueueItem>()))
+                .Callback<DocumentScanQueueItem>(item => queuedItem = item);
 
             // Act
-            var result = await _handler.Handle(query, CancellationToken.None);
+            var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
             Assert.False(result.IsError);
             Assert.Equal(documentId, result.Value);
+
+            Assert.NotNull(queuedItem);
+            Assert.Equal(mockFile.FileName, queuedItem.FileName);
+            Assert.Equal(mockFile.ContentType, queuedItem.ContentType);
+            Assert.IsType<DocumentUpdatedEvent>(queuedItem.FileStream);
+            Assert.True(queuedItem.FileStream.Length > 0);
         }
 
         [Fact]
-        public async Task Handle_ShouldReturnError_WhenAddDocumentFails()
+        public async Task Handle_ShouldCloneStream_ForSafety()
         {
             // Arrange
             var documentId = Guid.NewGuid();
-            var mockFile = CreateFakeFile();
+            var mockFile = CreateFakeFile("file.txt", "hello world!");
 
-            var query = new UpdateDocumentQuery(documentId, "Updated Name", "Updated Description", 1, mockFile);
+            DocumentScanQueueItem? capturedItem = null;
 
-            _storageMock
-                .Setup(s => s.AddDocument(It.IsAny<DocumentUpdatedEvent>()))
-                .ReturnsAsync(false);
+            _queueMock
+                .Setup(q => q.Enqueue(It.IsAny<DocumentScanQueueItem>()))
+                .Callback<DocumentScanQueueItem>(item => capturedItem = item);
 
-            // Act
-            var result = await _handler.Handle(query, CancellationToken.None);
-
-            // Assert
-            Assert.True(result.IsError);
-            Assert.Equal(Guid.Empty, result.Value);
-            Assert.Contains(result.Errors, e => e.Code == "something went wrong trying so save the file.");
-        }
-
-        [Fact]
-        public async Task Handle_ShouldCall_AddDocument_WithCorrectEventData()
-        {
-            // Arrange
-            var documentId = Guid.NewGuid();
-            var mockFile = CreateFakeFile("custom_file.docx", "some content here");
-
-            var query = new UpdateDocumentQuery(documentId, "Updated Name", "Updated Description", 1, mockFile);
-
-            IDocumentEvent? capturedEvent = null;
-
-            _storageMock
-                .Setup(s => s.AddDocument(It.IsAny<DocumentUpdatedEvent>()))
-                .Callback<IDocumentEvent>(e => capturedEvent = e)
-                .ReturnsAsync(true);
+            var command = new UpdateDocumentCommand(documentId, "Doc", "Desc", 1, mockFile);
 
             // Act
-            var result = await _handler.Handle(query, CancellationToken.None);
+            var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            Assert.NotNull(capturedEvent);
-            Assert.Equal(documentId, capturedEvent.DocumentId);
-            Assert.NotEqual(Guid.Empty, capturedEvent.DocumentId);
+            Assert.False(result.IsError);
+            Assert.NotNull(capturedItem);
+            capturedItem!.FileStream.Position = 0;
+            using var reader = new StreamReader(capturedItem.FileStream);
+            var content = await reader.ReadToEndAsync();
+            Assert.Equal("hello world!", content);
         }
     }
 }
