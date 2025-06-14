@@ -49,6 +49,8 @@ namespace Document.Api.Features.Documents
 
         public async Task<ErrorOr<Domain.Entities.Document>> Handle(GetDocumentByIdQuery request, CancellationToken cancellationToken)
         {
+            Console.WriteLine(request.Id);
+
             var cacheKey = CacheKeys.GetDocumentCacheKey(request.Id);
             if (_cache.TryGetCache(cacheKey, out object cachedDocument))
             {
@@ -60,6 +62,9 @@ namespace Document.Api.Features.Documents
             }
 
             var events = (await _storage.GetDocumentList()).Where(x => x.DocumentId == request.Id);
+
+            foreach (var e in events)
+                Console.WriteLine($"{e.Id} - {e.DocumentId}");
 
             var doc = new Domain.Entities.Document();
             foreach (var e in events.OrderBy(e => e.OccurredAt))
