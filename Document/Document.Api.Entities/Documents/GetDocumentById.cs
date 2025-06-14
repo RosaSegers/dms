@@ -51,8 +51,6 @@ namespace Document.Api.Features.Documents
 
         public async Task<ErrorOr<Domain.Entities.Document>> Handle(GetDocumentByIdQuery request, CancellationToken cancellationToken)
         {
-            Console.WriteLine("When checking the id in the request it is: " + request.Id);
-
             var cacheKey = CacheKeys.GetDocumentCacheKey(request.Id);
             if (_cache.TryGetCache(cacheKey, out object cachedDocument))
             {
@@ -65,17 +63,11 @@ namespace Document.Api.Features.Documents
 
             var events = (await _storage.GetDocumentList()).Where(x => x.DocumentId == request.Id);
 
-            foreach (var e in events)
-                Console.WriteLine($"{e.Id} - {e.DocumentId}");
-
             var doc = new Domain.Entities.Document();
             foreach (var e in events.OrderBy(e => e.OccurredAt))
                 doc.Apply(e);
 
             _cache.SetCache(cacheKey, doc);
-
-            Console.WriteLine("UserId = " + userService.UserId);
-            Console.WriteLine("DocumentUserId = " + doc.UserId);
 
             if (doc == null || doc.UserId != userService.UserId)
                 return Error.NotFound("Document not found or you do not have permission to access this document.");
