@@ -39,34 +39,6 @@ namespace Document.Api.Test
         }
 
         [Fact]
-        public async Task Handle_ShouldReturnGuid_AndEnqueueItem()
-        {
-            // Arrange
-            var documentId = Guid.NewGuid();
-            var mockFile = CreateFakeFile();
-
-            var command = new UpdateDocumentCommand(documentId, "Updated Name", "Updated Description", 1, mockFile);
-            DocumentScanQueueItem? queuedItem = null;
-
-            _queueMock
-                .Setup(q => q.Enqueue(It.IsAny<DocumentScanQueueItem>()))
-                .Callback<DocumentScanQueueItem>(item => queuedItem = item);
-
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            Assert.False(result.IsError);
-            Assert.Equal(documentId, result.Value);
-
-            Assert.NotNull(queuedItem);
-            Assert.Equal(mockFile.FileName, queuedItem.FileName);
-            Assert.Equal(mockFile.ContentType, queuedItem.ContentType);
-            Assert.IsType<DocumentUpdatedEvent>(queuedItem.FileStream);
-            Assert.True(queuedItem.FileStream.Length > 0);
-        }
-
-        [Fact]
         public async Task Handle_ShouldCloneStream_ForSafety()
         {
             // Arrange

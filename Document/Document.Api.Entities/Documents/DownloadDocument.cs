@@ -43,7 +43,7 @@ namespace Document.Api.Features.Documents
     {
         public async Task<ErrorOr<DownloadDocumentResult>> Handle(DownloadDocumentQuery request, CancellationToken cancellationToken)
         {
-            var blobName = $"{request.Id}/{request.DocumentName}_{request.Version}";
+            var blobName = $"{request.Id}/{request.DocumentName}_V{request.Version}";
 
             Console.WriteLine($"[DownloadDocumentQueryHandler] Attempting to download blob with name: {blobName}");
 
