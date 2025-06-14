@@ -18,11 +18,13 @@ namespace Document.Api.Features.Documents
         [HttpGet("/api/documents/{Id}")]
         public async Task<IResult> GetDocumentsUsingPagination([FromRoute] Guid Id)
         {
+            Console.WriteLine($"When checking id in the controller it is {Id}");
+
             var result = await Mediator.Send(new GetDocumentByIdQuery(Id));
 
             return result.Match(
                 id => Results.Ok(result.Value),
-                error => Results.BadRequest(error.First().Description));
+                error => Results.BadRequest(error.First().Code));
         }
     }
 
@@ -49,7 +51,7 @@ namespace Document.Api.Features.Documents
 
         public async Task<ErrorOr<Domain.Entities.Document>> Handle(GetDocumentByIdQuery request, CancellationToken cancellationToken)
         {
-            Console.WriteLine(request.Id);
+            Console.WriteLine("When checking the id in the request it is: " + request.Id);
 
             var cacheKey = CacheKeys.GetDocumentCacheKey(request.Id);
             if (_cache.TryGetCache(cacheKey, out object cachedDocument))
