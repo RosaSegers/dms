@@ -17,18 +17,24 @@ namespace Document.Api.Features.Documents
     public class DownloadDocumentController() : ApiControllerBase
     {
         [HttpGet("/api/documents/{Id}/download")]
-        public async Task<IResult> GetDocumentsUsingPagination([FromRoute] Guid id)
+        public async Task<IResult> DownloadDocument([FromRoute] Guid id, [FromForm] int? Version = null)
         {
             var document = await Mediator.Send(new GetDocumentByIdQuery(id));
 
-            var result = await Mediator.Send(new DownloadDocumentQuery(id, document.Value.Name));
+            var result = await Mediator.Send(new DownloadDocumentQuery(
+                id, 
+                document.Value.Name, 
+                Version
+                    ?? document.Value.Version
+                    ?? throw new ArgumentNullException("Document version could not be found.")));
+
             return result.Match(
                 fileResult => Results.Ok(File(fileResult.FileStream, document.Value.ContentType ?? "application/octet-stream", document.Value.Name)),
                 error => Results.BadRequest(error.First().Description));
         }
     }
 
-    public record DownloadDocumentQuery(Guid Id, string DocumentName) : IRequest<ErrorOr<DownloadDocumentResult>>;
+    public record DownloadDocumentQuery(Guid Id, string DocumentName, int Version) : IRequest<ErrorOr<DownloadDocumentResult>>;
 
     public record DownloadDocumentResult(Stream FileStream);
 
@@ -37,7 +43,9 @@ namespace Document.Api.Features.Documents
     {
         public async Task<ErrorOr<DownloadDocumentResult>> Handle(DownloadDocumentQuery request, CancellationToken cancellationToken)
         {
-            var blobName = $"{request.Id}/{request.DocumentName}";
+            var blobName = $"{request.Id}/{request.DocumentName}_{request.Version}";
+
+            Console.WriteLine($"[DownloadDocumentQueryHandler] Attempting to download blob with name: {blobName}");
 
             try
             {

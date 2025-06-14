@@ -25,6 +25,8 @@ namespace Document.Api.Infrastructure.Persistance
 
         public async Task UploadAsync(Stream fileStream, string blobName, string contentType)
         {
+            Console.WriteLine($"[BlobStorageService] Uploading blob with name: {blobName}");
+
             var blobClient = _containerClient.GetBlobClient(blobName);
             await blobClient.UploadAsync(
                 fileStream,
