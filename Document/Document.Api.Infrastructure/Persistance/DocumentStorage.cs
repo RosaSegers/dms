@@ -36,6 +36,8 @@ namespace Document.Api.Infrastructure.Persistance
 
         public async Task<List<IDocumentEvent>> GetDocumentList()
         {
+            foreach (IDocumentEvent document in _documents)
+                Console.WriteLine($"Id: {document.Id}, DocumentId: {document.DocumentId}");
             await Task.Delay(100); // Simulate async operation
             return _documents;
         }
