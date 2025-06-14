@@ -74,6 +74,9 @@ namespace Document.Api.Features.Documents
 
             _cache.SetCache(cacheKey, doc);
 
+            Console.WriteLine("UserId = " + userService.UserId);
+            Console.WriteLine("DocumentUserId = " + doc.UserId);
+
             if (doc == null || doc.UserId != userService.UserId)
                 return Error.NotFound("Document not found or you do not have permission to access this document.");
 
