@@ -32,6 +32,19 @@ namespace Document.Api.Infrastructure.Persistance
                 fileStream,
                 new BlobHttpHeaders { ContentType = contentType }
             );
+
+            foreach (var blob in _containerClient.GetBlobs(prefix: blobName.Split("_")[0]))
+            {
+                if (blob.Name.Equals(blobName))
+                    continue;
+
+                var blobToArchive = _containerClient.GetBlobClient(blob.Name);
+                if (blobToArchive.GetProperties().Value.AccessTier == AccessTier.Cold)
+                    continue;
+
+                Console.WriteLine($"[BlobStorageService] Archiving blob {blob.Name}: {blob.Properties.LastModified}");
+                await blobToArchive.SetAccessTierAsync(AccessTier.Cold);
+            }
         }
 
         public async Task<Stream> DownloadAsync(string blobName)
