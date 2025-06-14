@@ -42,6 +42,9 @@ namespace Document.Api.Infrastructure.Persistance
 
         public async Task<List<IDocumentEvent>> GetDocumentById(Guid id)
         {
+            foreach(IDocumentEvent document in _documents) 
+                Console.WriteLine($"Document {id}, Id: {document.Id}, DocumentId: {document.DocumentId}");
+
             await Task.Delay(100); // Simulate async operation
             return _documents.Where(doc => doc.DocumentId == id).ToList();
         }
