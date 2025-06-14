@@ -23,7 +23,7 @@ namespace Document.Api.Features.Documents
 
             var result = await Mediator.Send(new DownloadDocumentQuery(
                 id, 
-                document.Value.Name, 
+                document.Value.FileName, 
                 Version
                     ?? document.Value.Version
                     ?? throw new ArgumentNullException("Document version could not be found.")));
