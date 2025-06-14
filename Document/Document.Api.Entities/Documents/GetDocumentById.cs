@@ -16,9 +16,9 @@ namespace Document.Api.Features.Documents
     public class GetDocumentByIdController() : ApiControllerBase
     {
         [HttpGet("/api/documents/{Id}")]
-        public async Task<IResult> GetDocumentsUsingPagination([FromRoute] GetDocumentByIdQuery query)
+        public async Task<IResult> GetDocumentsUsingPagination([FromRoute] Guid Id)
         {
-            var result = await Mediator.Send(query);
+            var result = await Mediator.Send(new GetDocumentByIdQuery(Id));
 
             return result.Match(
                 id => Results.Ok(result.Value),
