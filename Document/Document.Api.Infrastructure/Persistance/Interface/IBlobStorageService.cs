@@ -10,5 +10,8 @@ namespace Document.Api.Infrastructure.Persistance.Interface
     {
         Task UploadAsync(Stream fileStream, string blobName, string contentType);
         Task<Stream> DownloadAsync(string blobName);
+        Task DeleteAsync(string blobName);
+        Task DeletePrefixAsync(string blobName);
+
     }
 }

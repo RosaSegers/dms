@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 
 namespace Document.Api.Infrastructure.Persistance
 {
+    using System.Runtime.InteropServices;
     using Azure.Storage.Blobs;
     using Azure.Storage.Blobs.Models;
     using Document.Api.Infrastructure.Persistance.Interface;
+    using Microsoft.Azure.Cosmos.Linq;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Identity.Client;
 
     public class BlobStorageService : IBlobStorageService
     {
@@ -59,6 +62,40 @@ namespace Document.Api.Infrastructure.Persistance
             return response.Value.Content;
         }
 
+        public async Task DeleteAsync(string blobName)
+        {
+            var blobClient = _containerClient.GetBlobClient($"{blobName}");
+
+            if (!await blobClient.ExistsAsync())
+                throw new FileNotFoundException($"Blob '{blobName}' could not be found.");
+
+            await blobClient.DeleteAsync();
+        }
+
+        public async Task DeletePrefixAsync(string blobName)
+        {
+            var blobClients = _containerClient.GetBlobsAsync(prefix: $"{blobName}");
+
+            if (blobClients.IsNull())
+                throw new FileNotFoundException($"Blob '{blobName}' could not be found.");
+
+            await foreach (var blobItem in blobClients)
+            {
+                var blob = _containerClient.GetBlobClient(blobName);
+
+                try
+                {
+                    await blob.DeleteAsync();
+                    Console.WriteLine($"Blob '{blob.Name}' has successfully been deleted.");
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"Blob '{blob.Name}' was not deleted due to an exeption by the name of: {ex.Message}");
+                }
+            }
+
+
+        }
     }
 
 }
