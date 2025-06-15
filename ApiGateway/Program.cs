@@ -4,8 +4,6 @@ using Ocelot.Provider.Consul;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
 
 builder.Configuration.AddJsonFile("configuration.json", optional: false, reloadOnChange: true);
