@@ -1,4 +1,4 @@
-name: Auditing API CI/CD
+name: Auditing API CI
 
 on:
   push:

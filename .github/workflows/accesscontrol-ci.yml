@@ -1,4 +1,4 @@
-name: Access Control API CI/CD
+name: Access Control API CI
 
 on:
   push:

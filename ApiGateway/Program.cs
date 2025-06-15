@@ -12,8 +12,6 @@ builder.Configuration.AddJsonFile("configuration.json", optional: false, reloadO
 builder.Services.AddOcelot(builder.Configuration)
     .AddConsul();
 
-builder.WebHost.UseUrls("http://0.0.0.0:80");
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
