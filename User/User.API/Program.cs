@@ -32,8 +32,6 @@ namespace User.API
             builder.Services.AddMapping();
             builder.Services.AddHealthChecks();
 
-            builder.WebHost.UseUrls("http://0.0.0.0:80");
-
             var app = builder.Build();
             app.UseHttpsRedirection();
             app.UseRouting();
