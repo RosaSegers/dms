@@ -1,0 +1,151 @@
+﻿@page "/documents/"
+
+@using DocumentFrontend.Models
+@using DocumentFrontend.Services
+
+@inject DocumentService DocumentService
+
+@rendermode InteractiveServer
+
+<h2 class="mb-4 text-primary">🌸 BloomDocs - Document Overview</h2>
+
+<a class="btn btn-success mt-3" href="/documents/create">+ New Document</a>
+
+@if (IsLoading)
+{
+    <p>Loading documents...</p>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+else if (Documents == null || Documents.Count == 0)
+{
+    <p>No documents found. Create one to get started!</p>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Version</th>
+                <th>File Size (KB)</th>
+                <th>Uploaded At</th>
+                <th>Tags</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var doc in Documents)
+            {
+                <tr>
+                    <td>@doc.Name</td>
+                    <td>@doc.Description</td>
+                    <td>@(doc.Version?.ToString("0.0") ?? "-")</td>
+                    <td>@(doc.FileSize / 1024)</td>
+                    <td>@doc.UploadedAt.ToString("yyyy-MM-dd")</td>
+                    <td>@(doc.Tags != null ? string.Join(", ", doc.Tags) : "-")</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary me-2" href="@($"/documents/view/{doc.Id}")">View</a>
+                        <a class="btn btn-sm btn-outline-secondary me-2" href="@($"/documents/edit/{doc.Id}")">Edit</a>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(doc)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (DeleteTarget != null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Confirm Delete</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CancelDelete"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong>@DeleteTarget.Name</strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" @onclick="DeleteDocumentAsync">Yes, Delete</button>
+                    <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Document>? Documents;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+    private Document? DeleteTarget;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDocumentsAsync();
+    }
+
+    private async Task LoadDocumentsAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+
+        try
+        {
+            Documents = await DocumentService.GetDocumentsAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error loading documents: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void ConfirmDelete(Document doc)
+    {
+        DeleteTarget = doc;
+    }
+
+    private void CancelDelete()
+    {
+        DeleteTarget = null;
+    }
+
+    private async Task DeleteDocumentAsync()
+    {
+        if (DeleteTarget == null)
+            return;
+
+        try
+        {
+            var success = await DocumentService.DeleteDocumentAsync(DeleteTarget.Id);
+            if (success)
+            {
+                Documents!.Remove(DeleteTarget);
+            }
+            else
+            {
+                ErrorMessage = "Failed to delete document.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error deleting document: {ex.Message}";
+        }
+        finally
+        {
+            DeleteTarget = null;
+        }
+    }
+}

@@ -1,0 +1,82 @@
+﻿@page "/documents/view/{DocumentId:guid}"
+
+@using DocumentFrontend.Models
+@using DocumentFrontend.Services
+
+@inject DocumentService DocumentService
+
+<h3 class="mb-4">📄 Document Details</h3>
+
+@if (IsLoading)
+{
+    <p>Loading document...</p>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+else if (Document == null)
+{
+    <p>Document not found.</p>
+}
+else
+{
+    <div class="card shadow-sm p-4">
+        <h4 class="text-primary">@Document.Name</h4>
+        <p class="text-muted">@Document.Description</p>
+
+        <dl class="row">
+            <dt class="col-sm-3">Version</dt>
+            <dd class="col-sm-9">@Document.Version?.ToString("0")</dd>
+
+            <dt class="col-sm-3">Content Type</dt>
+            <dd class="col-sm-9">@Document.ContentType</dd>
+
+            <dt class="col-sm-3">File Size</dt>
+            <dd class="col-sm-9">@($"{Document.FileSize / 1024} KB")</dd>
+
+            <dt class="col-sm-3">Uploaded At</dt>
+            <dd class="col-sm-9">@Document.UploadedAt.ToLocalTime().ToString("g")</dd>
+
+            <dt class="col-sm-3">Updated At</dt>
+            <dd class="col-sm-9">@Document.UpdatedAt.ToLocalTime().ToString("g")</dd>
+
+            <dt class="col-sm-3">Tags</dt>
+            <dd class="col-sm-9">@((Document.Tags != null && Document.Tags.Any()) ? string.Join(", ", Document.Tags) : "-")</dd>
+        </dl>
+
+        <div class="mt-4">
+            <a class="btn btn-primary me-2" href="@Document.FileUrl" target="_blank" rel="noopener noreferrer">Download</a>
+            <a class="btn btn-secondary" href="/documents">Back to Overview</a>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid DocumentId { get; set; }
+
+    private Document? Document;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var docs = await DocumentService.GetDocumentsAsync();
+            Document = docs.FirstOrDefault(d => d.Id == DocumentId);
+
+            if (Document == null)
+                ErrorMessage = "Document not found.";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error fetching document: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

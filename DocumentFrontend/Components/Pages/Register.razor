@@ -1,0 +1,98 @@
+﻿@page "/register"
+@using System.ComponentModel.DataAnnotations
+@using DocumentFrontend.Models
+@using DocumentFrontend.Services
+@inject AuthService AuthService
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light p-4">
+    <div class="card shadow-sm" style="max-width: 400px; width: 100%;">
+        <div class="card-body">
+            <h3 class="card-title text-center text-pink fw-bold mb-4" tabindex="0" aria-label="Register for BloomDocs">
+                🌸 Create an Account
+            </h3>
+
+            <EditForm EditContext="registerEditContext" OnValidSubmit="HandleRegister" FormName="registerForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <InputText id="username" @bind-Value="RegisterModel.Username" class="form-control" aria-required="true" autocomplete="username" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <InputText id="email" @bind-Value="RegisterModel.Email" type="email" class="form-control" aria-required="true" autocomplete="email" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <InputText id="password" @bind-Value="RegisterModel.Password" type="password" class="form-control" aria-required="true" autocomplete="new-password" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <InputText id="confirmPassword" @bind-Value="RegisterModel.ConfirmPassword" type="password" class="form-control" aria-required="true" autocomplete="new-password" />
+                </div>
+
+                <button type="submit" class="btn btn-pink w-100" disabled="@IsLoading" aria-live="polite" aria-busy="@IsLoading">
+                    @(IsLoading ? "Registering..." : "Register")
+                </button>
+
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="alert alert-danger mt-3" role="alert" aria-live="assertive">@ErrorMessage</div>
+                }
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterRequest RegisterModel = new();
+    private EditContext registerEditContext;
+
+    private string ErrorMessage = string.Empty;
+    private bool IsLoading = false;
+
+    protected override void OnInitialized()
+    {
+        registerEditContext = new EditContext(RegisterModel);
+    }
+
+    private async Task HandleRegister()
+    {
+        ErrorMessage = string.Empty;
+
+        if (RegisterModel.Password != RegisterModel.ConfirmPassword)
+        {
+            ErrorMessage = "Passwords do not match.";
+            return;
+        }
+
+        IsLoading = true;
+
+        try
+        {
+            var result = await AuthService.RegisterAsync(RegisterModel);
+
+            if (result != null)
+            {
+                await TokenService.SetTokensAsync(result.Token, result.RefreshToken);
+                Navigation.NavigateTo("/dashboard");
+            }
+            else
+            {
+                ErrorMessage = "Registration failed. Please check your details and try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Registration error: {ex.Message}";
+        }
+
+        IsLoading = false;
+    }
+}

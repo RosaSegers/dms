@@ -1,0 +1,23 @@
+﻿@page "/logout"
+@using DocumentFrontend.Services
+@inject TokenService TokenService
+@inject ApiAuthenticationStateProvider ApiAuthProvider
+@inject NavigationManager Navigation
+
+<h3>Logging out...</h3>
+
+@code {
+    private bool _hasLoggedOut = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_hasLoggedOut)
+        {
+            _hasLoggedOut = true;
+
+            await TokenService.ClearTokensAsync();
+            ApiAuthProvider.NotifyUserLogout();
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+    }
+}

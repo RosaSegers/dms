@@ -1,0 +1,17 @@
+﻿@page "/error"
+@inject NavigationManager Navigation
+
+<div class="min-vh-100 d-flex flex-column align-items-center justify-content-center bg-light text-center p-4">
+    <h1 class="display-4 text-danger fw-bold">Oops! Something went wrong.</h1>
+    <p class="lead text-muted mb-4">
+        An unexpected error occurred. Please try again or contact support if the issue persists.
+    </p>
+    <button class="btn btn-primary" @onclick="NavigateHome">Go back to Home</button>
+</div>
+
+@code {
+    private void NavigateHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

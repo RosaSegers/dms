@@ -1,0 +1,88 @@
+﻿@page "/login"
+@using DocumentFrontend.Models
+@using DocumentFrontend.Services
+
+@inject AuthService AuthService
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light p-4">
+    <div class="card shadow-sm" style="max-width: 400px; width: 100%;">
+        <div class="card-body">
+            <h3 class="card-title text-center text-pink fw-bold mb-4" tabindex="0" aria-label="Login to BloomDocs">
+                🌸 BloomDocs Login
+            </h3>
+
+            <EditForm EditContext="loginEditContext" OnValidSubmit="HandleLogin" FormName="loginForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <InputText id="email" @bind-Value="LoginModel.Email" type="email" class="form-control" aria-required="true" autocomplete="email" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <InputText id="password" @bind-Value="LoginModel.Password" type="password" class="form-control" aria-required="true" autocomplete="current-password" />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" disabled="@IsLoading" aria-live="polite" aria-busy="@IsLoading">
+                    @(IsLoading ? "Logging in..." : "Login")
+                </button>
+
+                <div class="text-center mt-3">
+                    <a href="/register" class="text-decoration-none" aria-label="Register for BloomDocs">
+                        Don't have an account yet? <strong>Register instead!</strong>
+                    </a>
+                </div>
+
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="alert alert-danger mt-3" role="alert" aria-live="assertive">
+                        @ErrorMessage
+                    </div>
+                }
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginRequest LoginModel = new();
+    private string ErrorMessage = string.Empty;
+    private bool IsLoading = false;
+    private EditContext loginEditContext;
+
+    protected override void OnInitialized()
+    {
+        loginEditContext = new EditContext(LoginModel);
+    }
+
+    private async Task HandleLogin()
+    {
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var result = await AuthService.LoginAsync(LoginModel);
+
+            if (result != null)
+            {
+                await TokenService.SetTokensAsync(result.Token, result.RefreshToken);
+                Navigation.NavigateTo("/dashboard");
+            }
+            else
+            {
+                ErrorMessage = "Invalid email or password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Login error: {ex.Message}";
+        }
+
+        IsLoading = false;
+    }
+}

@@ -1,0 +1,91 @@
+﻿@page "/documents/create"
+
+@using DocumentFrontend.Models
+@using DocumentFrontend.Services
+@inject DocumentService DocumentService
+@inject NavigationManager Navigation
+
+<h3 class="mb-4">➕ Add New Document</h3>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+<EditForm Model="NewDocument" OnValidSubmit="HandleValidSubmit" FormName="addDocument">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <InputText id="name" class="form-control" @bind-Value="NewDocument.Name" />
+    </div>
+
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <InputTextArea id="description" class="form-control" @bind-Value="NewDocument.Description" />
+    </div>
+
+    <div class="mb-3">
+        <label for="version" class="form-label">Version</label>
+        <InputNumber id="version" class="form-control" @bind-Value="NewDocument.Version" step="0.1" />
+    </div>
+
+    <div class="mb-3">
+        <label for="tags" class="form-label">Tags (comma-separated)</label>
+        <InputText id="tags" class="form-control" @bind-Value="TagsInput" />
+    </div>
+
+    <div class="mb-3">
+        <label for="file" class="form-label">Upload File (optional)</label>
+        <InputFile id="file" OnChange="HandleFileChange" />
+    </div>
+
+    <div class="mt-4">
+        <button class="btn btn-success me-2">Add Document</button>
+        <a class="btn btn-secondary" href="/documents">Cancel</a>
+    </div>
+</EditForm>
+
+@code {
+    private Document NewDocument = new()
+        {
+            Version = 1
+        };
+    private string TagsInput = "";
+    private IBrowserFile? NewFile;
+    private string? ErrorMessage;
+    private Guid? DocumentGuid = Guid.Empty;
+
+    private void HandleFileChange(InputFileChangeEventArgs e)
+    {
+        NewFile = e.File;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            NewDocument.Tags = TagsInput
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            if (NewFile != null)
+            {
+                NewDocument.FileUrl = $"https://example.com/files/{NewFile.Name}";
+                NewDocument.ContentType = NewFile.ContentType;
+                NewDocument.FileSize = NewFile.Size;
+            }
+
+            DocumentGuid = await DocumentService.AddDocumentAsync(NewDocument);
+
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to add document: {ex.Message}";
+        }
+        
+        if(DocumentGuid != Guid.Empty)
+            Navigation.NavigateTo($"/documents/view/{DocumentGuid}");
+
+    }
+}

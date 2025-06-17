@@ -1,0 +1,85 @@
+﻿@using DocumentFrontend.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+@inject ApiAuthenticationStateProvider ApiAuthProvider
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthProvider
+@inject IJSRuntime JS
+
+<div class="d-flex flex-column min-vh-100">
+
+    <!-- Top Navigation / Header -->
+    <header role="banner" class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom bg-light">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/" class="h4 mb-0 text-pink fw-bold text-decoration-none" aria-label="BloomDocs home">
+                🌸 BloomDocs
+            </a>
+        </div>
+
+        <nav role="navigation" aria-label="Main navigation" class="d-flex align-items-center gap-3">
+            @if (IsLoggedIn)
+            {
+                <button class="btn btn-outline-danger" @onclick="Logout" aria-label="Logout from BloomDocs">
+                    Logout
+                </button>
+            }
+            else
+            {
+                <a href="/login" class="btn btn-outline-primary" role="button" aria-label="Login to BloomDocs">
+                    Login
+                </a>
+            }
+        </nav>
+    </header>
+
+    <div class="d-flex flex-grow-1">
+        <!-- Main Content -->
+        <main role="main" class="flex-grow-1 p-4">
+            @Body
+        </main>
+    </div>
+
+    <footer role="contentinfo" class="bg-light border-top text-center py-3 text-muted">
+        <p>&copy; 2025 BloomDocs. All rights reserved.</p>
+    </footer>
+</div>
+
+@code {
+    private bool IsLoggedIn;
+    private bool isMobile => _windowWidth < 768;
+    private int _windowWidth;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        IsLoggedIn = authState.User.Identity?.IsAuthenticated ?? false;
+
+        // Optional: subscribe to auth state changes if you want live updates
+        if (AuthProvider is ApiAuthenticationStateProvider apiAuth)
+        {
+            apiAuth.AuthenticationStateChanged += OnAuthStateChanged;
+        }
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        var authState = await task;
+        IsLoggedIn = authState.User.Identity?.IsAuthenticated ?? false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _windowWidth = await JS.InvokeAsync<int>("blazorGetWindowWidth");
+            StateHasChanged();
+        }
+    }
+
+    async Task Logout()
+    {
+        Navigation.NavigateTo("/logout");
+    }
+}

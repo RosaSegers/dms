@@ -1,0 +1,145 @@
+﻿@page "/documents/edit/{DocumentId:guid}"
+
+@using DocumentFrontend.Models
+@using DocumentFrontend.Services
+@implements IDisposable
+
+@inject DocumentService DocumentService
+@inject NavigationManager Navigation
+
+<h3 class="mb-4">✏️ Edit Document</h3>
+
+@if (IsLoading)
+{
+    <p>Loading document...</p>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+else if (Document == null)
+{
+    <p>Document not found.</p>
+}
+else
+{
+    <EditForm Model="Document" OnValidSubmit="HandleValidSubmit" FormName="editDocument">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <InputText id="name" class="form-control" @bind-Value="Document.Name" />
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <InputTextArea id="description" class="form-control" @bind-Value="Document.Description" />
+        </div>
+
+        <div class="mb-3">
+            <label for="version" class="form-label">Version</label>
+            <InputNumber id="version" class="form-control" @bind-Value="Document.Version" step="0.1" />
+        </div>
+
+        <div class="mb-3">
+            <label for="tags" class="form-label">Tags (comma-separated)</label>
+            <InputText id="tags" class="form-control" @bind-Value="TagsInput" />
+        </div>
+
+        <div class="mb-3">
+            <label for="file" class="form-label">Upload New Version (optional)</label>
+            <InputFile id="file" OnChange="HandleFileChange" />
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-primary me-2">Save Changes</button>
+            <a class="btn btn-secondary" href="/documents">Cancel</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public Guid DocumentId { get; set; }
+
+    private Document? Document;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+    private string TagsInput = "";
+    private IBrowserFile? NewFile;
+
+    private bool _isDisposed = false;
+    private bool _isUpdated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var docs = await DocumentService.GetDocumentsAsync();
+            Document = docs.FirstOrDefault(d => d.Id == DocumentId);
+
+            if (Document != null)
+                TagsInput = string.Join(", ", Document.Tags ?? []);
+            else
+                ErrorMessage = "Document not found.";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load document: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            Document!.Tags = TagsInput
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            if (NewFile != null)
+            {
+                Document.FileUrl = $"https://example.com/files/{NewFile.Name}";
+                Document.ContentType = NewFile.ContentType;
+                Document.FileSize = NewFile.Size;
+                // UpdatedAt is set in service
+            }
+
+            _isUpdated = await DocumentService.UpdateDocumentAsync(Document);
+            if (!_isUpdated)
+            {
+                ErrorMessage = "Failed to update document: Document not found.";
+                return;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // User navigated away — ignore
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to update document: {ex.Message}";
+        }
+
+        if(!_isDisposed && _isUpdated)
+        {
+            Navigation.NavigateTo($"/documents/view/{Document.Id}");
+            await Task.CompletedTask;
+        }
+    }
+
+
+    private void HandleFileChange(InputFileChangeEventArgs e)
+    {
+        NewFile = e.File;
+    }
+
+    public void Dispose()
+    {
+        _isDisposed = true;
+    }
+}
