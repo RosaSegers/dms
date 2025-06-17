@@ -12,7 +12,6 @@ using User.API.Common;
 
 namespace User.Api.Features.Authentication
 {
-    [Authorize]
     public class RefreshTokenController() : ApiControllerBase
     {
         [HttpPost("/api/auth/refresh")]

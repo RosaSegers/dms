@@ -5,56 +5,60 @@ using DocumentFrontend.Models;
 
 namespace DocumentFrontend.Services
 {
-    public class AuthHandler(TokenService tokenService, NavigationManager nav, IHttpClientFactory factory, ApiAuthenticationStateProvider authStateProvider)
+    public class AuthHandler(
+        ITokenCache tokenCache,
+        IHttpClientFactory factory,
+        NavigationManager nav,
+        ApiAuthenticationStateProvider authStateProvider)
         : DelegatingHandler
     {
-        private readonly TokenService _tokenService = tokenService;
-        private readonly NavigationManager _nav = nav;
-        private readonly IHttpClientFactory _httpClientFactory = factory;
-        private readonly ApiAuthenticationStateProvider _authStateProvider = authStateProvider;
-
-
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var token = await _tokenService.GetAccessTokenAsync();
-            if (!string.IsNullOrEmpty(token))
+            var token = tokenCache.AccessToken;
+            if (!string.IsNullOrWhiteSpace(token))
+            {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
 
             var response = await base.SendAsync(request, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                // Try to refresh token
-                var refreshToken = await _tokenService.GetRefreshTokenAsync();
-                if (string.IsNullOrEmpty(refreshToken))
+                var refreshToken = tokenCache.RefreshToken;
+                if (string.IsNullOrWhiteSpace(refreshToken))
                 {
-                    await _tokenService.ClearTokensAsync();
-                    _nav.NavigateTo("/login");
+                    nav.NavigateTo("/login");
                     return response;
                 }
 
-                var client = _httpClientFactory.CreateClient("Unauthenticated"); 
-                var refreshResponse = await client.PostAsJsonAsync("api/auth/refresh", new { refreshToken });
+                var client = factory.CreateClient("Unauthenticated");
+
+                var content = new MultipartFormDataContent
+                {
+                    { new StringContent(refreshToken), "refreshToken" }
+                };
+
+                var refreshResponse = await client.PostAsync("gateway/auth/refresh", content);
 
                 if (refreshResponse.IsSuccessStatusCode)
                 {
-                    var newTokens = await refreshResponse.Content.ReadFromJsonAsync<AuthResult>();
-                    await _tokenService.SetTokensAsync(newTokens.AccessToken, newTokens.RefreshToken);
-                    _authStateProvider.NotifyUserAuthentication(newTokens.AccessToken);
+                    var result = await refreshResponse.Content.ReadFromJsonAsync<AuthResult>();
+                    tokenCache.AccessToken = result.AccessToken;
+                    tokenCache.RefreshToken = result.RefreshToken;
+                    authStateProvider.NotifyUserAuthentication(result.AccessToken);
 
                     // Retry original request with new token
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newTokens.AccessToken);
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
                     return await base.SendAsync(request, cancellationToken);
                 }
-                else
-                {
-                    await _tokenService.ClearTokensAsync();
-                    _nav.NavigateTo("/login");
-                }
+
+                nav.NavigateTo("/login");
             }
 
             return response;
         }
+
+
 
         public class AuthResult
         {

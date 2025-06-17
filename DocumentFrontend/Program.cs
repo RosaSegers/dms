@@ -1,4 +1,5 @@
 using DocumentFrontend.Components;
+using DocumentFrontend.Models;
 using DocumentFrontend.Services;
 using Microsoft.IdentityModel.Tokens;
 
@@ -11,19 +12,20 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ApiAuthenticationStateProvider>();
+builder.Services.AddSingleton<ITokenCache, TokenCache>();
 builder.Services.AddSingleton<DocumentService>();
 
 builder.Services.AddTransient<AuthHandler>();
 
 builder.Services.AddHttpClient("Authenticated", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:8080"!);
+    client.BaseAddress = new Uri("http://131.189.232.222"!);
 })
 .AddHttpMessageHandler<AuthHandler>();
 
 builder.Services.AddHttpClient("Unauthenticated", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:8080"!);
+    client.BaseAddress = new Uri("http://131.189.232.222"!);
 });
 
 builder.Services.AddAuthentication("Cookies")

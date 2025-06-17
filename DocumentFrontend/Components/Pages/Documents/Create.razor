@@ -71,12 +71,12 @@
 
             if (NewFile != null)
             {
-                NewDocument.FileUrl = $"https://example.com/files/{NewFile.Name}";
+                NewDocument.FileName = $"https://example.com/files/{NewFile.Name}";
                 NewDocument.ContentType = NewFile.ContentType;
                 NewDocument.FileSize = NewFile.Size;
             }
 
-            DocumentGuid = await DocumentService.AddDocumentAsync(NewDocument);
+            DocumentGuid = await DocumentService.AddDocumentAsync(NewDocument, NewFile);
 
         }
         catch (Exception ex)

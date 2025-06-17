@@ -103,7 +103,7 @@ else
 
             if (NewFile != null)
             {
-                Document.FileUrl = $"https://example.com/files/{NewFile.Name}";
+                Document.FileName = $"https://example.com/files/{NewFile.Name}";
                 Document.ContentType = NewFile.ContentType;
                 Document.FileSize = NewFile.Size;
                 // UpdatedAt is set in service

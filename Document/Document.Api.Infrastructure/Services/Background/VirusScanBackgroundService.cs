@@ -12,11 +12,13 @@ namespace Document.Api.Infrastructure.Services.Background
     {
         private readonly IServiceProvider _services;
         private readonly IDocumentScanQueue _queue;
+        private readonly ICacheService _cache;
 
-        public VirusScanBackgroundService(IServiceProvider services, IDocumentScanQueue queue)
+        public VirusScanBackgroundService(IServiceProvider services, IDocumentScanQueue queue, ICacheService cache)
         {
             _services = services;
             _queue = queue;
+            _cache = cache;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -54,6 +56,8 @@ namespace Document.Api.Infrastructure.Services.Background
 
                             await storage.AddDocument(item.Document);
                             await statusService.SetStatusAsync(item.Document.DocumentId, "clean");
+
+                            _cache.InvalidateCaches();
 
                             Console.WriteLine($"[VirusScanBackgroundService] Document {item.Document.DocumentId} is clean, uploaded to blob, and stored.");
                         }

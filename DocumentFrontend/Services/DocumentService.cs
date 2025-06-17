@@ -1,5 +1,6 @@
-﻿using DocumentFrontend.Components.Pages;
+﻿using System.Net.Http.Json;
 using DocumentFrontend.Models;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace DocumentFrontend.Services
 {
@@ -11,15 +12,12 @@ namespace DocumentFrontend.Services
 
             var response = await client.GetAsync("gateway/documents");
 
-            var responseText = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Login response: {responseText}");
-
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<PaginatedList<Document>>();
+                return await response.Content.ReadFromJsonAsync<PaginatedList<Document>>() ?? new PaginatedList<Document>();
             }
 
-            return null;
+            return new PaginatedList<Document>();
         }
 
         public async Task<Document?> GetDocumentByIdAsync(Guid id)
@@ -27,9 +25,6 @@ namespace DocumentFrontend.Services
             var client = clientFactory.CreateClient("Authenticated");
 
             var response = await client.GetAsync($"gateway/documents/{id}");
-
-            var responseText = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Login response: {responseText}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -39,19 +34,57 @@ namespace DocumentFrontend.Services
             return null;
         }
 
-        public Task<Guid> AddDocumentAsync(Document document)
+        public async Task<Guid> AddDocumentAsync(Document document, IBrowserFile? file)
         {
-            throw new NotImplementedException();
+            var client = clientFactory.CreateClient("Authenticated");
+
+            using var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(document.Name), "Name");
+            content.Add(new StringContent(document.Description), "Description");
+            content.Add(new StringContent(document.Version?.ToString() ?? "1"), "Version");
+            content.Add(new StringContent(document.UserId.ToString()), "UserId");
+
+            if (document.Tags != null && document.Tags.Any())
+                content.Add(new StringContent(string.Join(",", document.Tags)), "Tags");
+
+            if (file != null)
+            {
+                var fileStream = file.OpenReadStream(maxAllowedSize: 10_000_000); // 10 MB limit
+                var fileContent = new StreamContent(fileStream);
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+
+                content.Add(fileContent, "File", file.Name);
+            }
+
+            var response = await client.PostAsync("gateway/documents", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Guid createdDoc = await response.Content.ReadFromJsonAsync<Guid>();
+                return createdDoc;
+            }
+
+            return Guid.Empty;
         }
 
-        public Task<bool> UpdateDocumentAsync(Document updatedDoc)
+
+        public async Task<bool> UpdateDocumentAsync(Document updatedDoc)
         {
-            throw new NotImplementedException();
+            var client = clientFactory.CreateClient("Authenticated");
+
+            var response = await client.PutAsJsonAsync($"gateway/documents/{updatedDoc.Id}", updatedDoc);
+
+            return response.IsSuccessStatusCode;
         }
 
-        public Task<bool> DeleteDocumentAsync(Guid id)
+        public async Task<bool> DeleteDocumentAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var client = clientFactory.CreateClient("Authenticated");
+
+            var response = await client.DeleteAsync($"gateway/documents/{id}");
+
+            return response.IsSuccessStatusCode;
         }
     }
 }
