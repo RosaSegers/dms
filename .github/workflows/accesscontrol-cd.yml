@@ -1,0 +1,44 @@
+name: Access Control API CD
+
+on:
+  workflow_run:
+    workflows: ["Access Control API CI"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Docker login (cmd)
+        shell: cmd
+        run: |
+          @echo off
+          if "%DOCKER_USERNAME%"=="" (
+            echo Docker username is missing!
+            exit /b 1
+          )
+          if "%DOCKER_PASSWORD%"=="" (
+            echo Docker password is missing!
+            exit /b 1
+          )
+          echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull latest Access Control API image
+        run: docker pull gyliana/access-control-api:latest
+
+      - name: Update Kubernetes deployment
+        run: |
+          kubectl set image deployment/access-control-api access-control-api=gyliana/access-control-api:latest
+          kubectl rollout restart deployment/access-control-api

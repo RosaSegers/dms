@@ -58,7 +58,7 @@ namespace User.Api.Features.Users
                 .OrderBy(item => item.Name)
                 .PaginatedListAsync(request.PageNumber, request.PageSize);
 
-            var dtos = _mapper.Map<List<Domain.Dtos.User>>(x.Items)??new();
+            var dtos = _mapper.Map<List<Domain.Dtos.User>>(x.Items)??[];
 
             PaginatedList<Domain.Dtos.User> paginatedList = new(dtos, x.TotalCount, request.PageNumber, request.PageSize);
 

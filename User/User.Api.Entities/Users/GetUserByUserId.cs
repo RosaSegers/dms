@@ -36,7 +36,7 @@ namespace User.Api.Features.Users
 
         public async Task<ErrorOr<Domain.Dtos.User>> Handle(GetUserByUserIdQuery request, CancellationToken cancellationToken)
         {
-            var x = await _context.Users.SingleAsync(x => x.Id == userService.UserId);
+            var x = await _context.Users.SingleAsync(x => x.Id == userService.UserId, cancellationToken: cancellationToken);
             return _mapper.Map<Domain.Dtos.User>(x) ?? new();
         }
     }

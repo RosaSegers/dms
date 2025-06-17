@@ -43,13 +43,6 @@ services:
     container_name: user-api
     ports:
       - "5001:80"
-    environment:
-      ConnectionStrings__DefaultConnection: "Server=user-sqlserver;Database=UserDb;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
-      RabbitMQ__Host: "rabbitmq"
-      RabbitMQ__User: "guest"
-      RabbitMQ__Pass: "guest"
-      JWT__Key: "SuperSecretDebugKeyForTesting12345"
-      ASPNETCORE_ENVIRONMENT: "Development"
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -74,11 +67,7 @@ services:
     ports:
       - "5002:80"
     environment:
-      ConnectionStrings__DefaultConnection: "Server=audit-sqlserver;Database=Logs;User=sa;Password=YourStrong!Password;Persist Security Info=False;Encrypt=False"
-      RabbitMQ__Host: "rabbitmq"
-      RabbitMQ__User: "guest"
-      RabbitMQ__Pass: "guest"
-      JWT__Key: "SuperSecretDebugKeyForTesting12345"
+
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:80"
     depends_on:
@@ -119,9 +108,6 @@ services:
     ports:
       - "5005:80"
     environment:
-      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=DocumentDb;User=sa;Password=YourStrong!Password;"
-      RabbitMq__Host: "rabbitmq"
-      JWT__Key: "SuperSecretDebugKeyForTesting12345"
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:80"
     depends_on:

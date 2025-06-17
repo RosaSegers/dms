@@ -1,25 +1,27 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Document.Api.Common.Interfaces;
+using Newtonsoft.Json;
 
 namespace Document.Api.Domain.Events
 {
-    public class DocumentUploadedEvent : IDocumentEvent
+    public class DocumentUploadedEvent : DocumentEventBase
     {
-        public Guid Id { get; set; }
-        public float? Version { get; set; }
         public string DocumentName { get; set; }
         public string DocumentDescription { get; set; }
         public string FileName { get; set; }
         public string FileUrl { get; set; }
         public string ContentType { get; set; }
         public long FileSize { get; set; }
-        public Guid UploadedByUserId { get; set; }
-        public DateTime OccurredAt { get; set; }
-        public string[]? Tags { get; set; }
+        public Guid UploadedByUserId { get; set; }  
+        public string[]? Tags { get; set; } = Array.Empty<string>();
+        [JsonProperty]
+        public override string EventType => nameof(DocumentUploadedEvent);
 
-        public DocumentUploadedEvent(string documentName, string documentDescription, float version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
+
+
+        public DocumentUploadedEvent(string documentName, string documentDescription, int version, IFormFile file, string fileUrl, Guid userId, string[]? tags = null)
         {
-            Id = Guid.NewGuid();
+            DocumentId = Guid.NewGuid();
             DocumentName = documentName;
             DocumentDescription = documentDescription;
             FileName = file.FileName;
@@ -28,8 +30,17 @@ namespace Document.Api.Domain.Events
             FileSize = file.Length;
             UploadedByUserId = userId;
             OccurredAt = DateTime.UtcNow;
-            Tags = tags;
+            if(tags is not null)
+                Tags = tags;
+            else
+                Tags = Array.Empty<string>();
             Version = version;
+        }
+
+        public DocumentUploadedEvent(Guid documentId, DateTime date)
+        {
+            this.DocumentId = documentId;
+            this.OccurredAt = date;
         }
 
     }

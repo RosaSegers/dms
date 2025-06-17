@@ -1,67 +1,102 @@
 import http from 'k6/http';
-import { check, group, sleep } from 'k6';
-import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
+import { check, sleep } from 'k6';
+import { Trend } from 'k6/metrics';
+import { FormData } from 'https://jslib.k6.io/formdata/0.0.2/index.js';
+import { open } from 'k6/experimental/fs';
 
-const BASE_URL = 'http://localhost:5093';
+// Metrics
+let loginTrend = new Trend('login_duration');
+let profileTrend = new Trend('profile_duration');
+let uploadTrend = new Trend('upload_duration');
 
-export const options = {
-  vus: 100,
-  stages: [
-    { duration: '30s', target: 100 },  // ramp-up to 100 VUs
-    { duration: '30s', target: 200 },  // ramp-up to 200 VUs
-    { duration: '20m', target: 200 },  // ramp-up to 200 VUs
-    { duration: '30s', target: 500 },  // ramp-up to 500 VUs
-    { duration: '30s', target: 0 },    // ramp-down to 0
-  ],
+// Constants
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const fileBytes = open('./Code Snippets.docx', 'b');
+
+export let options = {
+  vus: 50,
+  duration: '20m',
+  thresholds: {
+    login_duration: ['p(95)<1000'],
+    upload_duration: ['p(95)<2000'],
+    http_req_duration: ['p(95)<3000'],
+  },
+  insecureSkipTLSVerify: true,
 };
 
 export default function () {
-  let documentId;
+  // --- LOGIN ---
+  const loginForm = new FormData();
+  loginForm.append('Email', 'rosa.segers.2001@gmail.com');
+  loginForm.append('Password', 'PasswordPassword');
 
-  group('Upload Document', () => {
-    const fileName = `test-${uuidv4()}.txt`;
-    const fileContent = 'This is a sample test file for load testing.';
-  
-    const payload = {
-      Name: `Test ${uuidv4()}`,
-      Description: 'Load test upload',
-      File: http.file(fileContent, fileName, 'text/plain'),
-    };
-  
-    const res = http.post(`${BASE_URL}/api/documents`, payload);
-  
-    check(res, {
-      'upload success': (r) => r.status === 201,
-    });
-  
-    if (res.status === 201) {
-      documentId = res.json(); // assuming it just returns the GUID as plain JSON
-    } else {
-      console.log(`Upload failed: ${res.status} — ${res.body}`);
-    }
+  const loginRes = http.post('https://dmsgateway.local/gateway/auth/login', loginForm.body(), {
+    headers: { 'Content-Type': `multipart/form-data; boundary=${loginForm.boundary}` },
+    tags: { endpoint: '/auth/login' },
   });
 
-  sleep(1);
-
-  group('List Documents', () => {
-    const res = http.get(`${BASE_URL}/api/documents`);
-
-    check(res, {
-      'list success': (r) => r.status === 200,
-    });
+  check(loginRes, {
+    'login status 200': (r) => r.status === 200,
+    'login has token': (r) => !!r.json('accessToken'),
   });
 
-  sleep(1);
+  loginTrend.add(loginRes.timings.duration);
+  if (loginRes.status !== 200) {
+    console.error('Login failed, stopping iteration.');
+    return;
+  }
 
-  group('Delete Document', () => {
-    if (!documentId) return;
+  const token = loginRes.json('accessToken');
+  sleep(Math.random() * 2 + 1);
 
-    const res = http.del(`${BASE_URL}/api/documents/${documentId}`);
-
-    check(res, {
-      'delete success': (r) => r.status === 204,
-    });
+  // --- PROFILE ---
+  const profileRes = http.get('https://dmsgateway.local/gateway/users/me', {
+    headers: { Authorization: `Bearer ${token}` },
+    tags: { endpoint: '/users/me' },
   });
 
-  sleep(1);
+  check(profileRes, {
+    'profile status 200': (r) => r.status === 200,
+  });
+
+  profileTrend.add(profileRes.timings.duration);
+  sleep(Math.random() * 2 + 1);
+
+  // --- FILE SIZE CHECK ---
+if (fileBytes.length === 0) {
+  console.error('File is empty. Skipping upload.');
+  return;
+}
+
+if (fileBytes.length > MAX_FILE_SIZE_BYTES) {
+  console.warn(`Skipping upload. File size (${fileBytes.length}) exceeds max of ${MAX_FILE_SIZE_BYTES} bytes.`);
+  return;
+}
+
+
+  // --- UPLOAD DOCUMENT ---
+  const uploadForm = new FormData();
+  uploadForm.append('Name', 'Architectural Decisions');
+  uploadForm.append('Description', 'This document contains important architectural decisions.');
+  uploadForm.append('Version', '1');
+  uploadForm.append('File', {
+    data: fileBytes,
+    filename: 'LoadTest.docx',
+    content_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+
+  const uploadRes = http.post('https://dmsgateway.local/gateway/documents', uploadForm.body(), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': `multipart/form-data; boundary=${uploadForm.boundary}`,
+    },
+    tags: { endpoint: '/document' },
+  });
+
+  check(uploadRes, {
+    'upload status 202': (r) => r.status === 202,
+  });
+
+  uploadTrend.add(uploadRes.timings.duration);
+  sleep(Math.random() * 3 + 2);
 }

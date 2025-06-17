@@ -1,5 +1,6 @@
 ﻿using Document.Api.Common.Constants;
 using Document.Api.Common.Interfaces;
+using Document.Api.Domain.Events;
 using Document.Api.Features.Documents;
 using Moq;
 using System;
@@ -57,8 +58,8 @@ namespace Document.Api.Test
 
             var events = new List<IDocumentEvent>
             {
-                new TestDocumentEvent(documentId, DateTime.UtcNow.AddMinutes(-10)),
-                new TestDocumentEvent(documentId, DateTime.UtcNow)
+                new DocumentUploadedEvent(documentId, DateTime.UtcNow.AddMinutes(-10)),
+                new DocumentUpdatedEvent(documentId, DateTime.UtcNow)
             };
 
             var document = new Domain.Entities.Document();
@@ -121,8 +122,8 @@ namespace Document.Api.Test
 
             var events = new List<IDocumentEvent>
             {
-                new TestDocumentEvent(documentId, DateTime.UtcNow.AddMinutes(-10)),
-                new TestDocumentEvent(documentId, DateTime.UtcNow)
+                new DocumentUploadedEvent(documentId, DateTime.UtcNow.AddMinutes(-10)),
+                new DocumentUpdatedEvent(documentId, DateTime.UtcNow)
             };
 
             var document = new Domain.Entities.Document();
@@ -145,20 +146,6 @@ namespace Document.Api.Test
             // Assert
             Assert.False(result.IsError);
             Assert.Equal(document.Id, result.Value.Id);
-        }
-
-        private class TestDocumentEvent : IDocumentEvent
-        {
-            public Guid Id { get; }
-            public DateTime OccurredAt { get; }
-
-            public float? Version => throw new NotImplementedException();
-
-            public TestDocumentEvent(Guid id, DateTime occurredAt)
-            {
-                Id = id;
-                OccurredAt = occurredAt;
-            }
         }
     }
 }

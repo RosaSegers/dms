@@ -23,7 +23,7 @@ namespace User.Api.Features.Users
     public class ChangePasswordController() : ApiControllerBase
     {
 
-        [HttpPut("/api/users/password")]
+        [HttpPut("/api/users/me/password")]
         public async Task<IResult> GetUsers(
             [FromForm] string password,
             [FromForm] string? oldPassword
@@ -37,13 +37,13 @@ namespace User.Api.Features.Users
         }
     }
 
-    public record ChangePasswordCommand(string password, string? oldPassword = null) : IRequest<ErrorOr<Unit>>;
+    public record ChangePasswordCommand(string Password, string? OldPassword = null) : IRequest<ErrorOr<Unit>>;
 
     internal sealed class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCommand>
     {
         public ChangePasswordCommandValidator()
         {
-            RuleFor(user => user.password)
+            RuleFor(user => user.Password)
                 .NotEmpty().WithMessage(ChangePasswordCommandValidatorConstants.PASSWORD_EMPTY_STRING)
                 .MinimumLength(15).WithMessage(ChangePasswordCommandValidatorConstants.PASSWORD_SHORT_STRING)
                 .Matches(@"[A-Z]+").WithMessage(ChangePasswordCommandValidatorConstants.PASSWORD_CONTAINS_CAPITAL_STRING)
@@ -53,7 +53,7 @@ namespace User.Api.Features.Users
 
     internal static class ChangePasswordCommandValidatorConstants
     {
-        public static string PASSWORD_EMPTY_STRING = "A password is required";
+        public static string PASSWORD_EMPTY_STRING = "A password is required.";
         public static string PASSWORD_SHORT_STRING = "Your password length must be at least 12.";
         public static string PASSWORD_CONTAINS_CAPITAL_STRING = "Your password must contain at least one uppercase letter.";
         public static string PASSWORD_CONTAINS_LOWER_STRING = "Your password must contain at least one lowercase letter.";
@@ -66,37 +66,49 @@ namespace User.Api.Features.Users
 
         public async Task<ErrorOr<Unit>> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
         {
-            try
+            const int maxRetries = 3;
+            int retryCount = 0;
+
+            if (userService.UserId == null)
+                return Error.Validation("id", "id is required");
+
+            while (true)
             {
-                if (userService.UserId == null)
-                    return Error.Validation("id", "id is required");
-                var user = await _context.Users.SingleAsync(x => x.Id == userService.UserId, cancellationToken);
-
-                if (user == null)
-                    return Error.NotFound("User not found");
-
-                if (!string.IsNullOrEmpty(request.oldPassword))
+                try
                 {
-                    if(user.Password != hashingService.Hash(request.oldPassword))
-                        return Error.Validation("oldPassword", "The passwords do not match.");
+                    var user = await _context.Users
+                        .SingleOrDefaultAsync(x => x.Id == userService.UserId, cancellationToken);
 
-                    user.Password = hashingService.Hash(request.password);
+                    if (user is null)
+                        return Error.NotFound("User not found");
+
+                    if (!string.IsNullOrEmpty(request.OldPassword))
+                    {
+                        var hashedOld = hashingService.Hash(request.OldPassword);
+                        if (user.Password != hashedOld)
+                            return Error.Validation("oldPassword", "The passwords do not match.");
+                    }
+
+                    user.Password = hashingService.Hash(request.Password);
 
                     await _context.SaveChangesAsync(cancellationToken);
-
                     return Unit.Value;
                 }
+                catch (DbUpdateConcurrencyException)
+                {
+                    retryCount++;
 
-                user.Password = hashingService.Hash(request.password);
+                    if (retryCount >= maxRetries)
+                        return Error.Conflict("Password change failed due to concurrent updates. Please try again.");
 
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return Unit.Value;
-            }
-            catch (Exception ex)
-            {
-                return Error.Unexpected(ex.Message);
+                    await Task.Delay(TimeSpan.FromMilliseconds(100 * retryCount), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    return Error.Unexpected(ex.Message);
+                }
             }
         }
+
     }
 }

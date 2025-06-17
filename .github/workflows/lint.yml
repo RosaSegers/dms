@@ -1,0 +1,20 @@
+name: Lint .NET Code
+
+on:
+  workflow_call:
+    inputs:
+      solution_path:
+        required: true
+        type: string
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+      - name: Build with warnings as errors
+        run: dotnet build ${{ inputs.solution_path }} -warnaserror
+        continue-on-error: true

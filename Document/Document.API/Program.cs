@@ -9,12 +9,14 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration.AddJsonFile("/Secrets/document-secrets.json", optional: false, reloadOnChange: false);
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy(name: "ApiGateway",
                 policy =>
                 {
-                    policy.WithOrigins("http://localhost:5285")
+                    policy.WithOrigins("api-gateway")
                                         .AllowAnyHeader()
                                         .AllowAnyMethod();
                 });
@@ -27,7 +29,6 @@ internal class Program
 
         builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructure();
-        //builder.Services.AddValidation();
         builder.Services.AddHealthChecks();
 
 

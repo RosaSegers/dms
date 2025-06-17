@@ -7,9 +7,7 @@ namespace User.Api.Domain.Entities
 {
     public class User : ICanBeSoftDeleted, IHaveTrackingData
     {
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public User() { }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         public User(string name, string email, string password)
         {
@@ -33,11 +31,14 @@ namespace User.Api.Domain.Entities
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
 
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = [];
+
         public int LoginAttempts { get; set; } = 0;
         public DateTime? LastFailedLoginAttempt { get; set; } = DateTime.MinValue;
 
-        public virtual ICollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
-        public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; private set; } = new List<PasswordResetToken>();
+        public virtual ICollection<RefreshToken> RefreshTokens { get; private set; } = [];
+        public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; private set; } = [];
 
     }
 }

@@ -17,13 +17,13 @@ spec:
       containers:
         - name: accesscontrol-api
           image: gyliana/access-control-api:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: secret-volume
+              mountPath: "/Secrets"
+              readOnly: true
           ports:
             - containerPort: 80
-          env:
-            - name: RabbitMq__Host
-              value: "rabbitmq"
-            - name: ASPNETCORE_ENVIRONMENT
-              value: "Development"
           resources:
             requests:
               cpu: 100m
@@ -31,3 +31,7 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: accesscontrol-secrets

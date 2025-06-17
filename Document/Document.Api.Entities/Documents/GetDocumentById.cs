@@ -16,13 +16,15 @@ namespace Document.Api.Features.Documents
     public class GetDocumentByIdController() : ApiControllerBase
     {
         [HttpGet("/api/documents/{Id}")]
-        public async Task<IResult> GetDocumentsUsingPagination([FromRoute] GetDocumentByIdQuery query)
+        public async Task<IResult> GetDocumentsUsingPagination([FromRoute] Guid Id)
         {
-            var result = await Mediator.Send(query);
+            Console.WriteLine($"When checking id in the controller it is {Id}");
+
+            var result = await Mediator.Send(new GetDocumentByIdQuery(Id));
 
             return result.Match(
                 id => Results.Ok(result.Value),
-                error => Results.BadRequest(error.First().Description));
+                error => Results.BadRequest(error.First().Code));
         }
     }
 
@@ -59,7 +61,7 @@ namespace Document.Api.Features.Documents
                 return (Domain.Entities.Document?)cachedDocument!;
             }
 
-            var events = (await _storage.GetDocumentList()).Where(x => x.Id == request.Id);
+            var events = (await _storage.GetDocumentList()).Where(x => x.DocumentId == request.Id);
 
             var doc = new Domain.Entities.Document();
             foreach (var e in events.OrderBy(e => e.OccurredAt))

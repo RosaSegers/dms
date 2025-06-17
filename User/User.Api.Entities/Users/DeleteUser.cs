@@ -45,19 +45,27 @@ namespace User.Api.Features.Users
             try
             {
                 if (userService.UserId == null || userService.UserId == Guid.Empty)
-                    return Error.Validation("id", "id is required");
+                    return Error.Validation("id", "A valid user ID is required.");
 
                 var user = await _context.Users
-                    .SingleAsync(x => x.Id == userService.UserId, cancellationToken);
+                    .SingleOrDefaultAsync(x => x.Id == userService.UserId, cancellationToken);
+
+                if (user is null)
+                    return Error.NotFound("User not found.");
+
                 _context.Users.Remove(user);
 
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return Unit.Value;
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException)
             {
-                return Error.Unexpected(ex.Message);
+                return Error.Conflict("The user was modified or deleted by another process.");
+            }
+            catch (Exception)
+            {
+                return Error.Unexpected("An unexpected error occurred while deleting the user.");
             }
         }
     }

@@ -7,6 +7,8 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration.AddJsonFile("/Secrets/auditing-secrets.json", optional: false, reloadOnChange: false);
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy(name: "ApiGateway",
@@ -24,8 +26,6 @@ internal class Program
         builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddHealthChecks();
-
-        builder.WebHost.UseUrls("http://0.0.0.0:80");
 
         var app = builder.Build();
         app.UseHttpsRedirection();

@@ -1,7 +1,14 @@
 ﻿using Document.Api.Common.Interfaces;
+using Document.Api.Infrastructure.Background.Interfaces;
+using Document.Api.Infrastructure.Background;
 using Document.Api.Infrastructure.Persistance;
 using Document.Api.Infrastructure.Services;
+using Document.Api.Infrastructure.Services.Background;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Document.Api.Infrastructure.Services.Interface;
+using Document.Api.Infrastructure.Persistance.Interface;
 
 namespace Document.Api.Infrastructure
 {
@@ -9,6 +16,12 @@ namespace Document.Api.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
+            services.AddSingleton<IDocumentScanQueue, InMemoryDocumentScanQueue>();
+            services.AddSingleton<IDocumentStatusService, InMemoryDocumentStatusService>();
+            services.AddSingleton<IBlobStorageService, BlobStorageService>();
+
+            services.AddHostedService<VirusScanBackgroundService>();
+
             services.AddMemoryCache();
             services.AddSingleton<ICacheService, CacheService>();
 

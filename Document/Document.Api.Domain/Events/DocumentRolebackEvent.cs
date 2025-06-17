@@ -1,4 +1,5 @@
 ﻿using Document.Api.Common.Interfaces;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,21 +8,20 @@ using System.Threading.Tasks;
 
 namespace Document.Api.Domain.Events
 {
-    public class DocumentRolebackEvent : IDocumentEvent
+    public class DocumentRolebackEvent : DocumentEventBase
     {
-        public DocumentRolebackEvent(Guid id, float? version, Guid rolledBackByUserId, List<IDocumentEvent> eventsToReapply)
+        public DocumentRolebackEvent(Guid id, int? version, Guid rolledBackByUserId, List<IDocumentEvent> eventsToReapply)
         {
-            Id = id;
+            this.DocumentId = id;
             Version = version;
             RolledBackByUserId = rolledBackByUserId;
             EventsToReapply = eventsToReapply;
             OccurredAt = DateTime.UtcNow;
-        }
 
-        public Guid Id { get; set; }
-        public DateTime OccurredAt { get; set; }
-        public float? Version { get; set; }
+        }
         public Guid RolledBackByUserId { get; set; }
         public List<IDocumentEvent> EventsToReapply { get; set; } = new List<IDocumentEvent>();
+        [JsonProperty]
+        public override string EventType => nameof(DocumentRolebackEvent);
     }
 }

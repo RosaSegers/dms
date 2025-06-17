@@ -2,46 +2,49 @@ using User.Api.Features;
 using User.Api.Domain;
 using User.Api.Infrastructure;
 
-public class Program
+namespace User.API
 {
-    public static void Main(string[] args)
+    public class Program
     {
-        var builder = WebApplication.CreateBuilder(args);
-
-        builder.Services.AddCors(options =>
+        public static void Main(string[] args)
         {
-            options.AddPolicy(name: "ApiGateway",
-                policy =>
-                {
-                    policy.WithOrigins(builder.Configuration["Gateway"] ?? throw new Exception())
-                                        .AllowAnyHeader()
-                                        .AllowAnyMethod();
-                });
-        });
+            var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddControllers();
-        builder.Services.AddHttpContextAccessor();
+            builder.Configuration.AddJsonFile("/Secrets/user-secrets.json", optional: false, reloadOnChange: false);
 
-        builder.Services.AddApplication(builder.Configuration);
-        builder.Services.AddInfrastructure(builder.Configuration);
-        builder.Services.AddValidation();
-        builder.Services.AddMapping();
-        builder.Services.AddHealthChecks(); 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(name: "ApiGateway",
+                    policy =>
+                    {
+                        policy.WithOrigins(builder.Configuration["Gateway"] ?? throw new Exception())
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod();
+                    });
+            });
 
-        builder.WebHost.UseUrls("http://0.0.0.0:80");
+            builder.Services.AddControllers();
+            builder.Services.AddHttpContextAccessor();
 
-        var app = builder.Build();
-        app.UseHttpsRedirection();
-        app.UseRouting();
+            builder.Services.AddApplication(builder.Configuration);
+            builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddValidation();
+            builder.Services.AddMapping();
+            builder.Services.AddHealthChecks();
 
-        app.UseCors("ApiGateway");
-        app.MapHealthChecks("/health");
+            var app = builder.Build();
+            app.UseHttpsRedirection();
+            app.UseRouting();
 
-        app.UseAuthentication();
-        app.UseAuthorization();
+            app.UseCors("ApiGateway");
+            app.MapHealthChecks("/health");
 
-        app.MapControllers();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
-        app.Run();
+            app.MapControllers();
+
+            app.Run();
+        }
     }
 }

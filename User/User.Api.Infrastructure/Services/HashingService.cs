@@ -4,7 +4,7 @@ using User.Api.Common.Interfaces;
 
 namespace User.Api.Infrastructure.Services
 {
-    internal class HashingService(IConfiguration configuration) : IHashingService
+    internal class HashingService() : IHashingService
     {
         public string Hash(string key)
         {

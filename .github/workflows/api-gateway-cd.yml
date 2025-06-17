@@ -1,0 +1,44 @@
+name: API Gateway CD
+
+on:
+  workflow_run:
+    workflows: ["API Gateway CI"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Docker login (cmd)
+        shell: cmd
+        run: |
+          @echo off
+          if "%DOCKER_USERNAME%"=="" (
+            echo Docker username is missing!
+            exit /b 1
+          )
+          if "%DOCKER_PASSWORD%"=="" (
+            echo Docker password is missing!
+            exit /b 1
+          )
+          echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull latest API Gateway image
+        run: docker pull gyliana/api-gateway:latest
+
+      - name: Update Kubernetes deployment
+        run: |
+          kubectl set image deployment/api-gateway api-gateway=gyliana/api-gateway:latest
+          kubectl rollout restart deployment/api-gateway

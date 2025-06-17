@@ -13,6 +13,17 @@ namespace User.Api.Infrastructure.Persistance
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Domain.Entities.User>(entity =>
+            {
+                entity.HasIndex(x => x.Name).IsUnique();
+                entity.HasIndex(x => x.Email).IsUnique();
+
+                entity.Property(u => u.RowVersion)
+                    .IsRowVersion()
+                    .IsConcurrencyToken();
+            });
+
             modelBuilder.Entity<Domain.Entities.User>()
                 .HasMany(u => u.RefreshTokens)
                 .WithOne()
