@@ -2,9 +2,12 @@
 @using DocumentFrontend.Models
 @using DocumentFrontend.Services
 
+@rendermode InteractiveServer
+
 @inject AuthService AuthService
 @inject TokenService TokenService
 @inject NavigationManager Navigation
+@inject ApiAuthenticationStateProvider _authStateProvider
 
 <div class="min-vh-100 d-flex align-items-center justify-content-center bg-light p-4">
     <div class="card shadow-sm" style="max-width: 400px; width: 100%;">
@@ -70,8 +73,9 @@
 
             if (result != null)
             {
-                await TokenService.SetTokensAsync(result.Token, result.RefreshToken);
-                Navigation.NavigateTo("/dashboard");
+                await TokenService.SetTokensAsync(result.AccessToken, result.RefreshToken);
+                _authStateProvider.NotifyUserAuthentication(result.AccessToken);
+                Navigation.NavigateTo("/documents");
             }
             else
             {

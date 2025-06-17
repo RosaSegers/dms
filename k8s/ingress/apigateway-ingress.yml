@@ -6,8 +6,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - host: dmsgateway.local
-    http:
+  - http:
       paths:
       - path: /
         pathType: Prefix
@@ -15,4 +14,4 @@ spec:
           service:
             name: api-gateway
             port:
-              number: 80
+              number: 8080

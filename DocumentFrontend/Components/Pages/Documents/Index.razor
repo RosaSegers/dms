@@ -4,6 +4,7 @@
 @using DocumentFrontend.Services
 
 @inject DocumentService DocumentService
+@inject IJSRuntime JSRuntime
 
 @rendermode InteractiveServer
 
@@ -50,9 +51,7 @@ else
                     <td>
                         <a class="btn btn-sm btn-outline-primary me-2" href="@($"/documents/view/{doc.Id}")">View</a>
                         <a class="btn btn-sm btn-outline-secondary me-2" href="@($"/documents/edit/{doc.Id}")">Edit</a>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(doc)">
-                            Delete
-                        </button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(doc)">Delete</button>
                     </td>
                 </tr>
             }
@@ -60,7 +59,6 @@ else
     </table>
 }
 
-<!-- Delete Confirmation Modal -->
 @if (DeleteTarget != null)
 {
     <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
@@ -87,11 +85,21 @@ else
     private bool IsLoading = true;
     private string? ErrorMessage;
     private Document? DeleteTarget;
+    private bool _documentsLoaded = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync() => Task.CompletedTask;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await LoadDocumentsAsync();
+        if (firstRender && !_documentsLoaded && IsClientSide())
+        {
+            await LoadDocumentsAsync();
+            _documentsLoaded = true;
+            StateHasChanged();
+        }
     }
+
+    private bool IsClientSide() => JSRuntime is IJSInProcessRuntime;
 
     private async Task LoadDocumentsAsync()
     {
@@ -100,7 +108,8 @@ else
 
         try
         {
-            Documents = await DocumentService.GetDocumentsAsync();
+            var result = await DocumentService.GetDocumentsAsync();
+            Documents = result?.Items ?? new();
         }
         catch (Exception ex)
         {
@@ -112,27 +121,19 @@ else
         }
     }
 
-    private void ConfirmDelete(Document doc)
-    {
-        DeleteTarget = doc;
-    }
-
-    private void CancelDelete()
-    {
-        DeleteTarget = null;
-    }
+    private void ConfirmDelete(Document doc) => DeleteTarget = doc;
+    private void CancelDelete() => DeleteTarget = null;
 
     private async Task DeleteDocumentAsync()
     {
-        if (DeleteTarget == null)
-            return;
+        if (DeleteTarget == null) return;
 
         try
         {
             var success = await DocumentService.DeleteDocumentAsync(DeleteTarget.Id);
             if (success)
             {
-                Documents!.Remove(DeleteTarget);
+                Documents?.Remove(DeleteTarget);
             }
             else
             {

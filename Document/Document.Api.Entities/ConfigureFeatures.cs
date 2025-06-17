@@ -15,7 +15,8 @@ namespace Document.Api.Features
         internal static List<string> Items = new()
         {
             "Admin",
-            "User"
+            "User",
+            "Guest"
         };
     }
 

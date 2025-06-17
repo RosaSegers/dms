@@ -34,6 +34,15 @@ namespace DocumentFrontend.Services
             await ClearTokensAsync();
             authProvider.NotifyUserLogout();
         }
-    }
 
+        public async Task TryAutoLoginAsync(ApiAuthenticationStateProvider authProvider)
+        {
+            var token = await GetAccessTokenAsync();
+
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                authProvider.NotifyUserAuthentication(token);
+            }
+        }
+    }
 }

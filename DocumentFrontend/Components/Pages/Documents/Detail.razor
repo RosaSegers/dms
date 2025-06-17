@@ -65,7 +65,7 @@ else
         try
         {
             var docs = await DocumentService.GetDocumentsAsync();
-            Document = docs.FirstOrDefault(d => d.Id == DocumentId);
+            Document = docs.Items.FirstOrDefault(d => d.Id == DocumentId);
 
             if (Document == null)
                 ErrorMessage = "Document not found.";

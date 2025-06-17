@@ -30,7 +30,7 @@ export default function () {
   loginForm.append('Email', 'rosa.segers.2001@gmail.com');
   loginForm.append('Password', 'PasswordPassword');
 
-  const loginRes = http.post('https://dmsgateway.local/gateway/auth/login', loginForm.body(), {
+  const loginRes = http.post('http://localhost:8080/gateway/auth/login', loginForm.body(), {
     headers: { 'Content-Type': `multipart/form-data; boundary=${loginForm.boundary}` },
     tags: { endpoint: '/auth/login' },
   });
@@ -50,7 +50,7 @@ export default function () {
   sleep(Math.random() * 2 + 1);
 
   // --- PROFILE ---
-  const profileRes = http.get('https://dmsgateway.local/gateway/users/me', {
+  const profileRes = http.get('http://localhost:8080/gateway/users/me', {
     headers: { Authorization: `Bearer ${token}` },
     tags: { endpoint: '/users/me' },
   });
@@ -85,7 +85,7 @@ if (fileBytes.length > MAX_FILE_SIZE_BYTES) {
     content_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   });
 
-  const uploadRes = http.post('https://dmsgateway.local/gateway/documents', uploadForm.body(), {
+  const uploadRes = http.post('http://localhost:8080/gateway/documents', uploadForm.body(), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': `multipart/form-data; boundary=${uploadForm.boundary}`,

@@ -80,7 +80,7 @@
 
             if (result != null)
             {
-                await TokenService.SetTokensAsync(result.Token, result.RefreshToken);
+                await TokenService.SetTokensAsync(result.AccessToken, result.RefreshToken);
                 Navigation.NavigateTo("/dashboard");
             }
             else

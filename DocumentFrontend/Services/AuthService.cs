@@ -3,19 +3,22 @@ using System.Net.Http.Headers;
 
 namespace DocumentFrontend.Services
 {
-    public class AuthService
+    public class AuthService(IHttpClientFactory clientFactory)
     {
-        private readonly IHttpClientFactory _clientFactory;
-
-        public AuthService(IHttpClientFactory clientFactory)
-        {
-            _clientFactory = clientFactory;
-        }
-
         public async Task<AuthResponse?> LoginAsync(LoginRequest login)
         {
-            var client = _clientFactory.CreateClient("Unauthenticated");
-            var response = await client.PostAsJsonAsync("/gateway/auth/login", login);
+            var client = clientFactory.CreateClient("Unauthenticated");
+
+            var formData = new MultipartFormDataContent
+            {
+                { new StringContent(login.Email), "Email" },
+                { new StringContent(login.Password), "Password" }
+            };
+            
+            var response = await client.PostAsync("gateway/auth/login", formData);
+
+            var responseText = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Login response: {responseText}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -25,9 +28,10 @@ namespace DocumentFrontend.Services
             return null;
         }
 
+
         public async Task<AuthResponse?> RegisterAsync(RegisterRequest register)
         {
-            var client = _clientFactory.CreateClient("Unauthenticated");
+            var client = clientFactory.CreateClient("Unauthenticated");
 
             var formData = new MultipartFormDataContent
             {
@@ -36,7 +40,7 @@ namespace DocumentFrontend.Services
                 { new StringContent(register.Password), "password" }
             };
 
-            var response = await client.PostAsync("/gateway/auth/register", formData);
+            var response = await client.PostAsync("gateway/auth/register", formData);
 
             if (response.IsSuccessStatusCode)
             {

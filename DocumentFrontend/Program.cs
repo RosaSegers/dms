@@ -5,8 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 
 builder.Services.AddScoped<TokenService>();
@@ -18,13 +17,13 @@ builder.Services.AddTransient<AuthHandler>();
 
 builder.Services.AddHttpClient("Authenticated", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiGateway__BasePath"]!);
+    client.BaseAddress = new Uri("http://localhost:8080"!);
 })
 .AddHttpMessageHandler<AuthHandler>();
 
 builder.Services.AddHttpClient("Unauthenticated", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiGateway__BasePath"]!);
+    client.BaseAddress = new Uri("http://localhost:8080"!);
 });
 
 builder.Services.AddAuthentication("Cookies")

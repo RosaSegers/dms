@@ -1,11 +1,11 @@
 ﻿@using DocumentFrontend.Services
 @using Microsoft.AspNetCore.Components.Authorization
+
 @inherits LayoutComponentBase
+
 @inject ApiAuthenticationStateProvider ApiAuthProvider
 @inject TokenService TokenService
 @inject NavigationManager Navigation
-@inject AuthenticationStateProvider AuthProvider
-@inject IJSRuntime JS
 
 <div class="d-flex flex-column min-vh-100">
 
@@ -46,21 +46,32 @@
 </div>
 
 @code {
+    [Inject] private IJSRuntime JS { get; set; }
+
+    private bool _jsRuntimeAvailable = false;
     private bool IsLoggedIn;
-    private bool isMobile => _windowWidth < 768;
     private int _windowWidth;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var authState = await AuthProvider.GetAuthenticationStateAsync();
-        IsLoggedIn = authState.User.Identity?.IsAuthenticated ?? false;
-
-        // Optional: subscribe to auth state changes if you want live updates
-        if (AuthProvider is ApiAuthenticationStateProvider apiAuth)
+        if (ApiAuthProvider is ApiAuthenticationStateProvider apiAuth)
         {
             apiAuth.AuthenticationStateChanged += OnAuthStateChanged;
         }
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await TokenService.TryAutoLoginAsync(ApiAuthProvider);
+
+            var authState = await ApiAuthProvider.GetAuthenticationStateAsync();
+            IsLoggedIn = authState.User.Identity?.IsAuthenticated ?? false;
+            StateHasChanged();
+        }
+    }
+
 
     private async void OnAuthStateChanged(Task<AuthenticationState> task)
     {
@@ -69,17 +80,9 @@
         StateHasChanged();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _windowWidth = await JS.InvokeAsync<int>("blazorGetWindowWidth");
-            StateHasChanged();
-        }
-    }
-
     async Task Logout()
     {
         Navigation.NavigateTo("/logout");
     }
 }
+

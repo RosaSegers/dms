@@ -1,21 +1,18 @@
 ﻿using Microsoft.AspNetCore.Components;
 using System.Net.Http.Headers;
 using System.Net;
+using DocumentFrontend.Models;
 
 namespace DocumentFrontend.Services
 {
-    public class AuthHandler : DelegatingHandler
+    public class AuthHandler(TokenService tokenService, NavigationManager nav, IHttpClientFactory factory, ApiAuthenticationStateProvider authStateProvider)
+        : DelegatingHandler
     {
-        private readonly TokenService _tokenService;
-        private readonly NavigationManager _nav;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly TokenService _tokenService = tokenService;
+        private readonly NavigationManager _nav = nav;
+        private readonly IHttpClientFactory _httpClientFactory = factory;
+        private readonly ApiAuthenticationStateProvider _authStateProvider = authStateProvider;
 
-        public AuthHandler(TokenService tokenService, NavigationManager nav, IHttpClientFactory factory)
-        {
-            _tokenService = tokenService;
-            _nav = nav;
-            _httpClientFactory = factory;
-        }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -37,15 +34,16 @@ namespace DocumentFrontend.Services
                 }
 
                 var client = _httpClientFactory.CreateClient("Unauthenticated"); 
-                var refreshResponse = await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken });
+                var refreshResponse = await client.PostAsJsonAsync("api/auth/refresh", new { refreshToken });
 
                 if (refreshResponse.IsSuccessStatusCode)
                 {
                     var newTokens = await refreshResponse.Content.ReadFromJsonAsync<AuthResult>();
-                    await _tokenService.SetTokensAsync(newTokens.Token, newTokens.RefreshToken);
+                    await _tokenService.SetTokensAsync(newTokens.AccessToken, newTokens.RefreshToken);
+                    _authStateProvider.NotifyUserAuthentication(newTokens.AccessToken);
 
                     // Retry original request with new token
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newTokens.Token);
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newTokens.AccessToken);
                     return await base.SendAsync(request, cancellationToken);
                 }
                 else
@@ -60,7 +58,7 @@ namespace DocumentFrontend.Services
 
         public class AuthResult
         {
-            public string Token { get; set; }
+            public string AccessToken { get; set; }
             public string RefreshToken { get; set; }
         }
     }
