@@ -142,22 +142,24 @@ else
         try
         {
             var success = await DocumentService.DeleteDocumentAsync(DeleteTarget.Id);
+
             if (success)
             {
-                Documents.Items!.Remove(DeleteTarget);
+                Documents.Items?.Remove(DeleteTarget);
+                DeleteTarget = null;
             }
             else
             {
-                ErrorMessage = "Failed to delete document.";
+                ErrorMessage = "Failed to delete document from the server.";
             }
+        }
+        catch (HttpRequestException httpEx)
+        {
+            ErrorMessage = $"Network error: {httpEx.Message}";
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error deleting document: {ex.Message}";
-        }
-        finally
-        {
-            DeleteTarget = null;
+            ErrorMessage = $"Unexpected error deleting document: {ex.Message}";
         }
     }
 }

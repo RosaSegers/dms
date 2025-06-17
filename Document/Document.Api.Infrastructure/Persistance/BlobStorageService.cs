@@ -76,25 +76,24 @@ namespace Document.Api.Infrastructure.Persistance
         {
             var blobClients = _containerClient.GetBlobsAsync(prefix: $"{blobName}");
 
-            if (blobClients.IsNull())
+            await using var enumerator = blobClients.GetAsyncEnumerator();
+            if (!await enumerator.MoveNextAsync())
                 throw new FileNotFoundException($"Blob '{blobName}' could not be found.");
 
             await foreach (var blobItem in blobClients)
             {
-                var blob = _containerClient.GetBlobClient(blobName);
+                var blob = _containerClient.GetBlobClient(blobItem.Name);
 
                 try
                 {
                     await blob.DeleteAsync();
                     Console.WriteLine($"Blob '{blob.Name}' has successfully been deleted.");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    Console.WriteLine($"Blob '{blob.Name}' was not deleted due to an exeption by the name of: {ex.Message}");
+                    Console.WriteLine($"Blob '{blob.Name}' was not deleted due to an exception: {ex.Message}");
                 }
             }
-
-
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using DocumentFrontend.Models;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -68,22 +69,42 @@ namespace DocumentFrontend.Services
             return Guid.Empty;
         }
 
-
-        public async Task<bool> UpdateDocumentAsync(Document updatedDoc)
+        public async Task<bool> UpdateDocumentAsync(Document updatedDoc, IBrowserFile? file = null)
         {
             var client = clientFactory.CreateClient("Authenticated");
 
-            var response = await client.PutAsJsonAsync($"gateway/documents/{updatedDoc.Id}", updatedDoc);
+            HttpContent content;
 
+            if (file != null)
+            {
+                var form = new MultipartFormDataContent();
+
+                form.Add(new StringContent(updatedDoc.Id.ToString()), "id");
+                form.Add(new StringContent(updatedDoc.Name), "name");
+                form.Add(new StringContent(updatedDoc.Description), "description");
+                form.Add(new StringContent(updatedDoc.Version?.ToString() ?? "1"), "version");
+                form.Add(new StringContent(updatedDoc.UserId.ToString()), "userId");
+                form.Add(new StringContent(string.Join(",", updatedDoc.Tags ?? [])), "tags");
+
+                var fileContent = new StreamContent(file.OpenReadStream(long.MaxValue));
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                form.Add(fileContent, "file", file.Name);
+
+                content = form;
+            }
+            else
+            {
+                content = JsonContent.Create(updatedDoc);
+            }
+
+            var response = await client.PutAsync($"gateway/documents/{updatedDoc.Id}", content);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> DeleteDocumentAsync(Guid id)
         {
             var client = clientFactory.CreateClient("Authenticated");
-
             var response = await client.DeleteAsync($"gateway/documents/{id}");
-
             return response.IsSuccessStatusCode;
         }
     }

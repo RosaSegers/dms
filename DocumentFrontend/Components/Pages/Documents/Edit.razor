@@ -103,16 +103,16 @@ else
 
             if (NewFile != null)
             {
-                Document.FileName = $"https://example.com/files/{NewFile.Name}";
+                Document.FileName = NewFile.Name;
                 Document.ContentType = NewFile.ContentType;
                 Document.FileSize = NewFile.Size;
-                // UpdatedAt is set in service
             }
 
-            _isUpdated = await DocumentService.UpdateDocumentAsync(Document);
+            _isUpdated = await DocumentService.UpdateDocumentAsync(Document, NewFile);
+
             if (!_isUpdated)
             {
-                ErrorMessage = "Failed to update document: Document not found.";
+                ErrorMessage = "Failed to update document.";
                 return;
             }
         }
@@ -125,12 +125,12 @@ else
             ErrorMessage = $"Failed to update document: {ex.Message}";
         }
 
-        if(!_isDisposed && _isUpdated)
+        if (!_isDisposed && _isUpdated)
         {
             Navigation.NavigateTo($"/documents/view/{Document.Id}");
-            await Task.CompletedTask;
         }
     }
+
 
 
     private void HandleFileChange(InputFileChangeEventArgs e)
