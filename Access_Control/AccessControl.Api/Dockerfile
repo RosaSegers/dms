@@ -1,8 +1,8 @@
 # Use the official .NET 8 runtime image as the base for running the application
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+EXPOSE 8080
+EXPOSE 8081
 
 # Use the official .NET 8 SDK image for building the application
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
