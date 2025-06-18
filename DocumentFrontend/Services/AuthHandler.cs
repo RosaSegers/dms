@@ -47,7 +47,6 @@ namespace DocumentFrontend.Services
                     tokenCache.RefreshToken = result.RefreshToken;
                     authStateProvider.NotifyUserAuthentication(result.AccessToken);
 
-                    // Retry original request with new token
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
                     return await base.SendAsync(request, cancellationToken);
                 }
