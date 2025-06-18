@@ -12,7 +12,7 @@ namespace FrontendEndToEnd
         public async Task HomePageLoadsAndDisplaysFeatures()
         {
             // Navigate to the homepage
-            await Page.GotoAsync("https://localhost:7154/");
+            await Page.GotoAsync("https://localhost:8080/");
             await Page.ScreenshotAsync(new() { Path = "homepage-error.png" });
 
             // Check main headline
