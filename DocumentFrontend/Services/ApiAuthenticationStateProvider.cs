@@ -22,7 +22,6 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
             return new AuthenticationState(_anonymous);
         }
 
-        // Parse token claims (you might want a better JWT parser here)
         var claims = ParseClaimsFromJwt(token);
         var identity = new ClaimsIdentity(claims, "jwt");
         var user = new ClaimsPrincipal(identity);
