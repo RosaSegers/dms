@@ -57,7 +57,6 @@ namespace DocumentFrontend.Services
                 Id = Guid.NewGuid(),
                 Name = "Jane Doe",
                 Email = "jane.doe@example.com",
-                // Add other properties if needed
             };
 
             return Task.FromResult(dummyUser);

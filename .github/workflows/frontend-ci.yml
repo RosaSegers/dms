@@ -79,6 +79,12 @@ jobs:
       - name: Add dotnet tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
+      - name: Restore and build E2E test project
+        run: |
+          cd FrontendEndToEnd
+          dotnet restore
+          dotnet build --configuration Release
+
       - name: Install Playwright browsers
         run: playwright install
 
