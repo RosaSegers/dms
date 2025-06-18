@@ -51,7 +51,7 @@ namespace DocumentFrontend.Services
 
             if (file != null)
             {
-                var fileStream = file.OpenReadStream(maxAllowedSize: 10_000_000); // 10 MB limit
+                var fileStream = file.OpenReadStream(maxAllowedSize: 10_000_000);
                 var fileContent = new StreamContent(fileStream);
                 fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
 
