@@ -103,16 +103,16 @@ jobs:
         if: always()
         run: docker compose -f docker-compose.e2e.yml down -v
 
-  docker:
-    runs-on: ubuntu-latest
-    needs: e2e
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-      - run: docker build -t gyliana/document-frontend:${{ github.sha }} -f DocumentFrontend/Dockerfile .
-      - run: docker push gyliana/document-frontend:${{ github.sha }}
-      - run: docker tag gyliana/document-frontend:${{ github.sha }} gyliana/document-frontend:latest
-      - run: docker push gyliana/document-frontend:latest
+docker:
+  runs-on: ubuntu-latest
+  needs: e2e
+  steps:
+    - uses: actions/checkout@v4
+    - run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+    - run: docker build -t gyliana/document-frontend:${{ github.sha }} -f DocumentFrontend/Dockerfile DocumentFrontend/
+    - run: docker push gyliana/document-frontend:${{ github.sha }}
+    - run: docker tag gyliana/document-frontend:${{ github.sha }} gyliana/document-frontend:latest
+    - run: docker push gyliana/document-frontend:latest
 
   snyk:
     uses: ./.github/workflows/snyk.yml
