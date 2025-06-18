@@ -56,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker Compose
+      - name: Set up Docker Compose environment
         run: docker compose -f docker-compose.e2e.yml up --build -d
 
       - name: Wait for frontend to be ready
@@ -65,16 +65,21 @@ jobs:
           for i in {1..30}; do
             if curl -sSf http://localhost:8080 > /dev/null; then
               echo "Frontend is up!"
-              break
+              exit 0
             fi
             echo "Waiting..."
             sleep 5
           done
+          echo "Timed out waiting for frontend"
+          exit 1
 
-      - name: Install Playwright CLI
+      - name: Install .NET Playwright CLI tool globally
         run: dotnet tool install --global Microsoft.Playwright.CLI
 
-      - name: Install Playwright dependencies
+      - name: Add dotnet tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Install Playwright browsers
         run: playwright install
 
       - name: Run E2E tests
@@ -88,7 +93,7 @@ jobs:
           name: e2e-screenshots
           path: FrontendEndToEnd/homepage-error.png
 
-      - name: Tear down environment
+      - name: Tear down Docker Compose environment
         if: always()
         run: docker compose -f docker-compose.e2e.yml down -v
 

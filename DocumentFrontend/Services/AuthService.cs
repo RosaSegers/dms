@@ -50,7 +50,6 @@ namespace DocumentFrontend.Services
             return null;
         }
 
-        // Dummy method to get current user (for testing)
         public Task<UserModel> GetCurrentUserAsync()
         {
             var dummyUser = new UserModel
