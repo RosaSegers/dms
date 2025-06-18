@@ -17,16 +17,19 @@ builder.Services.AddSingleton<DocumentService>();
 
 builder.Services.AddTransient<AuthHandler>();
 
+var gatewayUrl = Environment.GetEnvironmentVariable("Gateway")
+                 ?? throw new InvalidOperationException("Gateway environment variable not set");
+
 builder.Services.AddHttpClient("Authenticated", client =>
 {
-    client.BaseAddress = new Uri("http://131.189.232.222"!);
-})
-.AddHttpMessageHandler<AuthHandler>();
+    client.BaseAddress = new Uri(gatewayUrl);
+}).AddHttpMessageHandler<AuthHandler>();
 
 builder.Services.AddHttpClient("Unauthenticated", client =>
 {
-    client.BaseAddress = new Uri("http://131.189.232.222"!);
+    client.BaseAddress = new Uri(gatewayUrl);
 });
+
 
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>

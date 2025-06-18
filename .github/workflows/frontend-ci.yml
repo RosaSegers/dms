@@ -1,0 +1,101 @@
+name: Document Frontend CI
+
+on:
+  push:
+    paths:
+      - 'DocumentFrontend/**'
+      - '.github/workflows/document-frontend.yml'
+  pull_request:
+    paths:
+      - 'DocumentFrontend/**'
+      - '.github/workflows/document-frontend.yml'
+
+jobs:
+  setup:
+    uses: ./.github/workflows/setup-dotnet.yml
+    with:
+      dotnet_version: '8.0'
+
+  lint:
+    uses: ./.github/workflows/lint.yml
+    needs: setup
+    with:
+      solution_path: DocumentManagementSystem.sln
+
+  format:
+    uses: ./.github/workflows/format-check.yml
+    needs: setup
+    with:
+      solution_path: DocumentManagementSystem.sln
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, format]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          cd DocumentFrontend
+          dotnet restore
+          dotnet build --configuration Release
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+          - 15672:15672
+        options: >-
+          --health-cmd "rabbitmqctl status"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: docker compose -f docker-compose.e2e.yml up --build -d
+
+      - name: Wait for frontend to be ready
+        run: |
+          echo "Waiting for http://localhost:8080..."
+          for i in {1..30}; do
+            if curl -sSf http://localhost:8080 > /dev/null; then
+              echo "Frontend is up!"
+              break
+            fi
+            echo "Waiting..."
+            sleep 5
+          done
+
+      - name: Install Playwright CLI
+        run: dotnet tool install --global Microsoft.Playwright.CLI
+
+      - name: Install Playwright dependencies
+        run: playwright install
+
+      - name: Run E2E tests
+        run: |
+          cd FrontendEndToEnd
+          dotnet test --configuration Release
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-screenshots
+          path: FrontendEndToEnd/homepage-error.png
+
+      - name: Tear down environment
+        if: always()
+        run: docker compose -f docker-compose.e2e.yml down -v
+
+  snyk:
+    uses: ./.github/workflows/snyk.yml
+    needs: e2e
+    with:
+      solution_path: DocumentManagementSystem.sln
+    secrets:
+      snyk_token: ${{ secrets.SNYK_TOKEN }}
