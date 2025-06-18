@@ -28,7 +28,7 @@ services:
 
   user-api:
     build:
-      context: ./User/User.API
+      context: ./User
       dockerfile: Dockerfile
     container_name: user-api
     ports:

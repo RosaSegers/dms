@@ -10,7 +10,8 @@ namespace User.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Configuration.AddJsonFile("/Secrets/user-secrets.json", optional: false, reloadOnChange: false);
+            builder.Configuration.AddJsonFile("/Secrets/user-secrets.json", optional: true, reloadOnChange: false)
+                .AddEnvironmentVariables();
 
             builder.Services.AddCors(options =>
             {
