@@ -64,8 +64,6 @@ namespace DocumentFrontend.Services
 
         public Task<bool> UpdateUserAsync(UserModel updatedUser)
         {
-            // Simulate async update operation
-            // In real use, send HTTP PUT or PATCH request here
 
             // Return true to indicate success
             return Task.FromResult(true);
