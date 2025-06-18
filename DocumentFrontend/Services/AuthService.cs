@@ -62,7 +62,6 @@ namespace DocumentFrontend.Services
             return Task.FromResult(dummyUser);
         }
 
-        // Dummy method to update user info
         public Task<bool> UpdateUserAsync(UserModel updatedUser)
         {
             // Simulate async update operation
