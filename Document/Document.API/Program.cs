@@ -2,6 +2,7 @@ using Document.Api.Common.Interfaces;
 using Document.Api.Features;
 using Document.Api.Infrastructure;
 using Document.Api.Infrastructure.Services;
+using Prometheus;
 
 internal class Program
 {
@@ -39,6 +40,7 @@ internal class Program
 
         app.UseCors("ApiGateway");  
         app.MapHealthChecks("/health");
+        app.MapMetrics();
 
         app.UseAuthorization();
 

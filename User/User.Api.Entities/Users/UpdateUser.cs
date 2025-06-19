@@ -118,7 +118,6 @@ namespace User.Api.Features.Users
                     if (string.IsNullOrEmpty(request.Username) && string.IsNullOrEmpty(request.Email))
                         return Error.Validation("Either a username or email must be provided.");
 
-                    // Apply updates
                     if (!string.IsNullOrEmpty(request.Username))
                         user.Name = request.Username;
 
@@ -137,6 +136,7 @@ namespace User.Api.Features.Users
                         return Error.Conflict("The user was updated by another process. Please retry.");
 
                     await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+                    continue;
                 }
                 catch (Exception ex)
                 {

@@ -1,6 +1,7 @@
 using User.Api.Features;
 using User.Api.Domain;
 using User.Api.Infrastructure;
+using Prometheus;
 
 namespace User.API
 {
@@ -39,6 +40,7 @@ namespace User.API
 
             app.UseCors("ApiGateway");
             app.MapHealthChecks("/health");
+            app.MapMetrics();
 
             app.UseAuthentication();
             app.UseAuthorization();
