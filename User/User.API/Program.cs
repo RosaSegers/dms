@@ -38,6 +38,8 @@ namespace User.API
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseHttpMetrics();
+
             app.UseCors("ApiGateway");
             app.MapHealthChecks("/health");
             app.MapMetrics();

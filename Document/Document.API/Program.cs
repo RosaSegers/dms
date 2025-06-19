@@ -32,11 +32,11 @@ internal class Program
         builder.Services.AddInfrastructure();
         builder.Services.AddHealthChecks();
 
-
-
         var app = builder.Build();
         app.UseHttpsRedirection();
         app.UseRouting();
+
+        app.UseHttpMetrics();
 
         app.UseCors("ApiGateway");  
         app.MapHealthChecks("/health");
