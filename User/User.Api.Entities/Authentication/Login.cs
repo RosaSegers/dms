@@ -1,9 +1,11 @@
-﻿using ErrorOr;
+﻿using Azure.Core;
+using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using User.Api.Common.Interfaces;
 using User.Api.Infrastructure.Persistance;
 using User.Api.Infrastructure.Services;
@@ -45,8 +47,8 @@ namespace User.Api.Features.Authentication
     {
         public async Task<ErrorOr<LoginResult>> Handle(LoginQuery request, CancellationToken cancellationToken)
         {
-            var user = context.Users.Where(u => u.Email.ToLower() == request.Email.ToLower())
-                .SingleOrDefault();
+            var normalisedEmail = request.Email.ToLowerInvariant();
+            var user = await context.Users.SingleAsync(u => u.Email == normalisedEmail);
 
             if (user is null)
                 return Error.Unauthorized("Invalid credentials.");
@@ -58,16 +60,21 @@ namespace User.Api.Features.Authentication
             {
                 user.LastFailedLoginAttempt = DateTime.UtcNow;
                 user.LoginAttempts++;
+                await context.SaveChangesAsync(cancellationToken);
                 return Error.Unauthorized("Invalid credentials.");
             }
 
             user.LoginAttempts = 0;
             user.LastFailedLoginAttempt = null;
+            await context.SaveChangesAsync(cancellationToken);
 
-            var accessToken = jwt.GenerateToken(user);
-            var refreshToken = await refresh.GenerateAndStoreRefreshTokenAsync(user);
+            var accessTokenTask = Task.Run(() => jwt.GenerateToken(user));
+            var refreshTokenTask = refresh.GenerateAndStoreRefreshTokenAsync(user);
 
-            return new LoginResult(accessToken, refreshToken);
+            await Task.WhenAll(accessTokenTask, refreshTokenTask);
+
+            return new LoginResult(accessTokenTask.Result, refreshTokenTask.Result);
         }
     }
 }
+

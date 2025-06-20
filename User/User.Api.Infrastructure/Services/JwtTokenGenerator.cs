@@ -45,15 +45,28 @@ namespace User.Api.Infrastructure.Services
 
         public async Task<string> GenerateAndStoreRefreshTokenAsync(Domain.Entities.User user)
         {
-            var newRefreshToken = GenerateRefreshToken();
+            var token = GenerateRefreshToken();
 
-            await RevokeOldRefreshTokenAsync(user);
+            var existingTokens = await _context.RefreshTokens
+                .Where(rt => rt.UserId == user.Id && !rt.IsRevoked)
+                .ToListAsync();
 
-            await SaveRefreshTokenAsync(user, newRefreshToken);
+            foreach (var t in existingTokens)
+                t.IsRevoked = true;
 
-            return newRefreshToken;
+            _context.RefreshTokens.Add(new RefreshToken
+            {
+                UserId = user.Id,
+                Token = token,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+            });
 
+            await _context.SaveChangesAsync();
+
+            return token;
         }
+
 
         public async Task RevokeOldRefreshTokenAsync(Domain.Entities.User user)
         {
@@ -63,21 +76,6 @@ namespace User.Api.Infrastructure.Services
             {
                 oldToken.IsRevoked = true;
             }
-
-            await _context.SaveChangesAsync();
-        }
-
-        private async Task SaveRefreshTokenAsync(Domain.Entities.User user, string refreshToken)
-        {
-            var refreshTokenEntity = new RefreshToken
-            {
-                UserId = user.Id,
-                Token = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.RefreshTokens.Add(refreshTokenEntity);
 
             await _context.SaveChangesAsync();
         }

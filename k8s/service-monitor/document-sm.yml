@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: document-api-servicemonitor
+  namespace: default
+  labels:
+    release: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: document-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

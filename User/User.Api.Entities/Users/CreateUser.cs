@@ -101,7 +101,7 @@ namespace User.Api.Features.Users
             {
                 var user = new Domain.Entities.User(
                     request.Username,
-                    request.Email,
+                    request.Email.ToLowerInvariant(),
                     hashingService.Hash(request.Password)
                 );
 

@@ -31,12 +31,16 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /health
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             requests:
               cpu: 100m

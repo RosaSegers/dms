@@ -122,7 +122,7 @@ namespace User.Api.Features.Users
                         user.Name = request.Username;
 
                     if (!string.IsNullOrEmpty(request.Email))
-                        user.Email = request.Email;
+                        user.Email = request.Email.ToLowerInvariant();
 
                     await _context.SaveChangesAsync(cancellationToken);
 
