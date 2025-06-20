@@ -10,11 +10,25 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0'
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ inputs.solution_path }}
+
+      - name: Check code formatting
+        run: dotnet format ${{ inputs.solution_path }} --verify-no-changes
+        continue-on-error: true
+
       - name: Build with warnings as errors
         run: dotnet build ${{ inputs.solution_path }} -warnaserror
+        continue-on-error: true
+
+      - name: Run analyzers explicitly
+        run: dotnet build ${{ inputs.solution_path }} -p:RunAnalyzers=true -warnaserror
         continue-on-error: true
