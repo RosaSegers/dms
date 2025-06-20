@@ -11,8 +11,8 @@ namespace Document.Api.Infrastructure.Background
 
         public void Enqueue(DocumentScanQueueItem item) => _queue.Enqueue(item);
 
-        public bool TryDequeue(out DocumentScanQueueItem item) => _queue.TryDequeue(out item);
+        public bool TryDequeue(out DocumentScanQueueItem item) => _queue.TryDequeue(out item!);
 
-        public bool TryPeek(out DocumentScanQueueItem item) => _queue.TryPeek(out item);
+        public bool TryPeek(out DocumentScanQueueItem item) => _queue.TryPeek(out item!);
     }
 }

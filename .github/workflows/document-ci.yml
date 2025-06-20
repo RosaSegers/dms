@@ -30,10 +30,11 @@ jobs:
 
   secrets:
     uses: ./.github/workflows/gitguardian.yml
-    secrets:
-      GG_SHIELD_API_KEY: ${{ secrets.GG_SHIELD_API_KEY }}
     with:
       base_branch: 'origin/main'
+    secrets:
+      GG_SHIELD_API_KEY: ${{ secrets.GG_SHIELD_API_KEY }}
+
 
   build:
     runs-on: ubuntu-latest
