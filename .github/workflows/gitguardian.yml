@@ -25,6 +25,7 @@ jobs:
 
       - name: Scan recent commits for secrets
         run: |
-          ggshield secret scan commit-range ${{ inputs.base_branch }}...HEAD
+          BASE_SHA=$(git merge-base origin/main HEAD)
+          ggshield secret scan commit-range $BASE_SHA..HEAD
         env:
           GITGUARDIAN_API_KEY: ${{ secrets.GG_SHIELD_API_KEY }}

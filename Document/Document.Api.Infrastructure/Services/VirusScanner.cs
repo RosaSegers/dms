@@ -201,8 +201,7 @@ namespace Document.Api.Infrastructure.Services
                         continue;
                     }
 
-                    JsonElement statsElement;
-                    if (!attributes.TryGetProperty("last_analysis_stats", out statsElement) &&
+                    if (!attributes.TryGetProperty("last_analysis_stats", out JsonElement statsElement) &&
                         !attributes.TryGetProperty("stats", out statsElement))
                     {
                         Console.WriteLine("[VirusScanner] No stats found.");
