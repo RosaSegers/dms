@@ -14,7 +14,8 @@ internal class Program
 
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy(name: "ApiGateway",
+            options.AddPolicy(
+                name: "ApiGateway",
                 policy =>
                 {
                     policy.WithOrigins("api-gateway")
@@ -38,9 +39,9 @@ internal class Program
 
         app.UseHttpMetrics();
 
-        app.UseCors("ApiGateway");  
+        app.UseCors("ApiGateway");
         app.MapHealthChecks("/health");
-        app.MapHealthChecks("/ready"); 
+        app.MapHealthChecks("/ready");
 
         app.MapMetrics();
 
