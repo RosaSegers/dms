@@ -5,7 +5,12 @@ metadata:
   labels:
     app: document-api
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: document-api
@@ -18,12 +23,20 @@ spec:
         - name: document-api
           image: gyliana/document-api:latest
           imagePullPolicy: Always
-          volumeMounts:
-            - name: secret-volume
-              mountPath: "/Secrets"
-              readOnly: true
           ports:
             - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
           resources:
             requests:
               cpu: 100m
@@ -31,6 +44,10 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+          volumeMounts:
+            - name: secret-volume
+              mountPath: "/Secrets"
+              readOnly: true
       volumes:
         - name: secret-volume
           secret:

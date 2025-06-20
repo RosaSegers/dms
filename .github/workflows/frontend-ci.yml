@@ -28,6 +28,13 @@ jobs:
     with:
       solution_path: DocumentManagementSystem.sln
 
+  secrets:
+    uses: ./.github/workflows/gitguardian.yml
+    secrets:
+      GG_SHIELD_API_KEY: ${{ secrets.GG_SHIELD_API_KEY }}
+    with:
+      base_branch: 'origin/main'
+
   build:
     runs-on: ubuntu-latest
     needs: [lint, format]

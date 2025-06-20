@@ -14,15 +14,19 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const fileBytes = open('./Code Snippets.docx', 'b');
 
 export let options = {
-  vus: 50,
-  duration: '20m',
+  stages: [
+    { duration: '60s', target: 50 },  // ramp to 100 VUs fast
+    { duration: '30s', target: 100 },  // ramp to 300 VUs quickly
+    { duration: '1m', target: 300 },   // ramp to 600 VUs aggressively
+    { duration: '2m', target: 600 },  // ramp to 1000 VUs fast
+    { duration: '3m', target: 1000 },  // hold peak load for 3 minutes
+  ],
   thresholds: {
-    login_duration: ['p(95)<1000'],
-    upload_duration: ['p(95)<2000'],
-    http_req_duration: ['p(95)<3000'],
+    http_req_failed: ['rate<0.2'], // allow 20% failure rate for stress
   },
   insecureSkipTLSVerify: true,
 };
+
 
 export default function () {
   // --- LOGIN ---
@@ -30,7 +34,7 @@ export default function () {
   loginForm.append('Email', 'rosa.segers.2001@gmail.com');
   loginForm.append('Password', 'PasswordPassword');
 
-  const loginRes = http.post('http://localhost:8080/gateway/auth/login', loginForm.body(), {
+  const loginRes = http.post('http://131.189.232.222/gateway/auth/login', loginForm.body(), {
     headers: { 'Content-Type': `multipart/form-data; boundary=${loginForm.boundary}` },
     tags: { endpoint: '/auth/login' },
   });
@@ -50,7 +54,7 @@ export default function () {
   sleep(Math.random() * 2 + 1);
 
   // --- PROFILE ---
-  const profileRes = http.get('http://localhost:8080/gateway/users/me', {
+  const profileRes = http.get('http://131.189.232.222/gateway/users/me', {
     headers: { Authorization: `Bearer ${token}` },
     tags: { endpoint: '/users/me' },
   });
@@ -85,7 +89,7 @@ if (fileBytes.length > MAX_FILE_SIZE_BYTES) {
     content_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   });
 
-  const uploadRes = http.post('http://localhost:8080/gateway/documents', uploadForm.body(), {
+  const uploadRes = http.post('http://131.189.232.222/gateway/documents', uploadForm.body(), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': `multipart/form-data; boundary=${uploadForm.boundary}`,

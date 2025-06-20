@@ -1,0 +1,27 @@
+name: GitGuardian Secrets Scan
+
+on:
+  workflow_call:
+    inputs:
+      base_branch:
+        required: false
+        type: string
+        default: 'origin/main'
+
+jobs:
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required to compare commits
+
+      - name: Install GitGuardian CLI
+        run: |
+          pip install --no-cache-dir ggshield
+
+      - name: Scan recent commits for secrets
+        run: |
+          ggshield secret scan commits ${{ inputs.base_branch }}...HEAD
+        env:
+          GITGUARDIAN_API_KEY: ${{ secrets.GG_SHIELD_API_KEY }}
