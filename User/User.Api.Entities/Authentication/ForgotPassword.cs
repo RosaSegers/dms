@@ -52,7 +52,7 @@ namespace User.Api.Features.Authentication
 
     public sealed class ForgotPasswordCommandHandler(UserDatabaseContext context) : IRequestHandler<ForgotPasswordCommand, ErrorOr<Unit>>
     {
-        private readonly EmailClient emailClient = new EmailClient("");
+        private readonly EmailClient emailClient = new("");
 
         public async Task<ErrorOr<Unit>> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
         {
