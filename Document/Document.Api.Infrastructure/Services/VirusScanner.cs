@@ -7,18 +7,11 @@ using System.Security.Cryptography;
 
 namespace Document.Api.Infrastructure.Services
 {
-    public class VirusScanner : IVirusScanner
+    public class VirusScanner(HttpClient httpClient, IConfiguration config) : IVirusScanner
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _apiKey;
+        private readonly string _apiKey = config["VirusTotal"] ?? throw new Exception("VirusTotal API key not found in configuration.");
         private const string UploadUrl = "https://www.virustotal.com/api/v3/files";
         private const string AnalysisUrlTemplate = "https://www.virustotal.com/api/v3/files/{0}";
-
-        public VirusScanner(HttpClient httpClient, IConfiguration config)
-        {
-            _httpClient = httpClient;
-            _apiKey = config["VirusTotal"] ?? throw new Exception("VirusTotal API key not found in configuration.");
-        }
 
         public async Task<bool> ScanFile(IFormFile file)
         {
@@ -110,7 +103,7 @@ namespace Document.Api.Infrastructure.Services
             };
             request.Headers.Add("x-apikey", _apiKey);
 
-            var response = await _httpClient.SendAsync(request);
+            var response = await httpClient.SendAsync(request);
             Console.WriteLine($"[VirusScanner] Upload response status: {response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
@@ -134,7 +127,7 @@ namespace Document.Api.Infrastructure.Services
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             request.Headers.Add("x-apikey", _apiKey);
 
-            var response = await _httpClient.SendAsync(request);
+            var response = await httpClient.SendAsync(request);
             Console.WriteLine($"[VirusScanner] Hash check status: {response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
@@ -171,7 +164,7 @@ namespace Document.Api.Infrastructure.Services
                     var request = new HttpRequestMessage(HttpMethod.Get, analysisUrl);
                     request.Headers.Add("x-apikey", _apiKey);
 
-                    var response = await _httpClient.SendAsync(request);
+                    var response = await httpClient.SendAsync(request);
                     Console.WriteLine($"[VirusScanner] Analysis check status: {response.StatusCode}");
 
                     if (!response.IsSuccessStatusCode)
