@@ -32,8 +32,8 @@ namespace User.Api.Test.Unit
 
             var users = new List<Domain.Entities.User>
             {
-                new Domain.Entities.User("Rosa1", "Rosa1@Email.com", "HashedPassword1"),
-                new Domain.Entities.User("Rosa2", "Rosa2@Email.com", "HashedPassword2")
+                new Domain.Entities.User("Rosa1", "rosa1@email.com", "HashedPassword1"),
+                new Domain.Entities.User("Rosa2", "rosa2@email.com", "HashedPassword2")
             };
 
             var optionsBuilder = new DbContextOptionsBuilder<UserDatabaseContext>();
@@ -46,7 +46,7 @@ namespace User.Api.Test.Unit
         public async Task Handle_ShouldReturnError_WhenInvalidPassword()
         {
             // Arrange
-            var command = new LoginQuery("Rosa1@Email.com", "WrongPassword");
+            var command = new LoginQuery("rosa1@email.com", "WrongPassword");
             var handler = new LoginQueryHandler(
                 _dbContextMock.Object,
                 _jwtTokenGeneratorMock.Object,
@@ -68,7 +68,7 @@ namespace User.Api.Test.Unit
         public async Task Handle_ShouldReturnTokens_WhenValidCredentials()
         {
             // Arrange
-            var command = new LoginQuery("Rosa1@Email.com", "CorrectPassword");
+            var command = new LoginQuery("rosa1@email.com", "CorrectPassword");
             var handler = new LoginQueryHandler(
                 _dbContextMock.Object,
                 _jwtTokenGeneratorMock.Object,

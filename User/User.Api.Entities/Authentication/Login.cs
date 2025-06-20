@@ -48,7 +48,7 @@ namespace User.Api.Features.Authentication
         public async Task<ErrorOr<LoginResult>> Handle(LoginQuery request, CancellationToken cancellationToken)
         {
             var normalisedEmail = request.Email.ToLowerInvariant();
-            var user = await context.Users.SingleAsync(u => u.Email == normalisedEmail);
+            var user = await context.Users.SingleOrDefaultAsync(u => u.Email == normalisedEmail);
 
             if (user is null)
                 return Error.Unauthorized("Invalid credentials.");
