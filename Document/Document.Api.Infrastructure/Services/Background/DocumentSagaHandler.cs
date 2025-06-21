@@ -137,7 +137,7 @@ namespace Document.Api.Infrastructure.Services
             }
         }
 
-        public record DeleteDocumentByUserIdCommand(Guid Id) : IRequest<ErrorOr<Unit>>;
-        public record ExistsDocumentByUserIdQuery(Guid Id) : IRequest<ErrorOr<bool>>;
+        public record DeleteDocumentByUserIdCommand(Guid UserId) : IRequest<ErrorOr<Unit>>;
+        public record ExistsDocumentByUserIdQuery(Guid UserId) : IRequest<ErrorOr<bool>>;
     }
 }

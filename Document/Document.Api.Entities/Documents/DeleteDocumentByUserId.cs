@@ -15,7 +15,7 @@ namespace Document.Api.Features.Documents
 
         public async Task<ErrorOr<Unit>> Handle(DeleteDocumentByUserIdCommand request, CancellationToken cancellationToken)
         {
-            Console.WriteLine($"[DeleteCommandHandler] Deleting documents for user: {request.Id}");
+            Console.WriteLine($"[DeleteCommandHandler] Deleting documents for user: {request.UserId}");
 
             var allEvents = await _storage.GetDocumentList();
             var eventsByDoc = allEvents.GroupBy(e => e.DocumentId).ToList();
@@ -45,7 +45,7 @@ namespace Document.Api.Features.Documents
 
                 try
                 {
-                    if(document.UserId == request.Id)
+                    if(document.UserId == request.UserId)
                     {
                         await _blobStorage.DeletePrefixAsync($"{document.Id}/");
                         await _storage.DeleteDocument(document.Id);
@@ -59,7 +59,7 @@ namespace Document.Api.Features.Documents
 
             }
 
-            Console.WriteLine($"[DeleteCommandHandler] Finished deleting {documents.Count} documents for user: {request.Id}");
+            Console.WriteLine($"[DeleteCommandHandler] Finished deleting {documents.Count} documents for user: {request.UserId}");
 
             return Unit.Value;
         }

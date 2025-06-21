@@ -22,7 +22,7 @@ namespace Document.Api.Features.Documents
 
         public async Task<ErrorOr<bool>> Handle(ExistsDocumentByUserIdQuery request, CancellationToken cancellationToken)
         {
-            Console.WriteLine($"[ExistsQueryHandler] Checking if documents exist for user: {request.Id}");
+            Console.WriteLine($"[ExistsQueryHandler] Checking if documents exist for user: {request.UserId}");
 
             var allEvents = await _storage.GetDocumentList();
             var eventsByDoc = allEvents.GroupBy(e => e.DocumentId).ToList();
