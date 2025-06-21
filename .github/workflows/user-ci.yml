@@ -107,7 +107,9 @@ jobs:
 
       - name: Collect User API container logs
         if: always()
-        run: docker logs user-api || echo "No logs available or container stopped."
+        run: |
+          docker logs user-api || echo "No logs available or container stopped."
+          docker logs document-api || echo "No logs available or container stopped."
 
       - name: Tear down Docker Compose environment
         if: always()
