@@ -82,9 +82,9 @@ jobs:
 
       - name: Wait for User API to be ready
         run: |
-          echo "Waiting for http://localhost:5001..."
+          echo "Waiting for http://localhost:80..."
           for i in {1..30}; do
-            if curl -sSf http://localhost:5001 > /dev/null; then
+            if curl -sSf http://localhost:80 > /dev/null; then
               echo "User API is up!"
               exit 0
             fi

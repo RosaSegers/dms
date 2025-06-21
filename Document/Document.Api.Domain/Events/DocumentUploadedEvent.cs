@@ -6,11 +6,11 @@ namespace Document.Api.Domain.Events
 {
     public class DocumentUploadedEvent : DocumentEventBase
     {
-        public string DocumentName { get; set; }
-        public string DocumentDescription { get; set; }
-        public string FileName { get; set; }
-        public string FileUrl { get; set; }
-        public string ContentType { get; set; }
+        public string DocumentName { get; set; } = string.Empty;
+        public string DocumentDescription { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public string FileUrl { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
         public long FileSize { get; set; }
         public Guid UploadedByUserId { get; set; }  
         public string[]? Tags { get; set; } = Array.Empty<string>();

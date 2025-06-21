@@ -12,7 +12,7 @@ namespace User.Api.IntegrationTests
         {
             _client = new HttpClient
             {
-                BaseAddress = new Uri("http://localhost:5285") // API Gateway exposed port
+                BaseAddress = new Uri("http://localhost:5001") // API Gateway exposed port
             };
         }
 
