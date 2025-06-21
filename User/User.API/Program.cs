@@ -9,6 +9,7 @@ namespace User.API
     {
         public static void Main(string[] args)
         {
+            // Create a new web application builder
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Configuration.AddJsonFile("/Secrets/user-secrets.json", optional: true, reloadOnChange: false)

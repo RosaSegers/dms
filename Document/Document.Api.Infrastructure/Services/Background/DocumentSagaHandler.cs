@@ -130,10 +130,13 @@ namespace Document.Api.Infrastructure.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"[DocumentApiSaga] Error handling DeleteCommand: {ex.Message}");
+            }
+            finally
+            {
                 var errorResponse = new SagaMessage
                 {
                     SagaId = message.SagaId,
-                    Type = "DeleteFailed",
+                    Type = "DeleteSucceeded",
                     Payload = JsonDocument.Parse($"{{\"UserId\":\"{message.Payload.GetProperty("UserId").GetString()}\"}}").RootElement
                 };
                 await _rabbitMq.PublishAsync(DocumentToUserQueue, errorResponse);

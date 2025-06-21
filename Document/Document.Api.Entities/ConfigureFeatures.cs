@@ -48,8 +48,8 @@ namespace Document.Api.Features
             services.AddMediatR(options =>
             {
                 options.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
-                //options.AddOpenBehavior(typeof(ValidationBehaviour<,>));
-                //options.AddOpenBehavior(typeof(LoggingBehaviour<,>));
+                options.AddOpenBehavior(typeof(ValidationBehaviour<,>));
+                options.AddOpenBehavior(typeof(LoggingBehaviour<,>));
             });
 
             services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly, includeInternalTypes: true);
