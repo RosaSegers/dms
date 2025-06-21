@@ -1,6 +1,7 @@
 using FluentAssertions;
 using System.Net.Http.Json;
 using System.Net;
+using System.Text.Json;
 
 namespace User.Api.IntegrationTests
 {
@@ -30,7 +31,8 @@ namespace User.Api.IntegrationTests
             createResponse.EnsureSuccessStatusCode();
 
             var userIdString = await createResponse.Content.ReadAsStringAsync();
-            var userId = Guid.Parse(userIdString);
+            var userId = JsonSerializer.Deserialize<string>(userIdString);
+            var userGuid = Guid.Parse(userId!);
 
             var deleteResponse = await _client.DeleteAsync($"/api/users/{userId}");
             deleteResponse.EnsureSuccessStatusCode();
