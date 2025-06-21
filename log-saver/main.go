@@ -69,7 +69,6 @@ func main() {
 		},
 	})
 
-	// Test Redis connection
 	if err := redisClient.Ping(ctx).Err(); err != nil {
 		log.Fatalf("Failed to connect to Redis at %s: %v", redisAddr, err)
 	}

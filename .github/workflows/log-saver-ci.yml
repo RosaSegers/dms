@@ -20,7 +20,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin v1.56.2
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
       - name: Run linter
-        run: golangci-lint run ./log-saver/...
+        run: golangci-lint run ./...
 
   format:
     runs-on: ubuntu-latest
