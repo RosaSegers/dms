@@ -18,6 +18,7 @@ namespace User.Api.Infrastructure.Persistance.Factories
 
             var optionsBuilder = new DbContextOptionsBuilder<UserDatabaseContext>();
 
+            // Configure the database connection string
             var connectionString = configuration.GetConnectionString("DefaultConnection");
             optionsBuilder.UseSqlServer(connectionString);
 

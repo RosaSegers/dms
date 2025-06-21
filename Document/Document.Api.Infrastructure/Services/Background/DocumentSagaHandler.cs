@@ -112,7 +112,10 @@ namespace Document.Api.Infrastructure.Services
                 Console.WriteLine($"[DocumentApiSaga] Deleting documents for user {UserId}");
 
                 var command = new DeleteDocumentByUserIdCommand(UserId);
+                Console.WriteLine($"[DocumentApiSaga] Sending DeleteDocumentByUserIdCommand for user {UserId}");
+
                 var result = await _mediator.Send(command);
+                Console.WriteLine($"DeleteDocumentByUserIdCommand result: {result.IsError} / {result.Value}");
 
                 SagaMessage response = new()
                 {
