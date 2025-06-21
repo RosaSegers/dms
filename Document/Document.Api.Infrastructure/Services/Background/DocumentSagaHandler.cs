@@ -56,26 +56,52 @@ namespace Document.Api.Infrastructure.Services
 
         private async Task HandlePrepareDeleteAsync(SagaMessage message)
         {
-            var userId = message.Payload.GetProperty("UserId").GetString();
-            Console.WriteLine($"[DocumentApiSaga] Preparing to delete documents for user {userId}");
-
-            var existsQuery = new ExistsDocumentByUserIdQuery(Guid.Parse(userId));
-            var existsResult = await _mediator.Send(existsQuery);
-
-            if (!existsResult.Value)
+            try
             {
-                Console.WriteLine($"[DocumentApiSaga] No documents found for user {userId}");
+                Console.WriteLine($"[DocumentApiSaga] Handling PrepareDeleteCommand for saga {message.SagaId}");
+
+                var userId = message.Payload.GetProperty("UserId").GetString();
+                Console.WriteLine($"[DocumentApiSaga] Preparing to delete documents for user {userId}");
+
+                var existsQuery = new ExistsDocumentByUserIdQuery(Guid.Parse(userId));
+                var existsResult = await _mediator.Send(existsQuery);
+
+                Console.WriteLine($"ExistsDocumentByUserIdQuery result: {existsResult.IsError} / {existsResult.Value}");
+
+                if (!existsResult.Value)
+                {
+                    Console.WriteLine($"[DocumentApiSaga] No documents found for user {userId}");
+                }
+
+                var ackMessage = new SagaMessage
+                {
+                    SagaId = message.SagaId,
+                    Type = "PrepareDeleteAcknowledged",
+                    Payload = JsonDocument.Parse($"{{\"UserId\":\"{userId}\"}}").RootElement
+                };
+
+                await _rabbitMq.PublishAsync(DocumentToUserQueue, ackMessage);
+                Console.WriteLine("[DocumentApiSaga] Sent PrepareDeleteAcknowledged");
             }
-
-            var ackMessage = new SagaMessage
+            catch (Exception ex)
             {
-                SagaId = message.SagaId,
-                Type = "PrepareDeleteAcknowledged",
-                Payload = JsonDocument.Parse($"{{\"UserId\":\"{userId}\"}}").RootElement
-            };
+                Console.WriteLine($"[DocumentApiSaga] Error handling PrepareDeleteCommand: {ex.Message}");
+                return;
+            }
+            finally
+            {
+                var userId = message.Payload.GetProperty("UserId").GetString();
 
-            await _rabbitMq.PublishAsync(DocumentToUserQueue, ackMessage);
-            Console.WriteLine("[DocumentApiSaga] Sent PrepareDeleteAcknowledged");
+                var ackMessage = new SagaMessage
+                {
+                    SagaId = message.SagaId,
+                    Type = "PrepareDeleteAcknowledged",
+                    Payload = JsonDocument.Parse($"{{\"UserId\":\"{userId}\"}}").RootElement
+                };
+
+                await _rabbitMq.PublishAsync(DocumentToUserQueue, ackMessage);
+                Console.WriteLine("[DocumentApiSaga] Sent PrepareDeleteAcknowledged");
+            }
         }
 
         private async Task HandleDeleteAsync(SagaMessage message)

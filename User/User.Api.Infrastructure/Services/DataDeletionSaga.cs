@@ -18,6 +18,7 @@ namespace User.Api.Infrastructure.Services
         public UserApiSaga(IConfiguration configuration, UserDatabaseContext dbContext)
             : base(configuration.GetSection("RabbitMQ:Host").Value ?? "")
         {
+            // Initialize RabbitMQ queues and consumers
             Console.WriteLine("[UserApiSaga] Initializing queues and consumers");
 
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext), "UserDatabaseContext must not be null");
