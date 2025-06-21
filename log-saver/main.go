@@ -34,7 +34,6 @@ func main() {
 	redisAddr := mustReadSecret("/secrets/redis-addr")
 	redisPassword := mustReadSecret("/secrets/redis-password")
 
-	// Connect to RabbitMQ
 	conn, err := amqp091.Dial(rabbitmqURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
