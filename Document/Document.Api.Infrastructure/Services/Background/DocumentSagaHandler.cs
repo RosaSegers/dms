@@ -136,7 +136,7 @@ namespace Document.Api.Infrastructure.Services
                 var errorResponse = new SagaMessage
                 {
                     SagaId = message.SagaId,
-                    Type = "DeleteSucceeded",
+                    Type = "DeleteFailed",
                     Payload = JsonDocument.Parse($"{{\"UserId\":\"{message.Payload.GetProperty("UserId").GetString()}\"}}").RootElement
                 };
                 await _rabbitMq.PublishAsync(DocumentToUserQueue, errorResponse);

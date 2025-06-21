@@ -14,11 +14,17 @@ using static Document.Api.Infrastructure.Services.DocumentApiSaga;
 
 namespace Document.Api.Features.Documents
 {
+#if TEST
+    public sealed class ExistsDocumentByUserIdQueryHandler(IDocumentStorage storage)
+#else
     public sealed class ExistsDocumentByUserIdQueryHandler(IDocumentStorage storage, IBlobStorageService blobStorage)
+#endif
         : IRequestHandler<ExistsDocumentByUserIdQuery, ErrorOr<bool>>
     {
         private readonly IDocumentStorage _storage = storage;
+#if !TEST
         private readonly IBlobStorageService _blobStorage = blobStorage;
+#endif
 
         public async Task<ErrorOr<bool>> Handle(ExistsDocumentByUserIdQuery request, CancellationToken cancellationToken)
         {

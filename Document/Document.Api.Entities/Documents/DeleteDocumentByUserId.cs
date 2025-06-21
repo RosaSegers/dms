@@ -7,11 +7,17 @@ using static Document.Api.Infrastructure.Services.DocumentApiSaga;
 
 namespace Document.Api.Features.Documents
 {
+#if TEST
+    public sealed class DeleteDocumentByUserIdCommandHandler(IDocumentStorage storage)
+#else
     public sealed class DeleteDocumentByUserIdCommandHandler(IDocumentStorage storage, IBlobStorageService blobStorage)
+#endif
         : IRequestHandler<DeleteDocumentByUserIdCommand, ErrorOr<Unit>>
     {
         private readonly IDocumentStorage _storage = storage;
+#if !TEST
         private readonly IBlobStorageService _blobStorage = blobStorage;
+#endif
 
         public async Task<ErrorOr<Unit>> Handle(DeleteDocumentByUserIdCommand request, CancellationToken cancellationToken)
         {
@@ -53,7 +59,9 @@ namespace Document.Api.Features.Documents
                 {
                     if(document.UserId == request.UserId)
                     {
+#if !TEST
                         await _blobStorage.DeletePrefixAsync($"{document.Id}/");
+#endif
                         await _storage.DeleteDocument(document.Id);
                     }
                 }
