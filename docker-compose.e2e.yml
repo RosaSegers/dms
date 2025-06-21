@@ -21,7 +21,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: user-sqlserver
     ports:
-      - "1434:1434"
+      - "1433:1433"
     environment:
       SA_PASSWORD: "YourStrong!Password"
       ACCEPT_EULA: "Y"
@@ -37,7 +37,7 @@ services:
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__Credentials__Username: "Guest"
       RabbitMQ__Credentials__Password: "Guest"
-      ConnectionStrings__DefaultConnection: "Server=user-sqlserver,1434;Initial Catalog=UserDb;Persist Security Info=False;User ID=sa;Password=YourStrong!Password;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"
+      ConnectionStrings__DefaultConnection: "Server=user-sqlserver;Initial Catalog=UserDb;Persist Security Info=False;User ID=sa;Password=YourStrong!Password;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"
       Jwt__Key: "SuperSecretDebugKeyForTesting12345"
       Logging__LogLevel__Default: "Information"
       Logging__LogLevel__Microsoft.AspNetCore: "Warning"

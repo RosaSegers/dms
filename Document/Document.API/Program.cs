@@ -11,7 +11,8 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Configuration.AddJsonFile("/Secrets/document-secrets.json", optional: false, reloadOnChange: false);
+        builder.Configuration.AddJsonFile("/Secrets/document-secrets.json", optional: true, reloadOnChange: false)
+            .AddEnvironmentVariables();
 
         builder.Services.AddCors(options =>
         {

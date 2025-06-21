@@ -18,6 +18,7 @@ namespace User.Api.Infrastructure.Services
         public UserApiSaga(IConfiguration configuration, UserDatabaseContext dbContext)
             : base(configuration.GetSection("RabbitMQ:Host").Value ?? "")
         {
+            // Ensure the database context is not null
             _dbContext = dbContext;
 
             DeclareQueueAsync(UserToDocumentQueue).Wait();
