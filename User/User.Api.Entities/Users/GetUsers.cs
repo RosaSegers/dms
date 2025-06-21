@@ -54,7 +54,6 @@ namespace User.Api.Features.Users
 
         public async Task<ErrorOr<PaginatedList<Domain.Dtos.User>>> Handle(GetUsersWithPaginationQuery request, CancellationToken cancellationToken)
         {
-            // Get all users
             var x = await _context.Users
                 .OrderBy(item => item.Name)
                 .PaginatedListAsync(request.PageNumber, request.PageSize);

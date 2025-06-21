@@ -27,7 +27,7 @@ namespace Document.Api.Infrastructure.Services
             await _rabbitMq.DeclareQueueAsync(UserToDocumentQueue);
             await _rabbitMq.DeclareQueueAsync(DocumentToUserQueue);
 
-            _rabbitMq.StartConsumer(UserToDocumentQueue, OnUserMessageReceivedAsync);
+            await _rabbitMq.StartConsumer(UserToDocumentQueue, OnUserMessageReceivedAsync);
 
             Console.WriteLine("[DocumentApiSaga] Listening for saga messages...");
 
@@ -80,7 +80,7 @@ namespace Document.Api.Infrastructure.Services
 
         private async Task HandleDeleteAsync(SagaMessage message)
         {
-            var userId = message.Payload.GetProperty("DocumentId").GetString();
+            var userId = message.Payload.GetProperty("UserId").GetString();
             Console.WriteLine($"[DocumentApiSaga] Deleting documents for user {userId}");
 
             var command = new DeleteDocumentByUserIdCommand(Guid.Parse(userId));
