@@ -74,7 +74,6 @@ func main() {
 	}
 	log.Printf("Connected to Redis at %s", redisAddr)
 
-	// Handle graceful shutdown
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
 
