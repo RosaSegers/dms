@@ -84,7 +84,7 @@ jobs:
         run: |
           echo "Waiting for http://localhost:5001..."
           for i in {1..30}; do
-            if curl -sSf http://localhost:5001 > /dev/null; then
+            if curl -sSf http://localhost:5001/health > /dev/null; then
               echo "User API is up!"
               exit 0
             fi
@@ -104,10 +104,6 @@ jobs:
         run: |
           cd User/User.Api.IntegrationTests
           dotnet test --configuration Release
-
-      - name: Collect User API container logs
-        if: always()
-        run: docker logs user-api || echo "No logs available or container stopped."
 
       - name: Tear down Docker Compose environment
         if: always()
