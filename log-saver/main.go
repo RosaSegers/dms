@@ -29,6 +29,8 @@ type LogMessage struct {
 	Metadata    string `json:"Metadata"`
 }
 
+// comment to test
+
 func main() {
 	rabbitmqURL := mustReadSecret("/secrets/rabbitmq-url")
 	redisAddr := mustReadSecret("/secrets/redis-addr")
