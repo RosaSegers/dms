@@ -106,21 +106,35 @@ namespace Document.Api.Infrastructure.Services
 
         private async Task HandleDeleteAsync(SagaMessage message)
         {
-            var userId = message.Payload.GetProperty("UserId").GetString();
-            Console.WriteLine($"[DocumentApiSaga] Deleting documents for user {userId}");
-
-            var command = new DeleteDocumentByUserIdCommand(Guid.Parse(userId));
-            var result = await _mediator.Send(command);
-
-            SagaMessage response = new()
+            try
             {
-                SagaId = message.SagaId,
-                Type = result.IsError ? "DeleteFailed" : "DeleteSucceeded",
-                Payload = JsonDocument.Parse($"{{\"UserId\":\"{userId}\"}}").RootElement
-            };
+                var userId = message.Payload.GetProperty("UserId").GetString();
+                Console.WriteLine($"[DocumentApiSaga] Deleting documents for user {userId}");
 
-            Console.WriteLine($"[DocumentApiSaga] Deletion {(result.IsError ? "failed" : "succeeded")} for user {userId}");
-            await _rabbitMq.PublishAsync(DocumentToUserQueue, response);
+                var command = new DeleteDocumentByUserIdCommand(Guid.Parse(userId));
+                var result = await _mediator.Send(command);
+
+                SagaMessage response = new()
+                {
+                    SagaId = message.SagaId,
+                    Type = result.IsError ? "DeleteFailed" : "DeleteSucceeded",
+                    Payload = JsonDocument.Parse($"{{\"UserId\":\"{userId}\"}}").RootElement
+                };
+
+                Console.WriteLine($"[DocumentApiSaga] Deletion {(result.IsError ? "failed" : "succeeded")} for user {userId}");
+                await _rabbitMq.PublishAsync(DocumentToUserQueue, response);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DocumentApiSaga] Error handling DeleteCommand: {ex.Message}");
+                var errorResponse = new SagaMessage
+                {
+                    SagaId = message.SagaId,
+                    Type = "DeleteFailed",
+                    Payload = JsonDocument.Parse($"{{\"UserId\":\"{message.Payload.GetProperty("UserId").GetString()}\"}}").RootElement
+                };
+                await _rabbitMq.PublishAsync(DocumentToUserQueue, errorResponse);
+            }
         }
 
         public record DeleteDocumentByUserIdCommand(Guid Id) : IRequest<ErrorOr<Unit>>;

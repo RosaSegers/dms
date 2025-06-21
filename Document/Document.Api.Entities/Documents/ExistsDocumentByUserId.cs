@@ -14,20 +14,30 @@ using static Document.Api.Infrastructure.Services.DocumentApiSaga;
 
 namespace Document.Api.Features.Documents
 {
-    public sealed class ExistsDocumentByUserIdQueryHandler(IDocumentStorage storage, IBlobStorageService blobStorage) : IRequestHandler<ExistsDocumentByUserIdQuery, ErrorOr<bool>>
+    public sealed class ExistsDocumentByUserIdQueryHandler(IDocumentStorage storage, IBlobStorageService blobStorage)
+        : IRequestHandler<ExistsDocumentByUserIdQuery, ErrorOr<bool>>
     {
         private readonly IDocumentStorage _storage = storage;
         private readonly IBlobStorageService _blobStorage = blobStorage;
 
         public async Task<ErrorOr<bool>> Handle(ExistsDocumentByUserIdQuery request, CancellationToken cancellationToken)
         {
-            var documents = new List<Domain.Entities.Document>();
-            var events = (await _storage.GetDocumentList()).GroupBy(e => e.DocumentId).ToList();
+            Console.WriteLine($"[ExistsQueryHandler] Checking if documents exist for user: {request.Id}");
 
-            foreach (var group in events)
+            var allEvents = await _storage.GetDocumentList();
+            var eventsByDoc = allEvents.GroupBy(e => e.DocumentId).ToList();
+
+            Console.WriteLine($"[ExistsQueryHandler] Fetched {allEvents.Count} events grouped into {eventsByDoc.Count} documents");
+
+            var documents = new List<Domain.Entities.Document>();
+
+            foreach (var group in eventsByDoc)
             {
                 if (group.Any(x => x.GetType() == typeof(DocumentDeletedEvent)))
+                {
+                    Console.WriteLine($"[ExistsQueryHandler] Skipping deleted document: {group.Key}");
                     continue;
+                }
 
                 var doc = new Domain.Entities.Document();
                 foreach (var e in group.OrderBy(e => e.OccurredAt))
@@ -36,10 +46,9 @@ namespace Document.Api.Features.Documents
                 documents.Add(doc);
             }
 
-            if (documents.IsNullOrEmpty())
-                return false;
-            return true;
+            Console.WriteLine($"[ExistsQueryHandler] Active documents found: {documents.Count}");
 
+            return !documents.IsNullOrEmpty();
         }
     }
 }
