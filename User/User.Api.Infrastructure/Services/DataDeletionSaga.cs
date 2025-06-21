@@ -52,7 +52,7 @@ namespace User.Api.Infrastructure.Services
             Console.WriteLine("[UserApiSaga] Sent PrepareDeleteCommand");
 
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeoutCts.CancelAfter(TimeSpan.FromSeconds(15)); // Timeout
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(15));
 
             try
             {

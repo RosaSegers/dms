@@ -106,6 +106,7 @@ jobs:
           dotnet test --configuration Release
 
       - name: Collect User API container logs
+        if: always()
         run: docker logs user-api || echo "No logs available or container stopped."
 
       - name: Tear down Docker Compose environment
