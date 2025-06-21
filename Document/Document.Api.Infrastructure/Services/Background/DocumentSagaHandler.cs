@@ -65,7 +65,6 @@ namespace Document.Api.Infrastructure.Services
             if (!existsResult.Value)
             {
                 Console.WriteLine($"[DocumentApiSaga] No documents found for user {userId}");
-                return;
             }
 
             var ackMessage = new SagaMessage
