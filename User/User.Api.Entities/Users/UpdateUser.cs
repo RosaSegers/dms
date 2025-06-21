@@ -107,6 +107,7 @@ namespace User.Api.Features.Users
 
             while (true)
             {
+                // Attempt to update the user
                 try
                 {
                     var user = await _context.Users

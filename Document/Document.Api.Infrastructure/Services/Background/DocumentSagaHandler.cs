@@ -77,7 +77,7 @@ namespace Document.Api.Infrastructure.Services
                 {
                     SagaId = message.SagaId,
                     Type = "PrepareDeleteAcknowledged",
-                    Payload = JsonDocument.Parse($"{{\"UserId\":\"{userId}\"}}").RootElement
+                    Payload = JsonDocument.Parse($"{{\"UserId\":\"{UserId}\"}}").RootElement
                 };
 
                 await _rabbitMq.PublishAsync(DocumentToUserQueue, ackMessage);
