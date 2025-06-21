@@ -1,10 +1,10 @@
-using User.Api.Features;
-using User.Api.Domain;
-using User.Api.Infrastructure;
-using Prometheus;
-
 namespace User.API
 {
+    using Prometheus;
+    using User.Api.Domain;
+    using User.Api.Features;
+    using User.Api.Infrastructure;
+
     public class Program
     {
         public static void Main(string[] args)

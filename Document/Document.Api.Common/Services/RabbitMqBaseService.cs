@@ -86,8 +86,8 @@ namespace Document.Api.Common.Services
 
     public class SagaMessage
     {
-        public string SagaId { get; set; }
-        public string Type { get; set; }
+        public string SagaId { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
         public JsonElement Payload { get; set; }
     }
 }

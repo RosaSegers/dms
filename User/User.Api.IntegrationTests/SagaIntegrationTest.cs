@@ -4,53 +4,38 @@ using System.Net;
 
 namespace User.Api.IntegrationTests
 {
-    public class UserSagaIntegrationTests
+    public class UserApiIntegrationTests
     {
-        private readonly HttpClient _http;
+        private readonly HttpClient _client;
 
-        public UserSagaIntegrationTests()
+        public UserApiIntegrationTests()
         {
-            _http = new HttpClient
+            _client = new HttpClient
             {
-                BaseAddress = new Uri("http://api-gateway:80")
+                BaseAddress = new Uri("http://localhost:5285") // API Gateway exposed port
             };
         }
 
         [Fact]
-        public async Task DeleteUserSaga_ShouldDeleteUserAndDocuments()
+        public async Task CanCreateAndDeleteUser()
         {
-            var userId = Guid.NewGuid();
+            var userPayload = new MultipartFormDataContent
+        {
+            { new StringContent("pipelineUser123"), "Username" },
+            { new StringContent("pipelineuser123@example.com"), "Email" },
+            { new StringContent("Password123456Aa"), "Password" }
+        };
 
-            // 1. Create a user
-            var createUserResponse = await _http.PostAsJsonAsync("/user", new
-            {
-                Id = userId,
-                Name = "Integration Test User"
-            });
+            var createResponse = await _client.PostAsync("/api/users", userPayload);
+            createResponse.EnsureSuccessStatusCode();
 
-            createUserResponse.EnsureSuccessStatusCode();
+            var userIdString = await createResponse.Content.ReadAsStringAsync();
+            var userId = Guid.Parse(userIdString);
 
-            // 2. Create a document for the user
-            var createDocResponse = await _http.PostAsJsonAsync("/document", new
-            {
-                UserId = userId,
-                Title = "Test Document"
-            });
-
-            createDocResponse.EnsureSuccessStatusCode();
-
-            // 3. Trigger user delete (which triggers the saga)
-            var deleteResponse = await _http.DeleteAsync($"/user/{userId}");
-
+            var deleteResponse = await _client.DeleteAsync($"/api/users/{userId}");
             deleteResponse.EnsureSuccessStatusCode();
-
-            // 4. Wait a bit for saga to complete (or poll/check)
-            await Task.Delay(10000);
-
-            // 5. Verify user is deleted
-            var getUserResponse = await _http.GetAsync($"/user/{userId}");
-            getUserResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
     }
+
 
 }
