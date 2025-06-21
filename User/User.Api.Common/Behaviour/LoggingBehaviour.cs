@@ -31,7 +31,6 @@ namespace User.Api.Common.Behaviour
                 stopwatch.Stop();
                 _logger.LogInformation($"[END] {requestNameWithGuid}; Execution time = {stopwatch.Elapsed}");
 
-                // Create and send log to RabbitMQ
                 var log = new
                 {
                     UserId = _userService.UserId,

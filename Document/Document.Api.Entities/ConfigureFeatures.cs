@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Document.Api.Common.Authorization.Requirements;
+using Document.Api.Common.Behaviour;
 using Document.Api.Infrastructure.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -47,7 +48,7 @@ namespace Document.Api.Features
             services.AddMediatR(options =>
             {
                 options.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
-#if TEST
+#if !TEST
                 options.AddOpenBehavior(typeof(ValidationBehaviour<,>));
                 options.AddOpenBehavior(typeof(LoggingBehaviour<,>));
 #endif
