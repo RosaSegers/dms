@@ -11,5 +11,6 @@ namespace Document.Api.Common.Interfaces
         Task<bool> AddDocument(IDocumentEvent document);
         Task<List<IDocumentEvent>> GetDocumentList();
         Task<List<IDocumentEvent>> GetDocumentById(Guid id);
+        Task<bool> DeleteDocument(Guid id);
     }
 }

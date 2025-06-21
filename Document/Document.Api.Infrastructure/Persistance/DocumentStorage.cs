@@ -32,8 +32,6 @@ namespace Document.Api.Infrastructure.Persistance
         }
 
 
-
-
         public async Task<List<IDocumentEvent>> GetDocumentList()
         {
             foreach (IDocumentEvent document in _documents)
@@ -44,11 +42,25 @@ namespace Document.Api.Infrastructure.Persistance
 
         public async Task<List<IDocumentEvent>> GetDocumentById(Guid id)
         {
-            foreach(IDocumentEvent document in _documents) 
+            foreach (IDocumentEvent document in _documents)
                 Console.WriteLine($"Document {id}, Id: {document.Id}, DocumentId: {document.DocumentId}");
 
             await Task.Delay(100); // Simulate async operation
             return _documents.Where(doc => doc.DocumentId == id).ToList();
         }
+
+        public async Task<bool> DeleteDocument(Guid id)
+        {
+            await Task.Delay(100); // Simulate async operation
+            var events = _documents.Where(doc => doc.DocumentId == id).ToList();
+            foreach (var document in events)
+            {
+                _documents.Remove(document);
+                Console.WriteLine($"Document with id {id} has been deleted.");
+            }
+
+            return true;
+        }
+
     }
 }

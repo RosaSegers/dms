@@ -2,6 +2,7 @@ using Document.Api.Common.Interfaces;
 using Document.Api.Features;
 using Document.Api.Infrastructure;
 using Document.Api.Infrastructure.Services;
+using Microsoft.Extensions.Azure;
 using Prometheus;
 
 internal class Program

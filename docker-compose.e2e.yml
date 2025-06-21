@@ -42,11 +42,34 @@ services:
       Logging__LogLevel__Default: "Information"
       Logging__LogLevel__Microsoft.AspNetCore: "Warning"
       AllowedHosts: "*"
+      Gateway: "http://api-gateway:80"
     depends_on:
       rabbitmq:
         condition: service_healthy
       user-sqlserver:
         condition: service_started
+
+  document.api:
+    build:
+      context: .
+      dockerfile: Document/Document.API/Dockerfile
+    container_name: document-api
+    ports:
+      - "5005:80"
+    environment:
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Credentials__Username: "Guest"
+      RabbitMQ__Credentials__Password: "Guest"
+      ASPNETCORE_ENVIRONMENT: "Test"
+      ASPNETCORE_URLS: "http://+:80"
+      Jwt__Key: "SuperSecretDebugKeyForTesting12345"
+      Logging__LogLevel__Default: "Information"
+      Logging__LogLevel__Microsoft.AspNetCore: "Warning"
+      AllowedHosts: "*"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
 
   api-gateway:
     build:

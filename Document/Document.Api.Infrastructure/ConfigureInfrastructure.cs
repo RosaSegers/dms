@@ -20,6 +20,7 @@ namespace Document.Api.Infrastructure
             services.AddSingleton<IDocumentStatusService, InMemoryDocumentStatusService>();
             services.AddSingleton<IBlobStorageService, BlobStorageService>();
 
+            services.AddHostedService<DocumentApiSaga>();
             services.AddHostedService<VirusScanBackgroundService>();
 
             services.AddMemoryCache();

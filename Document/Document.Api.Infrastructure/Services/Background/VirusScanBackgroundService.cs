@@ -51,8 +51,10 @@ namespace Document.Api.Infrastructure.Services.Background
                             // Reset stream position before uploading
                             item.FileStream.Position = 0;
 
+#if !TEST
                             var blobName = $"{item.Document.DocumentId}/{item.FileName}_V{item.Document.Version}";
                             await blobService.UploadAsync(item.FileStream, blobName, item.ContentType);
+#endif
 
                             await storage.AddDocument(item.Document);
                             await statusService.SetStatusAsync(item.Document.DocumentId, "clean");

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using User.Api.Common.Interfaces;
+using User.Api.Common.Services;
 using User.Api.Infrastructure.Persistance;
 using User.Api.Infrastructure.Services;
 using User.API.Common.Interfaces;
@@ -12,6 +13,8 @@ namespace User.Api.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddSingleton<UserApiSaga>();
+
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IHashingService, HashingService>();
 

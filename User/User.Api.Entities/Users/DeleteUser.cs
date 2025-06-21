@@ -16,13 +16,14 @@ using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using User.Api.Common.Authorization.Requirements;
 using User.API.Common.Interfaces;
+using User.Api.Infrastructure.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace User.Api.Features.Users
 {
     public class DeleteUserController() : ApiControllerBase
     {
-
-        [HttpDelete("/api/users/")]
+        [HttpDelete("/api/users/{Id:guid}")]
         public async Task<IResult> GetUsers([FromRoute] DeleteUserCommand command)
         {
             var result = await Mediator.Send(command);
@@ -33,9 +34,9 @@ namespace User.Api.Features.Users
         }
     }
 
-    public record DeleteUserCommand() : IRequest<ErrorOr<Unit>>;
+    public record DeleteUserCommand(Guid Id) : IRequest<ErrorOr<Unit>>;
 
-    public sealed class DeleteUserCommandHandler(UserDatabaseContext context, ICurrentUserService userService) : IRequestHandler<DeleteUserCommand, ErrorOr<Unit>>
+    public sealed class DeleteUserCommandHandler(UserDatabaseContext context, ICurrentUserService userService, UserApiSaga userSaga) : IRequestHandler<DeleteUserCommand, ErrorOr<Unit>>
     {
         private readonly UserDatabaseContext _context = context;
 
@@ -44,18 +45,13 @@ namespace User.Api.Features.Users
         {
             try
             {
-                if (userService.UserId == null || userService.UserId == Guid.Empty)
-                    return Error.Validation("id", "A valid user ID is required.");
-
                 var user = await _context.Users
-                    .SingleOrDefaultAsync(x => x.Id == userService.UserId, cancellationToken);
+                    .SingleOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
                 if (user is null)
                     return Error.NotFound("User not found.");
 
-                _context.Users.Remove(user);
-
-                await _context.SaveChangesAsync(cancellationToken);
+                await userSaga.StartDeleteSagaAsync(request.Id!);
 
                 return Unit.Value;
             }
