@@ -51,6 +51,7 @@ namespace User.Api.Features.Users
                 if (user is null)
                     return Error.NotFound("User not found.");
 
+                // This is now using the saga to handle the deletion process
                 await userSaga.StartDeleteSagaAsync(request.Id!);
 
                 return Unit.Value;
