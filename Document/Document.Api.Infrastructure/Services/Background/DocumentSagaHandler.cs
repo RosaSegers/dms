@@ -60,17 +60,17 @@ namespace Document.Api.Infrastructure.Services
             {
                 Console.WriteLine($"[DocumentApiSaga] Handling PrepareDeleteCommand for saga {message.SagaId}");
 
-                var userId = message.Payload.GetProperty("UserId").GetString();
-                Console.WriteLine($"[DocumentApiSaga] Preparing to delete documents for user {userId}");
+                var UserId = Guid.Parse(message.Payload.GetProperty("UserId").GetString()!);
+                Console.WriteLine($"[DocumentApiSaga] Preparing to delete documents for user {UserId}");
 
-                var existsQuery = new ExistsDocumentByUserIdQuery(Guid.Parse(userId));
+                var existsQuery = new ExistsDocumentByUserIdQuery(UserId);
                 var existsResult = await _mediator.Send(existsQuery);
 
                 Console.WriteLine($"ExistsDocumentByUserIdQuery result: {existsResult.IsError} / {existsResult.Value}");
 
                 if (!existsResult.Value)
                 {
-                    Console.WriteLine($"[DocumentApiSaga] No documents found for user {userId}");
+                    Console.WriteLine($"[DocumentApiSaga] No documents found for user {UserId}");
                 }
 
                 var ackMessage = new SagaMessage
@@ -108,20 +108,20 @@ namespace Document.Api.Infrastructure.Services
         {
             try
             {
-                var userId = message.Payload.GetProperty("UserId").GetString();
-                Console.WriteLine($"[DocumentApiSaga] Deleting documents for user {userId}");
+                var UserId = Guid.Parse(message.Payload.GetProperty("UserId").GetString()!);
+                Console.WriteLine($"[DocumentApiSaga] Deleting documents for user {UserId}");
 
-                var command = new DeleteDocumentByUserIdCommand(Guid.Parse(userId));
+                var command = new DeleteDocumentByUserIdCommand(UserId);
                 var result = await _mediator.Send(command);
 
                 SagaMessage response = new()
                 {
                     SagaId = message.SagaId,
                     Type = result.IsError ? "DeleteFailed" : "DeleteSucceeded",
-                    Payload = JsonDocument.Parse($"{{\"UserId\":\"{userId}\"}}").RootElement
+                    Payload = JsonDocument.Parse($"{{\"UserId\":\"{UserId}\"}}").RootElement
                 };
 
-                Console.WriteLine($"[DocumentApiSaga] Deletion {(result.IsError ? "failed" : "succeeded")} for user {userId}");
+                Console.WriteLine($"[DocumentApiSaga] Deletion {(result.IsError ? "failed" : "succeeded")} for user {UserId}");
                 await _rabbitMq.PublishAsync(DocumentToUserQueue, response);
             }
             catch (Exception ex)

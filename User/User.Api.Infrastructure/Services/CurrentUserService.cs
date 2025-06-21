@@ -17,7 +17,6 @@ namespace User.Api.Infrastructure.Services
         {
             get
             {
-                // Attempt to retrieve the user ID from the claims in the current HTTP context
                 var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (Guid.TryParse(userIdClaim, out var userId))
                 {
