@@ -51,7 +51,10 @@ namespace User.Api.Features.Users
                 if (user is null)
                     return Error.NotFound("User not found.");
 
-                await userSaga.StartDeleteSagaAsync(request.Id!);
+                var saga = await userSaga.StartDeleteSagaAsync(request.Id!);
+
+                if(!saga)
+                    return Error.Failure("Failed to start the deletion saga for the user.");
 
                 return Unit.Value;
             }
