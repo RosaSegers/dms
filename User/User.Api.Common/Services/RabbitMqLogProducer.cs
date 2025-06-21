@@ -14,6 +14,7 @@ namespace User.Api.Infrastructure.Services
 
         public RabbitMqLogProducer(IConfiguration configuration)
         {
+            // Ensure the RabbitMQ host is configured
             _hostname = configuration.GetSection("RabbitMQ:Host").Value??"";
 
             var factory = new ConnectionFactory
