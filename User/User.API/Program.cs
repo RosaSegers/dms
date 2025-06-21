@@ -16,7 +16,8 @@ namespace User.API
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(name: "ApiGateway",
+                options.AddPolicy(
+                    name: "ApiGateway",
                     policy =>
                     {
                         policy.WithOrigins(builder.Configuration["Gateway"] ?? throw new Exception())
