@@ -105,6 +105,9 @@ jobs:
           cd User/User.Api.IntegrationTests
           dotnet test --configuration Release
 
+      - name: Collect User API container logs
+        run: docker logs user-api || echo "No logs available or container stopped."
+
       - name: Tear down Docker Compose environment
         if: always()
         run: docker compose -f docker-compose.e2e.yml down -v
