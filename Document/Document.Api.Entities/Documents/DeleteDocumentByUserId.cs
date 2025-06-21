@@ -18,6 +18,12 @@ namespace Document.Api.Features.Documents
             Console.WriteLine($"[DeleteCommandHandler] Deleting documents for user: {request.UserId}");
 
             var allEvents = await _storage.GetDocumentList();
+            
+            if (allEvents is null)
+                return Unit.Value;
+            if (allEvents.Count == 0)
+                return Unit.Value;
+
             var eventsByDoc = allEvents.GroupBy(e => e.DocumentId).ToList();
 
             Console.WriteLine($"[DeleteCommandHandler] Fetched {allEvents.Count} events grouped into {eventsByDoc.Count} documents");

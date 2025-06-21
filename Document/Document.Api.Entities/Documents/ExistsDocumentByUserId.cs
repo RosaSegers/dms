@@ -25,6 +25,12 @@ namespace Document.Api.Features.Documents
             Console.WriteLine($"[ExistsQueryHandler] Checking if documents exist for user: {request.UserId}");
 
             var allEvents = await _storage.GetDocumentList();
+
+            if (allEvents is null)
+                return false;
+            if (allEvents.Count == 0)
+                return false;
+
             var eventsByDoc = allEvents.GroupBy(e => e.DocumentId).ToList();
 
             Console.WriteLine($"[ExistsQueryHandler] Fetched {allEvents.Count} events grouped into {eventsByDoc.Count} documents");

@@ -18,6 +18,7 @@ namespace User.Api.Infrastructure.Services
         public UserApiSaga(IConfiguration configuration, UserDatabaseContext dbContext)
             : base(configuration.GetSection("RabbitMQ:Host").Value ?? "")
         {
+            //logic needs to be added to handle no documents exsisting.
             Console.WriteLine("[UserApiSaga] Initializing queues and consumers");
 
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext), "UserDatabaseContext must not be null");
