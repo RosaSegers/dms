@@ -78,5 +78,25 @@ namespace User.Api.Test.Unit
             Assert.True(result.Value == Guid.Empty);
             Assert.Equal("Hashing error", result.Errors.First().Code);
         }
+
+        [Fact]
+        public async Task Handle_ShouldReturnValidationError_WhenDbUpdateExceptionDueToUniqueConstraint()
+        {
+            // Arrange
+            var command = new CreateUserCommand("duplicateuser", "duplicate@example.com", "Password123");
+
+            _hashingServiceMock.Setup(h => h.Hash(It.IsAny<string>())).Returns("hashedPassword123");
+
+            _dbContextMock.Setup(d => d.Users.AddAsync(It.IsAny<Domain.Entities.User>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new DbUpdateException("Violation of UNIQUE KEY constraint"));
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            Assert.True(result.IsError);
+            Assert.Contains(result.Errors, e => e.Code == "Database");
+            Assert.Contains(result.Errors, e => e.Description.Contains("exists"));
+        }
     }
 }

@@ -1,37 +1,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auditing-api
+  name: log-saver
   labels:
-    app: auditing-api
+    app: log-saver
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auditing-api
+      app: log-saver
   template:
     metadata:
       labels:
-        app: auditing-api
+        app: log-saver
     spec:
       containers:
-        - name: auditing-api
-          image: gyliana/auditing-api:latest
+        - name: log-saver
+          image: gyliana/log-saver:latest
           imagePullPolicy: Always
           volumeMounts:
             - name: secret-volume
-              mountPath: "/Secrets"
+              mountPath: /secrets
               readOnly: true
-          ports:
-            - containerPort: 80
           resources:
             requests:
               cpu: 50m
-              memory: 128Mi
+              memory: 64Mi
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 200m
+              memory: 256Mi
       volumes:
         - name: secret-volume
           secret:
-            secretName: auditing-secrets
+            secretName: log-saver-secrets

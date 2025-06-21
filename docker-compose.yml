@@ -59,33 +59,6 @@ services:
       SA_PASSWORD: "YourStrong!Password"
       ACCEPT_EULA: "Y"
 
-  auditing-api:
-    build:
-      context: .
-      dockerfile: Auditing/Auditing.Api/Dockerfile
-    container_name: auditing-api
-    ports:
-      - "5002:80"
-    environment:
-
-      ASPNETCORE_ENVIRONMENT: "Development"
-      ASPNETCORE_URLS: "http://+:80"
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      audit-sqlserver:
-        condition: service_started
-
-  audit-sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: audit-sqlserver
-    ports:
-      - "1435:1435"
-    environment:
-      SA_USER: "sa"
-      SA_PASSWORD: "YourStrong!Password"
-      ACCEPT_EULA: "Y"
-
   accesscontrol-api:
     build:
       context: .
@@ -114,6 +87,17 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  log-saver:
+    build:
+      context: ./log-saver
+      dockerfile: Dockerfile
+    container_name: log-saver
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sqlserver
@@ -129,7 +113,7 @@ services:
       dockerfile: Dockerfile
     container_name: document-frontend
     ports:
-      - "8080:8080"
+      - "8080:8080" 
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:8080"
