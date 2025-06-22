@@ -12,7 +12,8 @@ namespace User.API
             // Create a new web application builder
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Configuration.AddJsonFile("/Secrets/user-secrets.json", optional: true, reloadOnChange: false)
+            builder.Configuration
+                .AddJsonFile("/Secrets/user-secrets.json", optional: true, reloadOnChange: false)
                 .AddEnvironmentVariables();
 
             builder.Services.AddCors(options =>
